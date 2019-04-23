@@ -1,4 +1,7 @@
-use super::{ApiClient};
+use super::{
+  ApiClient, 
+  Params,
+};
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -11,8 +14,8 @@ pub struct TimeSerieResponse {
 #[serde(rename_all = "camelCase")]
 pub struct TimeSerieListResponse {
   items : Vec<TimeSerie>,
-  previous_cursor : String,
-  next_cursor : String
+  previous_cursor : Option<String>,
+  next_cursor : Option<String>,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -39,5 +42,12 @@ impl TimeSeries {
     TimeSeries {
       api_client : api_client
     }
+  }
+
+  pub fn search(&self, params : Option<Vec<Params>>) -> Vec<TimeSerie> {
+    let time_series_response_json = self.api_client.get("timeseries/search", params).unwrap();
+    let time_series_response : TimeSerieResponse = serde_json::from_str(&time_series_response_json).unwrap();
+    let time_series = time_series_response.data.items;
+    time_series
   }
 }

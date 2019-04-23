@@ -116,4 +116,44 @@ pub enum Params {
   EventsSearchLimit(u32),
   #[serde(rename = "offset")]
   EventsSearchOffset(u32),
+
+  // TIME SERIES
+
+  // Search
+  #[serde(rename = "name")]
+  TimeSeriesSearchName(String),
+  #[serde(rename = "description")]
+  TimeSeriesSearchDescription(String),
+  #[serde(rename = "query")]
+  TimeSeriesSearchQuery(String),
+  #[serde(rename = "unit")]
+  TimeSeriesSearchUnit(String),
+  #[serde(rename = "isString")]
+  TimeSeriesSearchIsString(bool),
+  #[serde(rename = "isStep")]
+  TimeSeriesSearchIsStep(bool),
+  #[serde(rename = "metadata")]
+  TimeSeriesSearchMetadata(HashMap<String, String>),
+  #[serde(rename = "assetIds")]
+  TimeSeriesSearchAssetIds(String),
+  #[serde(rename = "assetSubtrees")]
+  TimeSeriesSearchAssetSubtrees(String),
+  #[serde(rename = "minCreatedTime")]
+  TimeSeriesSearchMinCreatedTime(u64),
+  #[serde(rename = "maxCreatedTime")]
+  TimeSeriesSearchMaxCreatedTime(u64),
+  #[serde(rename = "minLastUpdatedTime")]
+  TimeSeriesSearchMinLastUpdatedTime(u64),
+  #[serde(rename = "maxLastUpdatedTime")]
+  TimeSeriesSearchMaxLastUpdatedTime(u64),
+  #[serde(rename = "sort")]
+  TimeSeriesSearchSort(String),
+  #[serde(rename = "dir")]
+  TimeSeriesSearchDir(String),
+  #[serde(rename = "limit")]
+  TimeSeriesSearchLimit(u32),
+  #[serde(rename = "offset")]
+  TimeSeriesSearchOffset(u32),
+  #[serde(rename = "boostName")]
+  TimeSeriesSearchBoostName(bool),
 } 

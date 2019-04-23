@@ -1,6 +1,5 @@
 use super::{
   ApiClient,
-  Params,
 };
 use serde::{Deserialize, Serialize};
 

@@ -4,6 +4,7 @@ use cognite::{
   CogniteClient,
   Asset,
   Event,
+  TimeSerie,
   Params,
 };
 
@@ -40,4 +41,11 @@ fn main() {
   ));
   let event_search : Vec<Event> = cognite_client.events.search(event_search_params);
   println!("Search found {:?} events", event_search.len());
+
+  // Search time serie
+  let time_serie_search_params = Some(vec!(
+    Params::TimeSeriesSearchName("val".to_owned()),
+  ));
+  let time_series_search : Vec<TimeSerie> = cognite_client.time_series.search(time_serie_search_params);
+  println!("Search found {:?} time series", time_series_search.len());
 }
