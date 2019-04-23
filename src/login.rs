@@ -1,4 +1,7 @@
-use super::{ApiClient};
+use super::{
+  ApiClient,
+  Params,
+};
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -28,7 +31,8 @@ impl Login {
   }
 
   pub fn status(&self) -> LoginStatus {
-    let login_status_response_json = self.api_client.get("login/status".to_string()).unwrap();
+    let http_params = None;
+    let login_status_response_json = self.api_client.get("login/status", http_params).unwrap();
     let login_status_response : LoginStatusResponse = serde_json::from_str(&login_status_response_json).unwrap();
     let status = login_status_response.data;
     status

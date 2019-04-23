@@ -17,8 +17,8 @@ pub struct EventListResponse {
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct Event {
-  start_time : u128,
-  end_time : u128,
+  start_time : u64,
+  end_time : u64,
   description : String,
   r#type : String,
   subtype : String,
@@ -26,8 +26,8 @@ pub struct Event {
   asset_ids : Vec<u64>,
   source : String,
   source_id : String,
-  created_time : u128,
-  last_updated_time : u128,
+  created_time : u64,
+  last_updated_time : u64,
 }
 
 pub struct Events {

@@ -1,5 +1,8 @@
 use std::collections::HashMap;
-use super::{ApiClient};
+use super::{
+  ApiClient, 
+  Params,
+};
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -42,17 +45,26 @@ impl Assets {
     }
   }
 
-  pub fn list_all(&self) -> Vec<Asset> {
-    let assets_response_json = self.api_client.get("assets".to_string()).unwrap();
+  pub fn list_all(&self, params : Option<Vec<Params>>) -> Vec<Asset> {
+    let assets_response_json = self.api_client.get("assets", params).unwrap();
     let assets_response : AssetResponse = serde_json::from_str(&assets_response_json).unwrap();
     let assets = assets_response.data.items;
     assets
   }
 
   pub fn retrieve(&self, asset_id : u64) -> Asset {
-    let asset_response_json = self.api_client.get(format!("assets/{}", asset_id)).unwrap();
+    let http_params = None;
+
+    let asset_response_json = self.api_client.get(&format!("assets/{}", asset_id), http_params).unwrap();
     let mut asset_response : AssetResponse = serde_json::from_str(&asset_response_json).unwrap();
     let asset = asset_response.data.items.pop().unwrap();
     asset
+  }
+
+  pub fn search(&self, params : Option<Vec<Params>>) -> Vec<Asset> {
+    let assets_response_json = self.api_client.get("assets/search", params).unwrap();
+    let assets_response : AssetResponse = serde_json::from_str(&assets_response_json).unwrap();
+    let assets = assets_response.data.items;
+    assets
   }
 }

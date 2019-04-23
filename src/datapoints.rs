@@ -23,7 +23,7 @@ pub struct DatapointsResponse {
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct Datapoint {
-  timestamp : u128,
+  timestamp : u64,
   value : String,
   average : u64,
   max : u64,
