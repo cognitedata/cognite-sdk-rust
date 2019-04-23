@@ -78,4 +78,42 @@ pub enum Params {
   EventsListAllMaxStartTime(u64),
   #[serde(rename = "source")]
   EventsListAllSource(String),
+
+  // Search
+  #[serde(rename = "description")]
+  EventsSearchDescription(String),
+  #[serde(rename = "type")]
+  EventsSearchType(String),
+  #[serde(rename = "subType")]
+  EventsSearchSubType(String),
+  #[serde(rename = "minStartTime")]
+  EventsSearchMinStartTime(u64),
+  #[serde(rename = "maxStartTime")]
+  EventsSearchMaxStartTime(u64),
+  #[serde(rename = "minEndTime")]
+  EventsSearchMinEndTime(u64),
+  #[serde(rename = "maxEndTime")]
+  EventsSearchMaxEndTime(u64),
+  #[serde(rename = "minCreatedTime")]
+  EventsSearchMinCreatedTime(u64),
+  #[serde(rename = "maxCreatedTime")]
+  EventsSearchMaxCreatedTime(u64),
+  #[serde(rename = "minLastUpdatedTime")]
+  EventsSearchMinLastUpdatedTime(u64),
+  #[serde(rename = "maxLastUpdatedTime")]
+  EventsSearchMaxLastUpdatedTime(u64),
+  #[serde(rename = "metadata")]
+  EventsSearchMetadata(HashMap<String, String>),
+  #[serde(rename = "assetIds")]
+  EventsSearchAssetIds(String),
+  #[serde(rename = "assetSubtrees")]
+  EventsSearchAssetSubtrees(String),
+  #[serde(rename = "sort")]
+  EventsSearchSort(String),
+  #[serde(rename = "dir")]
+  EventsSearchDir(String),
+  #[serde(rename = "limit")]
+  EventsSearchLimit(u32),
+  #[serde(rename = "offset")]
+  EventsSearchOffset(u32),
 } 

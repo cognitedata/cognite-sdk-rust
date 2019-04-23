@@ -33,4 +33,11 @@ fn main() {
   // List all events
   let events : Vec<Event> = cognite_client.events.list_all(None);
   println!("{} events retrieved.", events.len());
+
+  // Search events
+  let event_search_params = Some(vec!(
+    Params::EventsSearchSubType("val".to_owned()),
+  ));
+  let event_search : Vec<Event> = cognite_client.events.search(event_search_params);
+  println!("{:?}", event_search);
 }
