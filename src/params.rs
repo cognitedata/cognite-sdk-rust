@@ -177,4 +177,23 @@ pub enum Params {
   TimeSeriesSearch_Offset(u32),
   #[serde(rename = "boostName")]
   TimeSeriesSearch_BoostName(bool),
+
+  // DATAPOINTS
+
+  // Retrieve from time series
+  #[serde(rename = "start")]
+  DatapointsRetrieve_Start(String),
+  #[serde(rename = "end")]
+  DatapointsRetrieve_End(String),
+  #[serde(rename = "aggregates")]
+  DatapointsRetrieve_Aggregates(String),
+  #[serde(rename = "granularity")]
+  DatapointsRetrieve_Granularity(String),
+  #[serde(rename = "limit")]
+  DatapointsRetrieve_Limit(u32),
+  #[serde(rename = "includeOutsidePoints")]
+  DatapointsRetrieve_IncludeOutsidePoints(bool),
+
+  #[serde(rename = "before")]
+  DatapointsRetrieveLatest_Before(String),
 } 

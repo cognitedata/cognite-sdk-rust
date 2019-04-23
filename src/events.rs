@@ -7,7 +7,7 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
-pub struct EventResponse {
+pub struct EventResponseWrapper {
   data : EventListResponse
 }
 
@@ -48,7 +48,7 @@ impl Events {
 
   pub fn list_all(&self, params : Option<Vec<Params>>) -> Vec<Event> {
     let events_response_json = self.api_client.get("events", params).unwrap();
-    let events_response : EventResponse = serde_json::from_str(&events_response_json).unwrap();
+    let events_response : EventResponseWrapper = serde_json::from_str(&events_response_json).unwrap();
     let events = events_response.data.items;
     events
   }
@@ -57,7 +57,7 @@ impl Events {
     let http_params = None;
 
     let event_response_json = self.api_client.get(&format!("events/{}", event_id), http_params).unwrap();
-    let mut event_response : EventResponse = serde_json::from_str(&event_response_json).unwrap();
+    let mut event_response : EventResponseWrapper = serde_json::from_str(&event_response_json).unwrap();
     let event = event_response.data.items.pop().unwrap();
     event
   }
@@ -65,14 +65,14 @@ impl Events {
   pub fn retrieve_multiple(&self, event_ids : Vec<u64>) -> Vec<Event> {
     let request_body = format!("{{\"items\":{} }}", serde_json::to_string(&event_ids).unwrap());
     let events_response_json = self.api_client.post("events/byids", &request_body).unwrap();
-    let events_response : EventResponse = serde_json::from_str(&events_response_json).unwrap();
+    let events_response : EventResponseWrapper = serde_json::from_str(&events_response_json).unwrap();
     let events = events_response.data.items;
     events
   }
 
   pub fn search(&self, params : Option<Vec<Params>>) -> Vec<Event> {
     let events_response_json = self.api_client.get("events/search", params).unwrap();
-    let events_response : EventResponse = serde_json::from_str(&events_response_json).unwrap();
+    let events_response : EventResponseWrapper = serde_json::from_str(&events_response_json).unwrap();
     let events = events_response.data.items;
     events
   }

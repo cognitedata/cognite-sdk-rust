@@ -7,7 +7,7 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
-pub struct AssetResponse {
+pub struct AssetResponseWrapper {
   data : AssetListResponse
 }
 
@@ -47,7 +47,7 @@ impl Assets {
 
   pub fn list_all(&self, params : Option<Vec<Params>>) -> Vec<Asset> {
     let assets_response_json = self.api_client.get("assets", params).unwrap();
-    let assets_response : AssetResponse = serde_json::from_str(&assets_response_json).unwrap();
+    let assets_response : AssetResponseWrapper = serde_json::from_str(&assets_response_json).unwrap();
     let assets = assets_response.data.items;
     assets
   }
@@ -56,7 +56,7 @@ impl Assets {
     let http_params = None;
 
     let asset_response_json = self.api_client.get(&format!("assets/{}", asset_id), http_params).unwrap();
-    let mut asset_response : AssetResponse = serde_json::from_str(&asset_response_json).unwrap();
+    let mut asset_response : AssetResponseWrapper = serde_json::from_str(&asset_response_json).unwrap();
     let asset = asset_response.data.items.pop().unwrap();
     asset
   }
@@ -64,14 +64,14 @@ impl Assets {
   pub fn retrieve_multiple(&self, asset_ids : Vec<u64>) -> Vec<Asset> {
     let request_body = format!("{{\"items\":{} }}", serde_json::to_string(&asset_ids).unwrap());
     let assets_response_json = self.api_client.post("assets/byids", &request_body).unwrap();
-    let assets_response : AssetResponse = serde_json::from_str(&assets_response_json).unwrap();
+    let assets_response : AssetResponseWrapper = serde_json::from_str(&assets_response_json).unwrap();
     let assets = assets_response.data.items;
     assets
   }
 
   pub fn search(&self, params : Option<Vec<Params>>) -> Vec<Asset> {
     let assets_response_json = self.api_client.get("assets/search", params).unwrap();
-    let assets_response : AssetResponse = serde_json::from_str(&assets_response_json).unwrap();
+    let assets_response : AssetResponseWrapper = serde_json::from_str(&assets_response_json).unwrap();
     let assets = assets_response.data.items;
     assets
   }
