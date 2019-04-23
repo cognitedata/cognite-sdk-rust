@@ -2,7 +2,6 @@ use std::collections::HashMap;
 use reqwest::Client;
 use reqwest::header::{HeaderMap, HeaderValue, CONTENT_TYPE, ACCEPT, USER_AGENT};
 use reqwest::Error;
-use std::any::Any;
 
 use super::{Params};
 
