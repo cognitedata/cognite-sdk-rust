@@ -1,159 +1,180 @@
 use std::collections::HashMap;
 use serde::{Deserialize, Serialize};
 
+#[allow(non_camel_case_types)]
 #[derive(Serialize, Deserialize, Debug)]
 pub enum Params {
   // ASSET
 
   // Search
   #[serde(rename = "name")]
-  AssetsSearchName(String),
+  AssetsSearch_Name(String),
   #[serde(rename = "description")]
-  AssetsSearchDescription(String),
+  AssetsSearch_Description(String),
   #[serde(rename = "query")]
-  AssetsSearchQuery(String),
+  AssetsSearch_Query(String),
   #[serde(rename = "metadata")]
-  AssetsSearchMetadata(HashMap<String, String>),
+  AssetsSearch_Metadata(HashMap<String, String>),
   #[serde(rename = "assetSubtrees")]
-  AssetsSearchAssetSubtrees(String),
+  AssetsSearch_AssetSubtrees(String),
   #[serde(rename = "minCreatedTime")]
-  AssetsSearchMinCreatedTime(u64),
+  AssetsSearch_MinCreatedTime(u64),
   #[serde(rename = "maxCreatedTime")]
-  AssetsSearchMaxCreatedTime(u64),
+  AssetsSearch_MaxCreatedTime(u64),
   #[serde(rename = "minLastUpdatedTime")]
-  AssetsSearchMinLastUpdatedTime(u64),
+  AssetsSearch_MinLastUpdatedTime(u64),
   #[serde(rename = "maxLastUpdatedTime")]
-  AssetsSearchMaxLastUpdatedTime(u64),
+  AssetsSearch_MaxLastUpdatedTime(u64),
   #[serde(rename = "sort")]
-  AssetsSearchSort(String),
+  AssetsSearch_Sort(String),
   #[serde(rename = "dir")]
-  AssetsSearchDir(String),
+  AssetsSearch_Dir(String),
   #[serde(rename = "limit")]
-  AssetsSearchLimit(u32),
+  AssetsSearch_Limit(u32),
   #[serde(rename = "offset")]
-  AssetsSearchOffset(u32),
+  AssetsSearch_Offset(u32),
   #[serde(rename = "boostName")]
-  AssetsSearchBoostName(bool),
+  AssetsSearch_BoostName(bool),
 
   // ListAll
   #[serde(rename = "name")]
-  AssetsListAllName(String),
+  AssetsListAll_Name(String),
   #[serde(rename = "fuzziness")]
-  AssetsListAllFuzziness(u32),
+  AssetsListAll_Fuzziness(u32),
   #[serde(rename = "path")]
-  AssetsListAllPath(String),
+  AssetsListAll_Path(String),
   #[serde(rename = "depth")]
-  AssetsListAllDepth(String),
+  AssetsListAll_Depth(String),
   #[serde(rename = "metadata")]
-  AssetsListAllMetadata(HashMap<String,String>),
+  AssetsListAll_Metadata(HashMap<String,String>),
   #[serde(rename = "description")]
-  AssetsListAllDescription(String),
+  AssetsListAll_Description(String),
   #[serde(rename = "source")]
-  AssetsListAllSource(String),
+  AssetsListAll_Source(String),
   #[serde(rename = "cursor")]
-  AssetsListAllCursor(String),
+  AssetsListAll_Cursor(String),
   #[serde(rename = "limit")]
-  AssetsListAllLimit(u32),
+  AssetsListAll_Limit(u32),
 
   // EVENTS 
 
   // ListAll
   #[serde(rename = "type")]
-  EventsListAllType(String),
+  EventsListAll_Type(String),
   #[serde(rename = "subType")]
-  EventsListAllSubType(String),
+  EventsListAll_SubType(String),
   #[serde(rename = "assetId")]
-  EventsListAllAssetId(u64),
+  EventsListAll_AssetId(u64),
   #[serde(rename = "sort")]
-  EventsListAllSort(String),
+  EventsListAll_Sort(String),
   #[serde(rename = "cursor")]
-  EventsListAllCursor(String),
+  EventsListAll_Cursor(String),
   #[serde(rename = "limit")]
-  EventsListAllLimit(u32),
+  EventsListAll_Limit(u32),
   #[serde(rename = "hasDescription")]
-  EventsListAllHasDescription(bool),
+  EventsListAll_HasDescription(bool),
   #[serde(rename = "minStartTime")]
-  EventsListAllMinStartTime(u64),
+  EventsListAll_MinStartTime(u64),
   #[serde(rename = "maxStartTime")]
-  EventsListAllMaxStartTime(u64),
+  EventsListAll_MaxStartTime(u64),
   #[serde(rename = "source")]
-  EventsListAllSource(String),
+  EventsListAll_Source(String),
 
   // Search
   #[serde(rename = "description")]
-  EventsSearchDescription(String),
+  EventsSearch_Description(String),
   #[serde(rename = "type")]
-  EventsSearchType(String),
+  EventsSearch_Type(String),
   #[serde(rename = "subType")]
-  EventsSearchSubType(String),
+  EventsSearch_SubType(String),
   #[serde(rename = "minStartTime")]
-  EventsSearchMinStartTime(u64),
+  EventsSearch_MinStartTime(u64),
   #[serde(rename = "maxStartTime")]
-  EventsSearchMaxStartTime(u64),
+  EventsSearch_MaxStartTime(u64),
   #[serde(rename = "minEndTime")]
-  EventsSearchMinEndTime(u64),
+  EventsSearch_MinEndTime(u64),
   #[serde(rename = "maxEndTime")]
-  EventsSearchMaxEndTime(u64),
+  EventsSearch_MaxEndTime(u64),
   #[serde(rename = "minCreatedTime")]
-  EventsSearchMinCreatedTime(u64),
+  EventsSearch_MinCreatedTime(u64),
   #[serde(rename = "maxCreatedTime")]
-  EventsSearchMaxCreatedTime(u64),
+  EventsSearch_MaxCreatedTime(u64),
   #[serde(rename = "minLastUpdatedTime")]
-  EventsSearchMinLastUpdatedTime(u64),
+  EventsSearch_MinLastUpdatedTime(u64),
   #[serde(rename = "maxLastUpdatedTime")]
-  EventsSearchMaxLastUpdatedTime(u64),
+  EventsSearch_MaxLastUpdatedTime(u64),
   #[serde(rename = "metadata")]
-  EventsSearchMetadata(HashMap<String, String>),
+  EventsSearch_Metadata(HashMap<String, String>),
   #[serde(rename = "assetIds")]
-  EventsSearchAssetIds(String),
+  EventsSearch_AssetIds(String),
   #[serde(rename = "assetSubtrees")]
-  EventsSearchAssetSubtrees(String),
+  EventsSearch_AssetSubtrees(String),
   #[serde(rename = "sort")]
-  EventsSearchSort(String),
+  EventsSearch_Sort(String),
   #[serde(rename = "dir")]
-  EventsSearchDir(String),
+  EventsSearch_Dir(String),
   #[serde(rename = "limit")]
-  EventsSearchLimit(u32),
+  EventsSearch_Limit(u32),
   #[serde(rename = "offset")]
-  EventsSearchOffset(u32),
+  EventsSearch_Offset(u32),
 
   // TIME SERIES
 
+  // ListAll 
+  #[serde(rename = "q")]
+  TimeSeriesListAll_Q(String),
+  #[serde(rename = "description")]
+  TimeSeriesListAll_Description(String),
+  #[serde(rename = "limit")]
+  TimeSeriesListAll_Limit(u32),
+  #[serde(rename = "includeMetadata")]
+  TimeSeriesListAll_IncludeMetadata(bool),
+  #[serde(rename = "cursor")]
+  TimeSeriesListAll_Cursor(String),
+  #[serde(rename = "assetId")]
+  TimeSeriesListAll_AssetId(u64),
+  #[serde(rename = "path")]
+  TimeSeriesListAll_Path(String),
+
+  // Retrieve
+  #[serde(rename = "includeMetadata")]
+  TimeSeriesRetrieve_IncludeMetadata(bool),
+
   // Search
   #[serde(rename = "name")]
-  TimeSeriesSearchName(String),
+  TimeSeriesSearch_Name(String),
   #[serde(rename = "description")]
-  TimeSeriesSearchDescription(String),
+  TimeSeriesSearch_Description(String),
   #[serde(rename = "query")]
-  TimeSeriesSearchQuery(String),
+  TimeSeriesSearch_Query(String),
   #[serde(rename = "unit")]
-  TimeSeriesSearchUnit(String),
+  TimeSeriesSearch_Unit(String),
   #[serde(rename = "isString")]
-  TimeSeriesSearchIsString(bool),
+  TimeSeriesSearch_IsString(bool),
   #[serde(rename = "isStep")]
-  TimeSeriesSearchIsStep(bool),
+  TimeSeriesSearch_IsStep(bool),
   #[serde(rename = "metadata")]
-  TimeSeriesSearchMetadata(HashMap<String, String>),
+  TimeSeriesSearch_Metadata(HashMap<String, String>),
   #[serde(rename = "assetIds")]
-  TimeSeriesSearchAssetIds(String),
+  TimeSeriesSearch_AssetIds(String),
   #[serde(rename = "assetSubtrees")]
-  TimeSeriesSearchAssetSubtrees(String),
+  TimeSeriesSearch_AssetSubtrees(String),
   #[serde(rename = "minCreatedTime")]
-  TimeSeriesSearchMinCreatedTime(u64),
+  TimeSeriesSearch_MinCreatedTime(u64),
   #[serde(rename = "maxCreatedTime")]
-  TimeSeriesSearchMaxCreatedTime(u64),
+  TimeSeriesSearch_MaxCreatedTime(u64),
   #[serde(rename = "minLastUpdatedTime")]
-  TimeSeriesSearchMinLastUpdatedTime(u64),
+  TimeSeriesSearch_MinLastUpdatedTime(u64),
   #[serde(rename = "maxLastUpdatedTime")]
-  TimeSeriesSearchMaxLastUpdatedTime(u64),
+  TimeSeriesSearch_MaxLastUpdatedTime(u64),
   #[serde(rename = "sort")]
-  TimeSeriesSearchSort(String),
+  TimeSeriesSearch_Sort(String),
   #[serde(rename = "dir")]
-  TimeSeriesSearchDir(String),
+  TimeSeriesSearch_Dir(String),
   #[serde(rename = "limit")]
-  TimeSeriesSearchLimit(u32),
+  TimeSeriesSearch_Limit(u32),
   #[serde(rename = "offset")]
-  TimeSeriesSearchOffset(u32),
+  TimeSeriesSearch_Offset(u32),
   #[serde(rename = "boostName")]
-  TimeSeriesSearchBoostName(bool),
+  TimeSeriesSearch_BoostName(bool),
 } 

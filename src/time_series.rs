@@ -23,11 +23,11 @@ pub struct TimeSerieListResponse {
 pub struct TimeSerie {
   name: String,
   is_string: bool,
-  unit: String,
+  unit: Option<String>,
   asset_id: u64,
   is_step: bool,
   description: String,
-  security_categories: Vec<u64>,
+  security_categories: Option<Vec<u64>>,
   id: u64,
   created_time: u64,
   last_updated_time: u64
@@ -42,6 +42,30 @@ impl TimeSeries {
     TimeSeries {
       api_client : api_client
     }
+  }
+
+  pub fn list_all(&self, params : Option<Vec<Params>>) -> Vec<TimeSerie> {
+    let time_series_response_json = self.api_client.get("timeseries", params).unwrap();
+    let time_series_response : TimeSerieResponse = serde_json::from_str(&time_series_response_json).unwrap();
+    let time_series = time_series_response.data.items;
+    time_series
+  }
+
+  pub fn retrieve(&self, time_serie_id : u64) -> TimeSerie {
+    let http_params = None;
+
+    let time_serie_response_json = self.api_client.get(&format!("timeseries/{}", time_serie_id), http_params).unwrap();
+    let mut time_serie_response : TimeSerieResponse = serde_json::from_str(&time_serie_response_json).unwrap();
+    let time_serie = time_serie_response.data.items.pop().unwrap();
+    time_serie
+  }
+
+  pub fn retrieve_multiple(&self, time_serie_ids : Vec<u64>) -> Vec<TimeSerie> {
+    let request_body = format!("{{\"items\":{} }}", serde_json::to_string(&time_serie_ids).unwrap());
+    let time_series_response_json = self.api_client.post("timeseries/byids", &request_body).unwrap();
+    let time_series_response : TimeSerieResponse = serde_json::from_str(&time_series_response_json).unwrap();
+    let time_series = time_series_response.data.items;
+    time_series
   }
 
   pub fn search(&self, params : Option<Vec<Params>>) -> Vec<TimeSerie> {

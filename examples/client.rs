@@ -21,8 +21,8 @@ fn main() {
 
   // Search asset
   let params = Some(vec!(
-    Params::AssetsSearchName("Aker".to_owned()), 
-    Params::AssetsSearchDescription("Aker".to_owned())
+    Params::AssetsSearch_Name("Aker".to_owned()), 
+    Params::AssetsSearch_Description("Aker".to_owned())
   ));
   let asset_search : Vec<Asset> = cognite_client.assets.search(params);
   println!("{:?}", asset_search);
@@ -37,14 +37,18 @@ fn main() {
 
   // Search events
   let event_search_params = Some(vec!(
-    Params::EventsSearchSubType("val".to_owned()),
+    Params::EventsSearch_SubType("val".to_owned()),
   ));
   let event_search : Vec<Event> = cognite_client.events.search(event_search_params);
   println!("Search found {:?} events", event_search.len());
 
+  // List all events
+  let time_series : Vec<TimeSerie> = cognite_client.time_series.list_all(None);
+  println!("{} time series retrieved.", time_series.len());
+
   // Search time serie
   let time_serie_search_params = Some(vec!(
-    Params::TimeSeriesSearchName("val".to_owned()),
+    Params::TimeSeriesSearch_Name("val".to_owned()),
   ));
   let time_series_search : Vec<TimeSerie> = cognite_client.time_series.search(time_serie_search_params);
   println!("Search found {:?} time series", time_series_search.len());
