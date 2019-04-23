@@ -7,51 +7,75 @@ pub enum Params {
 
   // Search
   #[serde(rename = "name")]
-  AssetSearchName(String),
+  AssetsSearchName(String),
   #[serde(rename = "description")]
-  AssetSearchDescription(String),
+  AssetsSearchDescription(String),
   #[serde(rename = "query")]
-  AssetSearchQuery(String),
+  AssetsSearchQuery(String),
   #[serde(rename = "metadata")]
-  AssetSearchMetadata(HashMap<String, String>),
+  AssetsSearchMetadata(HashMap<String, String>),
   #[serde(rename = "assetSubtrees")]
-  AssetSearchAssetSubtrees(String),
+  AssetsSearchAssetSubtrees(String),
   #[serde(rename = "minCreatedTime")]
-  AssetSearchMinCreatedTime(u64),
+  AssetsSearchMinCreatedTime(u64),
   #[serde(rename = "maxCreatedTime")]
-  AssetSearchMaxCreatedTime(u64),
+  AssetsSearchMaxCreatedTime(u64),
   #[serde(rename = "minLastUpdatedTime")]
-  AssetSearchMinLastUpdatedTime(u64),
+  AssetsSearchMinLastUpdatedTime(u64),
   #[serde(rename = "maxLastUpdatedTime")]
-  AssetSearchMaxLastUpdatedTime(u64),
+  AssetsSearchMaxLastUpdatedTime(u64),
   #[serde(rename = "sort")]
-  AssetSearchSort(String),
+  AssetsSearchSort(String),
   #[serde(rename = "dir")]
-  AssetSearchDir(String),
+  AssetsSearchDir(String),
   #[serde(rename = "limit")]
-  AssetSearchLimit(u32),
+  AssetsSearchLimit(u32),
   #[serde(rename = "offset")]
-  AssetSearchOffset(u32),
+  AssetsSearchOffset(u32),
   #[serde(rename = "boostName")]
-  AssetSearchBoostName(bool),
+  AssetsSearchBoostName(bool),
 
   // ListAll
   #[serde(rename = "name")]
-  AssetListAllName(String),
+  AssetsListAllName(String),
   #[serde(rename = "fuzziness")]
-  AssetListAllFuzziness(u32),
+  AssetsListAllFuzziness(u32),
   #[serde(rename = "path")]
-  AssetListAllPath(String),
+  AssetsListAllPath(String),
   #[serde(rename = "depth")]
-  AssetListAllDepth(String),
+  AssetsListAllDepth(String),
   #[serde(rename = "metadata")]
-  AssetListAllMetadata(HashMap<String,String>),
+  AssetsListAllMetadata(HashMap<String,String>),
   #[serde(rename = "description")]
-  AssetListAllDescription(String),
+  AssetsListAllDescription(String),
   #[serde(rename = "source")]
-  AssetListAllSource(String),
+  AssetsListAllSource(String),
   #[serde(rename = "cursor")]
-  AssetListAllCursor(String),
+  AssetsListAllCursor(String),
   #[serde(rename = "limit")]
-  AssetListAllLimit(u32),
+  AssetsListAllLimit(u32),
+
+  // EVENTS 
+
+  // ListAll
+  #[serde(rename = "type")]
+  EventsListAllType(String),
+  #[serde(rename = "subType")]
+  EventsListAllSubType(String),
+  #[serde(rename = "assetId")]
+  EventsListAllAssetId(u64),
+  #[serde(rename = "sort")]
+  EventsListAllSort(String),
+  #[serde(rename = "cursor")]
+  EventsListAllCursor(String),
+  #[serde(rename = "limit")]
+  EventsListAllLimit(u32),
+  #[serde(rename = "hasDescription")]
+  EventsListAllHasDescription(bool),
+  #[serde(rename = "minStartTime")]
+  EventsListAllMinStartTime(u64),
+  #[serde(rename = "maxStartTime")]
+  EventsListAllMaxStartTime(u64),
+  #[serde(rename = "source")]
+  EventsListAllSource(String),
 } 

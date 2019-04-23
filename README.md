@@ -1,6 +1,8 @@
 Cognite Rust SDK
 ==========================
 
+Under development.. 
+
 Rust SDK to ensure excellent user experience for developers and data scientists working with the Cognite Data Fusion.
 
 ## Documentation
@@ -38,7 +40,28 @@ use cognite::{
 
 fn main() {
   let cognite_client = CogniteClient::new();
-  let assets : Vec<Asset> = cognite_client.assets.list_all();
+
+  // List all assets
+  let assets : Vec<Asset> = cognite_client.assets.list_all(None);
+  
+  // Retrieve asset
   let asset : Asset = cognite_client.assets.retrieve(<asset_id>);
+
+  // Search asset
+  let params = Some(vec!(
+    Params::AssetSearchName(<asset_name>), 
+    Params::AssetSearchDescription(<asset_description>),
+    ...
+  ));
+  let asset_search : Vec<Asset> = cognite_client.assets.search(params);
+
+  // Retrieve multiple assets
+  let asset_ids = vec!(
+    <asset_id>, 
+    <asset_id>, 
+    <asset_id>,
+    ...
+  );
+  let assets_multiple : Vec<Asset> = cognite_client.assets.retrieve_multiple(asset_ids);
 }
 ```

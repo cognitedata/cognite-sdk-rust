@@ -29,8 +29,8 @@ pub struct Asset {
   metadata: Option<HashMap<String, String>>,
   source : Option<String>,
   source_id : Option<u64>,
-  created_time : u128,
-  last_updated_time : u128,
+  created_time : u64,
+  last_updated_time : u64,
   path : Vec<u64>
 }
 
