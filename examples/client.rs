@@ -39,5 +39,5 @@ fn main() {
     Params::EventsSearchSubType("val".to_owned()),
   ));
   let event_search : Vec<Event> = cognite_client.events.search(event_search_params);
-  println!("{:?}", event_search);
+  println!("Search found {:?} events", event_search.len());
 }
