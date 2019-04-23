@@ -196,4 +196,62 @@ pub enum Params {
 
   #[serde(rename = "before")]
   DatapointsRetrieveLatest_Before(String),
+
+  // FILES
+
+  // ListAll
+  #[serde(rename = "assetId")]
+  FilesListAll_AssetId(String),
+  #[serde(rename = "dir")]
+  FilesListAll_Dir(String),
+  #[serde(rename = "name")]
+  FilesListAll_Name(String),
+  #[serde(rename = "type")]
+  FilesListAll_Type(String),
+  #[serde(rename = "source")]
+  FilesListAll_Source(String),
+  #[serde(rename = "isUploaded")]
+  FilesListAll_IsUploaded(bool),
+  #[serde(rename = "limit")]
+  FilesListAll_Limit(u32),
+  #[serde(rename = "sort")]
+  FilesListAll_Sort(u32),
+  #[serde(rename = "cursor")]
+  FilesListAll_Cursor(u32),
+
+  // Search
+  #[serde(rename = "name")]
+  FilesSearch_Name(String),
+  #[serde(rename = "directory")]
+  FilesSearch_Directory(String),
+  #[serde(rename = "type")]
+  FilesSearch_Type(String),
+  #[serde(rename = "uploaded")]
+  FilesSearch_Uploaded(bool),
+  #[serde(rename = "minUploadedTime")]
+  FilesSearch_MinUploadedTime(u64),
+  #[serde(rename = "maxUploadedTime")]
+  FilesSearch_MaxUploadedTime(u64),
+  #[serde(rename = "minCreatedTime")]
+  FilesSearch_MinCreatedTime(u64),
+  #[serde(rename = "maxCreatedTime")]
+  FilesSearch_MaxCreatedTime(u64),
+  #[serde(rename = "minLastUpdatedTime")]
+  FilesSearch_MinLastUpdatedTime(u64),
+  #[serde(rename = "maxLastUpdatedTime")]
+  FilesSearch_MaxLastUpdatedTime(u64),
+  #[serde(rename = "metadata")]
+  FilesSearch_Metadata(HashMap<String, String>),
+  #[serde(rename = "assetIds")]
+  FilesSearch_AssetIds(String),
+  #[serde(rename = "assetSubtrees")]
+  FilesSearch_AssetSubtrees(String),
+  #[serde(rename = "sort")]
+  FilesSearch_Sort(String),
+  #[serde(rename = "dir")]
+  FilesSearch_Dir(String),
+  #[serde(rename = "limit")]
+  FilesSearch_Limit(u32),
+  #[serde(rename = "offset")]
+  FilesSearch_Offset(u32),
 } 

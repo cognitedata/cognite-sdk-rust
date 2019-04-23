@@ -5,6 +5,7 @@ use cognite::{
   Asset,
   Event,
   TimeSerie,
+  File,
   Params,
 };
 
@@ -52,4 +53,15 @@ fn main() {
   ));
   let time_series_search : Vec<TimeSerie> = cognite_client.time_series.search(time_serie_search_params);
   println!("Search found {:?} time series", time_series_search.len());
+
+  // List all files
+  let files : Vec<File> = cognite_client.files.list_all(None);
+  println!("{} files retrieved.", files.len());
+
+  // Search files
+  let files_search_params = Some(vec!(
+    Params::FilesSearch_Name("ph".to_owned()),
+  ));
+  let files_search : Vec<File> = cognite_client.files.search(files_search_params);
+  println!("Search found {:?} files", files_search.len());
 }
