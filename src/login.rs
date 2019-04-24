@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
-pub struct LoginStatusResponse {
+pub struct LoginStatusResponseWrapper {
   data: LoginStatus,
 }
 
@@ -32,7 +32,7 @@ impl Login {
   pub fn status(&self) -> LoginStatus {
     let http_params = None;
     let login_status_response_json = self.api_client.get("login/status", http_params).unwrap();
-    let login_status_response : LoginStatusResponse = serde_json::from_str(&login_status_response_json).unwrap();
+    let login_status_response : LoginStatusResponseWrapper = serde_json::from_str(&login_status_response_json).unwrap();
     let status = login_status_response.data;
     status
   }

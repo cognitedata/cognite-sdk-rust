@@ -11,6 +11,7 @@ mod login;
 mod time_series;
 mod cognite_client;
 mod params;
+mod error;
 
 pub use self::api_client::*;
 pub use self::assets::*;
@@ -21,3 +22,4 @@ pub use self::login::*;
 pub use self::time_series::*;
 pub use self::cognite_client::*;
 pub use self::params::*;
+pub use self::error::*;

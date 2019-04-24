@@ -1,9 +1,24 @@
 use std::collections::HashMap;
-use reqwest::Client;
-use reqwest::header::{HeaderMap, HeaderValue, CONTENT_TYPE, ACCEPT, USER_AGENT};
-use reqwest::Error;
+use reqwest::{
+  Client,
+  StatusCode,
+  RequestBuilder,
+};
+use reqwest::header::{
+  HeaderMap, 
+  HeaderValue, 
+  CONTENT_TYPE, 
+  ACCEPT, 
+  USER_AGENT
+};
 
-use super::{Params};
+use super::{
+  Params, 
+  Error,
+  Kind,
+  ErrorMessage,
+};
+
 
 pub struct ApiClient {
   api_base_url : String,
@@ -20,7 +35,34 @@ impl ApiClient {
     }
   }
 
-  pub fn convert_params_to_tuples(&self, params : Option<Vec<Params>>) -> Vec<(String, String)> {
+  fn send_request(&self, request : RequestBuilder) -> Result<String, Error> {
+    match request.send() {
+      Ok(mut response) => {
+        match response.status() {
+          StatusCode::OK => {
+            Ok(response.text().unwrap())
+          },
+          StatusCode::UNAUTHORIZED => {
+            let error_message : ErrorMessage = response.json().unwrap();
+            Err(Error::new(Kind::Unauthorized(error_message.message)))
+          },
+          StatusCode::FORBIDDEN => {
+            let error_message : ErrorMessage = response.json().unwrap();
+            Err(Error::new(Kind::Forbidden(error_message.message)))
+          },
+          s => {
+            let error_message = format!("Received response {} with result: {:?}", s, response.text());
+            Err(Error::new(Kind::Http(error_message)))
+          }
+        }
+      },
+      Err(e) => {
+        Err(Error::from(e))
+      }
+    }
+  }
+
+  fn convert_params_to_tuples(&self, params : Option<Vec<Params>>) -> Vec<(String, String)> {
     let http_params : Vec<(String, String)> = match params {
         Some(list_all_params) => {
           let json_string = serde_json::to_string(&list_all_params).unwrap();
@@ -51,20 +93,11 @@ impl ApiClient {
     headers.insert(USER_AGENT, HeaderValue::from_static("user-agent-goes-here"));
     headers.insert(CONTENT_TYPE, HeaderValue::from_static("application/json"));
     headers.insert(ACCEPT, HeaderValue::from_static("application/json"));
-     
-    match self.client
-                .get(&url)
-                .headers(headers)
-                .query(&http_params)
-                .send() {
-      Ok(mut response) => {
-        response.text()
-      },
-      Err(e) => {
-        // do error handling
-        Err(e)
-      }
-    }
+    let request = self.client
+                    .get(&url)
+                    .headers(headers)
+                    .query(&http_params);
+    self.send_request(request)
   }
 
   pub fn post(&self, path : &str, body : &str) -> Result<String, Error> {
@@ -75,13 +108,11 @@ impl ApiClient {
     headers.insert(USER_AGENT, HeaderValue::from_static("user-agent-goes-here"));
     headers.insert(CONTENT_TYPE, HeaderValue::from_static("application/json"));
     headers.insert(ACCEPT, HeaderValue::from_static("application/json"));
-    let response = self.client
-                          .post(&url)
-                          .headers(headers)
-                          .body(String::from(body))
-                          .send()?
-                          .text()?;
-    Ok(response)
+    let request = self.client
+                    .post(&url)
+                    .headers(headers)
+                    .body(String::from(body));
+    self.send_request(request)
   }
 
   pub fn put(&self, path : &str, body : &str) -> Result<String, Error> {
@@ -92,13 +123,11 @@ impl ApiClient {
     headers.insert(USER_AGENT, HeaderValue::from_static("user-agent-goes-here"));
     headers.insert(CONTENT_TYPE, HeaderValue::from_static("application/json"));
     headers.insert(ACCEPT, HeaderValue::from_static("application/json"));
-    let response = self.client
+    let request = self.client
                           .put(&url)
                           .headers(headers)
-                          .body(String::from(body))
-                          .send()?
-                          .text()?;
-    Ok(response)
+                          .body(String::from(body));
+    self.send_request(request)
   }
 
   pub fn delete(&self, path : &str) -> Result<String, Error> {
@@ -109,12 +138,11 @@ impl ApiClient {
     headers.insert(USER_AGENT, HeaderValue::from_static("user-agent-goes-here"));
     headers.insert(CONTENT_TYPE, HeaderValue::from_static("application/json"));
     headers.insert(ACCEPT, HeaderValue::from_static("application/json"));
-    let response = self.client
+    let request = self.client
                           .delete(&url)
-                          .headers(headers)
-                          .send()?
-                          .text()?;
-    Ok(response)
+                          .headers(headers);
+    self.send_request(request)
   }
 
 }
+
