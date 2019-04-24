@@ -2,6 +2,7 @@ use std::collections::HashMap;
 use super::{
   ApiClient, 
   Params,
+  Result,
 };
 use serde::{Deserialize, Serialize};
 
@@ -45,35 +46,43 @@ impl Assets {
     }
   }
 
-  pub fn list_all(&self, params : Option<Vec<Params>>) -> Vec<Asset> {
-    let assets_response_json = self.api_client.get("assets", params).unwrap();
-    let assets_response : AssetResponseWrapper = serde_json::from_str(&assets_response_json).unwrap();
-    let assets = assets_response.data.items;
-    assets
+  pub fn list_all(&self, params : Option<Vec<Params>>) -> Result<Vec<Asset>> {
+    match self.api_client.get::<AssetResponseWrapper>("assets", params) {
+      Ok(assets_response) => {
+        Ok(assets_response.data.items)
+      }
+      Err(e) => Err(e)
+    }
   }
 
-  pub fn retrieve(&self, asset_id : u64) -> Asset {
+  pub fn retrieve(&self, asset_id : u64) -> Result<Asset> {
     let http_params = None;
-
-    let asset_response_json = self.api_client.get(&format!("assets/{}", asset_id), http_params).unwrap();
-    let mut asset_response : AssetResponseWrapper = serde_json::from_str(&asset_response_json).unwrap();
-    let asset = asset_response.data.items.pop().unwrap();
-    asset
+    match self.api_client.get::<AssetResponseWrapper>(&format!("assets/{}", asset_id), http_params) {
+      Ok(mut asset_response) => {
+        Ok(asset_response.data.items.pop().unwrap())
+      }
+      Err(e) => Err(e)
+    }
   }
 
-  pub fn retrieve_multiple(&self, asset_ids : Vec<u64>) -> Vec<Asset> {
+  pub fn retrieve_multiple(&self, asset_ids : Vec<u64>) -> Result<Vec<Asset>> {
     let request_body = format!("{{\"items\":{} }}", serde_json::to_string(&asset_ids).unwrap());
-    let assets_response_json = self.api_client.post("assets/byids", &request_body).unwrap();
-    let assets_response : AssetResponseWrapper = serde_json::from_str(&assets_response_json).unwrap();
-    let assets = assets_response.data.items;
-    assets
+    match self.api_client.post::<AssetResponseWrapper>("assets/byids", &request_body){
+      Ok(assets_response) => {
+        let assets = assets_response.data.items;
+        Ok(assets)
+      },
+      Err(e) => Err(e)
+    }
   }
 
-  pub fn search(&self, params : Option<Vec<Params>>) -> Vec<Asset> {
-    let assets_response_json = self.api_client.get("assets/search", params).unwrap();
-    let assets_response : AssetResponseWrapper = serde_json::from_str(&assets_response_json).unwrap();
-    let assets = assets_response.data.items;
-    assets
+  pub fn search(&self, params : Option<Vec<Params>>) -> Result<Vec<Asset>> {
+    match self.api_client.get::<AssetResponseWrapper>("assets/search", params) {
+      Ok(assets_response) => {
+        Ok(assets_response.data.items)
+      }
+      Err(e) => Err(e)
+    }
   }
 
   pub fn create(&self, assets : Vec<Asset>) -> Asset {

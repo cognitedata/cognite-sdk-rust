@@ -2,6 +2,7 @@ use std::collections::HashMap;
 use super::{
   ApiClient,
   Params,
+  Result,
 };
 use serde::{Deserialize, Serialize};
 
@@ -46,35 +47,46 @@ impl Events {
     }
   }
 
-  pub fn list_all(&self, params : Option<Vec<Params>>) -> Vec<Event> {
-    let events_response_json = self.api_client.get("events", params).unwrap();
-    let events_response : EventResponseWrapper = serde_json::from_str(&events_response_json).unwrap();
-    let events = events_response.data.items;
-    events
+  pub fn list_all(&self, params : Option<Vec<Params>>) -> Result<Vec<Event>> {
+    match self.api_client.get::<EventResponseWrapper>("events", params) {
+      Ok(events_response) => {
+        let events = events_response.data.items;
+        Ok(events)
+      },
+      Err(e) => Err(e)
+    }
   }
 
-  pub fn retrieve(&self, event_id : u64) -> Event {
-    let http_params = None;
-
-    let event_response_json = self.api_client.get(&format!("events/{}", event_id), http_params).unwrap();
-    let mut event_response : EventResponseWrapper = serde_json::from_str(&event_response_json).unwrap();
-    let event = event_response.data.items.pop().unwrap();
-    event
+  pub fn retrieve(&self, event_id : u64) -> Result<Event> {
+    let params = None;
+    match self.api_client.get::<EventResponseWrapper>(&format!("events/{}", event_id), params) {
+      Ok(mut event_response) => {
+        let event = event_response.data.items.pop().unwrap();
+        Ok(event)
+      },
+      Err(e) => Err(e)
+    }
   }
 
-  pub fn retrieve_multiple(&self, event_ids : Vec<u64>) -> Vec<Event> {
+  pub fn retrieve_multiple(&self, event_ids : Vec<u64>) -> Result<Vec<Event>> {
     let request_body = format!("{{\"items\":{} }}", serde_json::to_string(&event_ids).unwrap());
-    let events_response_json = self.api_client.post("events/byids", &request_body).unwrap();
-    let events_response : EventResponseWrapper = serde_json::from_str(&events_response_json).unwrap();
-    let events = events_response.data.items;
-    events
+    match self.api_client.post::<EventResponseWrapper>("events/byids", &request_body){
+      Ok(events_response) => {
+        let events = events_response.data.items;
+        Ok(events)
+      },
+      Err(e) => Err(e)
+    }
   }
 
-  pub fn search(&self, params : Option<Vec<Params>>) -> Vec<Event> {
-    let events_response_json = self.api_client.get("events/search", params).unwrap();
-    let events_response : EventResponseWrapper = serde_json::from_str(&events_response_json).unwrap();
-    let events = events_response.data.items;
-    events
+  pub fn search(&self, params : Option<Vec<Params>>) -> Result<Vec<Event>> {
+    match self.api_client.get::<EventResponseWrapper>("events/search", params) {
+      Ok(events_response) => {
+        let events = events_response.data.items;
+        Ok(events)
+      },
+      Err(e) => Err(e)
+    }
   }
 
   pub fn create(&self, events : Vec<Event>) -> Event {

@@ -49,8 +49,8 @@ fn main() {
 
   // Search asset
   let params = Some(vec!(
-    Params::AssetSearchName(<asset_name>), 
-    Params::AssetSearchDescription(<asset_description>),
+    Params::AssetSearch_Name(<asset_name>), 
+    Params::AssetSearch_Description(<asset_description>),
     ...
   ));
   let asset_search : Vec<Asset> = cognite_client.assets.search(params);

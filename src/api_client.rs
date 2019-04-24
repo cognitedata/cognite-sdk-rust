@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use serde::de::DeserializeOwned;
 use reqwest::{
   Client,
   StatusCode,
@@ -16,7 +17,7 @@ use super::{
   Params, 
   Error,
   Kind,
-  ErrorMessage,
+  ApiErrorWrapper,
 };
 
 
@@ -35,20 +36,21 @@ impl ApiClient {
     }
   }
 
-  fn send_request(&self, request : RequestBuilder) -> Result<String, Error> {
+  fn send_request<T : DeserializeOwned>(&self, request : RequestBuilder) -> Result<T, Error> {
     match request.send() {
       Ok(mut response) => {
         match response.status() {
           StatusCode::OK => {
-            Ok(response.text().unwrap())
+            let obj : T = response.json().unwrap();
+            Ok(obj)
           },
           StatusCode::UNAUTHORIZED => {
-            let error_message : ErrorMessage = response.json().unwrap();
-            Err(Error::new(Kind::Unauthorized(error_message.message)))
+            let error_message : ApiErrorWrapper = response.json().unwrap();
+            Err(Error::new(Kind::Unauthorized(error_message.error.message)))
           },
           StatusCode::FORBIDDEN => {
-            let error_message : ErrorMessage = response.json().unwrap();
-            Err(Error::new(Kind::Forbidden(error_message.message)))
+            let error_message : ApiErrorWrapper = response.json().unwrap();
+            Err(Error::new(Kind::Forbidden(error_message.error.message)))
           },
           s => {
             let error_message = format!("Received response {} with result: {:?}", s, response.text());
@@ -83,7 +85,7 @@ impl ApiClient {
     http_params
   }
 
-  pub fn get(&self, path : &str, params : Option<Vec<Params>>) -> Result<String, Error> {
+  pub fn get<T : DeserializeOwned>(&self, path : &str, params : Option<Vec<Params>>) -> Result<T, Error> {
     let http_params : Vec<(String, String)> = self.convert_params_to_tuples(params);
 
     let url = format!("{}/{}", self.api_base_url, path);
@@ -100,7 +102,7 @@ impl ApiClient {
     self.send_request(request)
   }
 
-  pub fn post(&self, path : &str, body : &str) -> Result<String, Error> {
+  pub fn post<T : DeserializeOwned>(&self, path : &str, body : &str) -> Result<T, Error> {
     let url = format!("{}/{}", self.api_base_url, path);
     let mut headers = HeaderMap::new();
     let api_key_header_value = HeaderValue::from_str(&self.api_key).expect("failed to set api key");
@@ -115,7 +117,7 @@ impl ApiClient {
     self.send_request(request)
   }
 
-  pub fn put(&self, path : &str, body : &str) -> Result<String, Error> {
+  pub fn put<T : DeserializeOwned>(&self, path : &str, body : &str) -> Result<T, Error> {
     let url = format!("{}/{}", self.api_base_url, path);
     let mut headers = HeaderMap::new();
     let api_key_header_value = HeaderValue::from_str(&self.api_key).expect("failed to set api key");
@@ -130,7 +132,7 @@ impl ApiClient {
     self.send_request(request)
   }
 
-  pub fn delete(&self, path : &str) -> Result<String, Error> {
+  pub fn delete(&self, path : &str) -> Result<(), Error> {
     let url = format!("{}/{}", self.api_base_url, path);
     let mut headers = HeaderMap::new();
     let api_key_header_value = HeaderValue::from_str(&self.api_key).expect("failed to set api key");

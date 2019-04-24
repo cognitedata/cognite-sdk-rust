@@ -1,5 +1,6 @@
 use super::{
   ApiClient,
+  Result,
 };
 use serde::{Deserialize, Serialize};
 
@@ -29,11 +30,14 @@ impl Login {
     }
   }
 
-  pub fn status(&self) -> LoginStatus {
+  pub fn status(&self) -> Result<LoginStatus> {
     let http_params = None;
-    let login_status_response_json = self.api_client.get("login/status", http_params).unwrap();
-    let login_status_response : LoginStatusResponseWrapper = serde_json::from_str(&login_status_response_json).unwrap();
-    let status = login_status_response.data;
-    status
+    match self.api_client.get::<LoginStatusResponseWrapper>("login/status", http_params) {
+      Ok(login_status_response) => {
+        let status = login_status_response.data;
+        Ok(status)
+      },
+      Err(e) => Err(e)
+    }
   }
 }

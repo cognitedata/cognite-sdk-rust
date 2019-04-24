@@ -1,6 +1,7 @@
 use super::{
   ApiClient, 
   Params,
+  Result,
 };
 use serde::{Deserialize, Serialize};
 
@@ -44,33 +45,45 @@ impl TimeSeries {
     }
   }
 
-  pub fn list_all(&self, params : Option<Vec<Params>>) -> Vec<TimeSerie> {
-    let time_series_response_json = self.api_client.get("timeseries", params).unwrap();
-    let time_series_response : TimeSerieResponseWrapper = serde_json::from_str(&time_series_response_json).unwrap();
-    let time_series = time_series_response.data.items;
-    time_series
+  pub fn list_all(&self, params : Option<Vec<Params>>) -> Result<Vec<TimeSerie>> {
+    match self.api_client.get::<TimeSerieResponseWrapper>("timeseries", params){
+      Ok(time_series_response) => {
+        let time_series = time_series_response.data.items;
+        Ok(time_series)
+      },
+      Err(e) => Err(e)
+    }
   }
 
-  pub fn retrieve(&self, time_serie_id : u64, params : Option<Vec<Params>>) -> TimeSerie {
-    let time_serie_response_json = self.api_client.get(&format!("timeseries/{}", time_serie_id), params).unwrap();
-    let mut time_serie_response : TimeSerieResponseWrapper = serde_json::from_str(&time_serie_response_json).unwrap();
-    let time_serie = time_serie_response.data.items.pop().unwrap();
-    time_serie
+  pub fn retrieve(&self, time_serie_id : u64, params : Option<Vec<Params>>) -> Result<TimeSerie> {
+    match self.api_client.get::<TimeSerieResponseWrapper>(&format!("timeseries/{}", time_serie_id), params){
+      Ok(mut time_serie_response) => {
+        let time_serie = time_serie_response.data.items.pop().unwrap();
+        Ok(time_serie)
+      },
+      Err(e) => Err(e)
+    }
   }
 
-  pub fn retrieve_multiple(&self, time_serie_ids : Vec<u64>) -> Vec<TimeSerie> {
+  pub fn retrieve_multiple(&self, time_serie_ids : Vec<u64>) -> Result<Vec<TimeSerie>> {
     let request_body = format!("{{\"items\":{} }}", serde_json::to_string(&time_serie_ids).unwrap());
-    let time_series_response_json = self.api_client.post("timeseries/byids", &request_body).unwrap();
-    let time_series_response : TimeSerieResponseWrapper = serde_json::from_str(&time_series_response_json).unwrap();
-    let time_series = time_series_response.data.items;
-    time_series
+    match self.api_client.post::<TimeSerieResponseWrapper>("timeseries/byids", &request_body){
+      Ok(time_series_response) => {
+        let time_series = time_series_response.data.items;
+        Ok(time_series)
+      },
+      Err(e) => Err(e)
+    }
   }
 
-  pub fn search(&self, params : Option<Vec<Params>>) -> Vec<TimeSerie> {
-    let time_series_response_json = self.api_client.get("timeseries/search", params).unwrap();
-    let time_series_response : TimeSerieResponseWrapper = serde_json::from_str(&time_series_response_json).unwrap();
-    let time_series = time_series_response.data.items;
-    time_series
+  pub fn search(&self, params : Option<Vec<Params>>) -> Result<Vec<TimeSerie>> {
+    match self.api_client.get::<TimeSerieResponseWrapper>("timeseries/search", params){
+      Ok(time_series_response) => {
+        let time_series = time_series_response.data.items;
+        Ok(time_series)
+      },
+      Err(e) => Err(e)
+    }
   }
 
   pub fn create(&self, time_series : Vec<TimeSerie>) -> TimeSerie {

@@ -2,6 +2,7 @@ use std::collections::HashMap;
 use super::{
   ApiClient,
   Params,
+  Result,
 };
 use serde::{Deserialize, Serialize};
 
@@ -52,18 +53,24 @@ impl Files {
     }
   }
 
-  pub fn list_all(&self, params : Option<Vec<Params>>) -> Vec<File> {
-    let files_response_json = self.api_client.get("files", params).unwrap();
-    let files_response : FileResponseWrapper = serde_json::from_str(&files_response_json).unwrap();
-    let files = files_response.data.items;
-    files
+  pub fn list_all(&self, params : Option<Vec<Params>>) -> Result<Vec<File>> {
+    match self.api_client.get::<FileResponseWrapper>("files", params){
+      Ok(files_response) => {
+        let files = files_response.data.items;
+        Ok(files)
+      },
+      Err(e) => Err(e)
+    }
   }
 
-  pub fn search(&self, params : Option<Vec<Params>>) -> Vec<File> {
-    let files_response_json = self.api_client.get("files/search", params).unwrap();
-    let files_response : FileResponseWrapper = serde_json::from_str(&files_response_json).unwrap();
-    let files = files_response.data.items;
-    files
+  pub fn search(&self, params : Option<Vec<Params>>) -> Result<Vec<File>> {
+    match self.api_client.get::<FileResponseWrapper>("files/search", params){
+      Ok(files_response) => {
+        let files = files_response.data.items;
+        Ok(files)
+      },
+      Err(e) => Err(e)
+    }
   }
 
   pub fn upload(&self, file_stream : Vec<u8>) -> FileResource {

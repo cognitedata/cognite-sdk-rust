@@ -7,7 +7,8 @@ use super::{
   Files,
   Login,
   TimeSeries,
-
+  Users,
+  ApiKeys,
   ApiClient,
 };
 
@@ -21,7 +22,9 @@ pub struct CogniteClient {
   pub datapoints : Datapoints,
   pub events : Events,
   pub files : Files,
-  pub time_series : TimeSeries
+  pub time_series : TimeSeries,
+  pub users : Users,
+  pub api_keys : ApiKeys,
 }
 
 static COGNITE_API_KEY : &'static str = "COGNITE_API_KEY";
@@ -50,7 +53,7 @@ impl CogniteClient {
     // Get project name associated to API KEY
     let login_api_client = ApiClient::new(api_base_url.clone(), api_key.clone());
     let login = Login::new(login_api_client);
-    let login_status = login.status();
+    let login_status = login.status().unwrap();
 
     let project = login_status.project;
     println!("API PROJECT: {}", project);
@@ -62,6 +65,8 @@ impl CogniteClient {
     let events_api_client = ApiClient::new(api_base_path.clone(), api_key.clone());
     let files_api_client = ApiClient::new(api_base_path.clone(), api_key.clone());
     let time_series_api_client = ApiClient::new(api_base_path.clone(), api_key.clone());
+    let api_keys_api_client = ApiClient::new(api_base_path.clone(), api_key.clone());
+    let users_api_client = ApiClient::new(api_base_path.clone(), api_key.clone());
 
     CogniteClient { 
       api_key : api_key,
@@ -74,6 +79,8 @@ impl CogniteClient {
       events : Events::new(events_api_client),
       files : Files::new(files_api_client),
       time_series : TimeSeries::new(time_series_api_client),
+      users : Users::new(users_api_client),
+      api_keys : ApiKeys::new(api_keys_api_client),
     }
   }
 }

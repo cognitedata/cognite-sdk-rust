@@ -1,6 +1,7 @@
 use super::{
   ApiClient,
   Params,
+  Result,
 };
 use serde::{Deserialize, Serialize};
 use serde_json::value::Value;
@@ -66,32 +67,41 @@ impl Datapoints {
     }
   }
 
-  pub fn retrieve_from_time_serie_by_id(&self, time_serie_id : u64, params : Option<Vec<Params>>) -> Vec<Datapoint> {
-    let datapoints_response_json = self.api_client.get(&format!("timeseries/{}/data", time_serie_id), params).unwrap();
-    let mut datapoints_response : DatapointListResponseWrapper = serde_json::from_str(&datapoints_response_json).unwrap();
-    let datapoints = datapoints_response.data.items.pop().unwrap();
-    datapoints.datapoints
+  pub fn retrieve_from_time_serie_by_id(&self, time_serie_id : u64, params : Option<Vec<Params>>) -> Result<Vec<Datapoint>> {
+    match self.api_client.get::<DatapointListResponseWrapper>(&format!("timeseries/{}/data", time_serie_id), params){
+      Ok(mut datapoints_response) => {
+        let datapoints = datapoints_response.data.items.pop().unwrap();
+        Ok(datapoints.datapoints)
+      },
+      Err(e) => Err(e)
+    }
   }
 
-  pub fn retrieve_from_time_serie_by_name(&self, time_serie_name : &str, params : Option<Vec<Params>>) -> Vec<Datapoint> {
-    let datapoints_response_json = self.api_client.get(&format!("timeseries/data/{}", time_serie_name), params).unwrap();
-    let mut datapoints_response : DatapointListResponseWrapper = serde_json::from_str(&datapoints_response_json).unwrap();
-    let datapoints = datapoints_response.data.items.pop().unwrap();
-    datapoints.datapoints
+  pub fn retrieve_from_time_serie_by_name(&self, time_serie_name : &str, params : Option<Vec<Params>>) -> Result<Vec<Datapoint>> {
+    match self.api_client.get::<DatapointListResponseWrapper>(&format!("timeseries/data/{}", time_serie_name), params) {
+      Ok(mut datapoints_response) => {
+        let datapoints = datapoints_response.data.items.pop().unwrap();
+        Ok(datapoints.datapoints)
+      },
+      Err(e) => Err(e)
+    }
   }
 
-  pub fn retrieve_latest_from_time_serie_by_name(&self, time_serie_name : &str, params : Option<Vec<Params>>) -> Datapoint {
-    let datapoint_response_json = self.api_client.get(&format!("timeseries/latest/{}", time_serie_name), params).unwrap();
-    let mut datapoint_response : DatapointResponseWrapper = serde_json::from_str(&datapoint_response_json).unwrap();
-    let datapoint = datapoint_response.data.items.pop().unwrap();
-    datapoint
+  pub fn retrieve_latest_from_time_serie_by_name(&self, time_serie_name : &str, params : Option<Vec<Params>>) -> Result<Datapoint> {
+    match self.api_client.get::<DatapointResponseWrapper>(&format!("timeseries/latest/{}", time_serie_name), params) {
+      Ok(mut datapoint_response) => {
+        let datapoint = datapoint_response.data.items.pop().unwrap();
+        Ok(datapoint)
+      },
+      Err(e) => Err(e)
+    }
   }
 
-  pub fn insert_in_time_serie_by_id(&self, time_serie_id : String, datapoints : Vec<Datapoint>) -> Vec<Datapoint> {
+  pub fn insert_in_time_serie_by_id(&self, time_serie_id : String, datapoints : Vec<Datapoint>) -> Result<Vec<Datapoint>> {
     unimplemented!();
   }
 
-  pub fn insert_in_time_serie_by_name(&self, time_serie_name : String, datapoints : Vec<Datapoint>) -> Vec<Datapoint> {
+  pub fn insert_in_time_serie_by_name(&self, time_serie_name : String, datapoints : Vec<Datapoint>) -> Result<Vec<Datapoint>> {
     unimplemented!();
   }
 

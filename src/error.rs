@@ -4,13 +4,13 @@ use std::fmt;
 
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
-pub struct ErrorWrapper {
-  error : ErrorMessage
+pub struct ApiErrorWrapper {
+  pub error : ApiErrorMessage
 }
 
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
-pub struct ErrorMessage {
+pub struct ApiErrorMessage {
   pub code : u32,
   pub message : String,
 }
@@ -26,6 +26,9 @@ impl Error {
     }
   }
 }
+
+/// A `Result` alias where the `Err` case is `cognite::Error`.
+pub type Result<T> = ::std::result::Result<T, Error>;
 
 impl fmt::Debug for Error {
   fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
