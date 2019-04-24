@@ -34,6 +34,13 @@ pub struct File {
   last_updated_time : u64
 }
 
+#[derive(Serialize, Deserialize, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct FileResource {
+  file_id : u64,
+  upload_url : String,
+}
+
 pub struct Files {
   api_client : ApiClient,
 }
@@ -57,5 +64,13 @@ impl Files {
     let files_response : FileResponseWrapper = serde_json::from_str(&files_response_json).unwrap();
     let files = files_response.data.items;
     files
+  }
+
+  pub fn upload(&self, file_stream : Vec<u8>) -> FileResource {
+    unimplemented!();
+  }
+
+  pub fn delete(&self, file_ids : Vec<u64>) -> () {
+    unimplemented!();
   }
 }

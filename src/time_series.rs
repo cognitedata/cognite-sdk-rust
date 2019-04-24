@@ -72,4 +72,16 @@ impl TimeSeries {
     let time_series = time_series_response.data.items;
     time_series
   }
+
+  pub fn create(&self, time_series : Vec<TimeSerie>) -> TimeSerie {
+    unimplemented!();
+  }
+
+  pub fn update(&self, time_series : Vec<TimeSerie>) -> Vec<TimeSerie> {
+    unimplemented!();
+  }
+
+  pub fn delete(&self, time_serie_ids : Vec<u64>) -> () {
+    unimplemented!();
+  }
 }

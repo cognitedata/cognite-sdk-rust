@@ -75,4 +75,20 @@ impl Assets {
     let assets = assets_response.data.items;
     assets
   }
+
+  pub fn create(&self, assets : Vec<Asset>) -> Asset {
+    unimplemented!();
+  }
+
+  pub fn update_single(&self, asset : Asset) -> Asset {
+    unimplemented!();
+  }
+
+  pub fn update(&self, assets : Vec<Asset>) -> Vec<Asset> {
+    unimplemented!();
+  }
+
+  pub fn delete(&self, asset_ids : Vec<u64>) -> () {
+    unimplemented!();
+  }
 }

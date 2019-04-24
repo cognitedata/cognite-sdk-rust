@@ -76,5 +76,17 @@ impl Events {
     let events = events_response.data.items;
     events
   }
+
+  pub fn create(&self, events : Vec<Event>) -> Event {
+    unimplemented!();
+  }
+
+  pub fn update(&self, events : Vec<Event>) -> Vec<Event> {
+    unimplemented!();
+  }
+
+  pub fn delete(&self, event_ids : Vec<u64>) -> () {
+    unimplemented!();
+  }
 }
 

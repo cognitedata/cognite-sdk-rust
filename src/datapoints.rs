@@ -86,4 +86,28 @@ impl Datapoints {
     let datapoint = datapoint_response.data.items.pop().unwrap();
     datapoint
   }
+
+  pub fn insert_in_time_serie_by_id(&self, time_serie_id : String, datapoints : Vec<Datapoint>) -> Vec<Datapoint> {
+    unimplemented!();
+  }
+
+  pub fn insert_in_time_serie_by_name(&self, time_serie_name : String, datapoints : Vec<Datapoint>) -> Vec<Datapoint> {
+    unimplemented!();
+  }
+
+  pub fn delete_single_in_time_serie_by_id(&self, time_serie_id : u64, timestamp : u64) -> () {
+    unimplemented!();
+  }
+
+  pub fn delete_single_in_time_serie_by_name(&self, time_serie_name : String, timestamp : u64) -> () {
+    unimplemented!();
+  }
+
+  pub fn delete_in_time_serie_by_id(&self, time_serie_id : u64, from : u64, to : u64) -> () {
+    unimplemented!();
+  }
+
+  pub fn delete_in_time_serie_by_name(&self, time_serie_name : String, from : u64, to : u64) -> () {
+    unimplemented!();
+  }
 }
