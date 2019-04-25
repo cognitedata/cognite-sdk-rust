@@ -44,6 +44,10 @@ impl ApiClient {
             let obj : T = response.json().unwrap();
             Ok(obj)
           },
+          StatusCode::BAD_REQUEST => {
+            let error_message : ApiErrorWrapper = response.json().unwrap();
+            Err(Error::new(Kind::BadRequest(error_message.error.message)))
+          },
           StatusCode::UNAUTHORIZED => {
             let error_message : ApiErrorWrapper = response.json().unwrap();
             Err(Error::new(Kind::Unauthorized(error_message.error.message)))
@@ -52,8 +56,12 @@ impl ApiClient {
             let error_message : ApiErrorWrapper = response.json().unwrap();
             Err(Error::new(Kind::Forbidden(error_message.error.message)))
           },
+          StatusCode::NOT_FOUND => {
+            let error_message : ApiErrorWrapper = response.json().unwrap();
+            Err(Error::new(Kind::NotFound(error_message.error.message)))
+          },
           s => {
-            let error_message = format!("Received response {} with result: {:?}", s, response.text());
+            let error_message = format!("Received API response {} with result: {:?}", s, response.text());
             Err(Error::new(Kind::Http(error_message)))
           }
         }

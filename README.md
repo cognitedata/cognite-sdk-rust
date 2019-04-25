@@ -42,10 +42,10 @@ fn main() {
   let cognite_client = CogniteClient::new();
 
   // List all assets
-  let assets : Vec<Asset> = cognite_client.assets.list_all(None);
+  let assets : Vec<Asset> = cognite_client.assets.list_all(None).unwrap();
   
   // Retrieve asset
-  let asset : Asset = cognite_client.assets.retrieve(<asset_id>);
+  let asset : Asset = cognite_client.assets.retrieve(<asset_id>).unwrap();
 
   // Search asset
   let params = Some(vec!(
@@ -53,7 +53,7 @@ fn main() {
     Params::AssetSearch_Description(<asset_description>),
     ...
   ));
-  let asset_search : Vec<Asset> = cognite_client.assets.search(params);
+  let asset_search : Vec<Asset> = cognite_client.assets.search(params).unwrap();
 
   // Retrieve multiple assets
   let asset_ids = vec!(
@@ -62,6 +62,12 @@ fn main() {
     <asset_id>,
     ...
   );
-  let assets_multiple : Vec<Asset> = cognite_client.assets.retrieve_multiple(asset_ids);
+  let assets_multiple : Vec<Asset> = cognite_client.assets.retrieve_multiple(asset_ids).unwrap();
 }
+```
+
+## Run examples
+
+```bash
+cargo run --example client
 ```

@@ -42,8 +42,10 @@ impl fmt::Display for Error {
   fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
     match self.kind {
       Kind::Reqwest(ref e) => fmt::Display::fmt(e, f),
+      Kind::BadRequest(ref e) => f.write_str(e),
       Kind::Unauthorized(ref e) => f.write_str(e),
       Kind::Forbidden(ref e) => f.write_str(e),
+      Kind::NotFound(ref e) => f.write_str(e),
       Kind::Http(ref e) => f.write_str(e)
     }
   }
@@ -53,8 +55,10 @@ impl StdError for Error {
   fn description(&self) -> &str {
     match self.kind {
       Kind::Reqwest(ref e) => e.description(),
+      Kind::BadRequest(ref e) => e,
       Kind::Unauthorized(ref e) => e,
       Kind::Forbidden(ref e) => e,
+      Kind::NotFound(ref e) => e,
       Kind::Http(ref e) => e,
     }
   }
@@ -67,8 +71,10 @@ impl StdError for Error {
 
 #[derive(Debug)]
 pub enum Kind {
+  BadRequest(String),
   Unauthorized(String),
   Forbidden(String),
+  NotFound(String),
   Http(String),
   Reqwest(::reqwest::Error)
 }

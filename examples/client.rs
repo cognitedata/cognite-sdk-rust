@@ -6,7 +6,6 @@ use cognite::{
   Event,
   TimeSerie,
   File,
-  User,
   Params,
 };
 
@@ -18,8 +17,10 @@ fn main() {
   println!("{} assets retrieved.", assets.len());
   
   // Retrieve asset
-  let asset : Asset = cognite_client.assets.retrieve(6687602007296940).unwrap();
-  println!("{:?}", asset);
+  match cognite_client.assets.retrieve(6687602007296940) {
+    Ok(asset) => println!("{:?}", asset),
+    Err(e) => println!("{:?}", e)
+  }
 
   // Search asset
   let params = Some(vec!(
@@ -27,11 +28,13 @@ fn main() {
     Params::AssetsSearch_Description("Aker".to_owned())
   ));
   let asset_search : Vec<Asset> = cognite_client.assets.search(params).unwrap();
-  println!("Search found: {:?}", asset_search);
+  println!("Search found: {:?} assets", asset_search);
 
   // Retrieve multiple assets
-  let assets_multiple : Vec<Asset> = cognite_client.assets.retrieve_multiple(vec!(6687602007296940)).unwrap();
-  println!("{:?}", assets_multiple);
+  match cognite_client.assets.retrieve_multiple(vec!(6687602007296940)) {
+    Ok(assets_multiple) => println!("{:?}", assets_multiple),
+    Err(e) => println!("{:?}", e)
+  }
 
   // List all events
   let events : Vec<Event> = cognite_client.events.list_all(None).unwrap();
@@ -67,6 +70,8 @@ fn main() {
   println!("Search found {:?} files", files_search.len());
 
   // List all users
-  let users : Vec<User> = cognite_client.users.list_all(None).unwrap();
-  println!("{} users retrieved.", users.len());
+  match cognite_client.users.list_all(None) {
+    Ok(users) => println!("{} users retrieved.", users.len()),
+    Err(e) => println!("{:?}", e)
+  }
 }

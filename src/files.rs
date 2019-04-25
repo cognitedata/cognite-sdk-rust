@@ -73,11 +73,11 @@ impl Files {
     }
   }
 
-  pub fn upload(&self, file_stream : Vec<u8>) -> FileResource {
+  pub fn upload(&self, file_stream : Vec<u8>) -> Result<FileResource> {
     unimplemented!();
   }
 
-  pub fn delete(&self, file_ids : Vec<u64>) -> () {
+  pub fn delete(&self, file_ids : Vec<u64>) -> Result<()> {
     unimplemented!();
   }
 }

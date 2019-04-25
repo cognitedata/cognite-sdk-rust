@@ -85,19 +85,19 @@ impl Assets {
     }
   }
 
-  pub fn create(&self, assets : Vec<Asset>) -> Asset {
+  pub fn create(&self, assets : Vec<Asset>) -> Result<Asset> {
     unimplemented!();
   }
 
-  pub fn update_single(&self, asset : Asset) -> Asset {
+  pub fn update_single(&self, asset : Asset) -> Result<Asset> {
     unimplemented!();
   }
 
-  pub fn update(&self, assets : Vec<Asset>) -> Vec<Asset> {
+  pub fn update(&self, assets : Vec<Asset>) -> Result<Vec<Asset>> {
     unimplemented!();
   }
 
-  pub fn delete(&self, asset_ids : Vec<u64>) -> () {
+  pub fn delete(&self, asset_ids : Vec<u64>) -> Result<()> {
     unimplemented!();
   }
 }

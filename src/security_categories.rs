@@ -1,5 +1,6 @@
 use super::{
   ApiClient,
+  Result,
 };
 use serde::{Deserialize, Serialize};
 
@@ -35,15 +36,15 @@ impl SecurityCategories {
     }
   }
 
-  pub fn list_all(&self) -> Vec<SecurityCategorie> {
+  pub fn list_all(&self) -> Result<Vec<SecurityCategorie>> {
     unimplemented!();
   }
 
-  pub fn create(&self, security_categorie_ids : Vec<u64>) -> Vec<SecurityCategorie> {
+  pub fn create(&self, security_categorie_ids : Vec<u64>) -> Result<Vec<SecurityCategorie>> {
     unimplemented!();
   }
 
-  pub fn delete(&self, security_categorie_ids : Vec<u64>) -> () {
+  pub fn delete(&self, security_categorie_ids : Vec<u64>) -> Result<()> {
     unimplemented!();
   }
 }

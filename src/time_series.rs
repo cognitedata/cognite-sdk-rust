@@ -25,7 +25,7 @@ pub struct TimeSerie {
   name: String,
   is_string: bool,
   unit: Option<String>,
-  asset_id: u64,
+  asset_id: Option<u64>,
   is_step: bool,
   description: String,
   security_categories: Option<Vec<u64>>,
@@ -86,15 +86,15 @@ impl TimeSeries {
     }
   }
 
-  pub fn create(&self, time_series : Vec<TimeSerie>) -> TimeSerie {
+  pub fn create(&self, time_series : Vec<TimeSerie>) -> Result<TimeSerie> {
     unimplemented!();
   }
 
-  pub fn update(&self, time_series : Vec<TimeSerie>) -> Vec<TimeSerie> {
+  pub fn update(&self, time_series : Vec<TimeSerie>) -> Result<Vec<TimeSerie>> {
     unimplemented!();
   }
 
-  pub fn delete(&self, time_serie_ids : Vec<u64>) -> () {
+  pub fn delete(&self, time_serie_ids : Vec<u64>) -> Result<()> {
     unimplemented!();
   }
 }

@@ -89,15 +89,15 @@ impl Events {
     }
   }
 
-  pub fn create(&self, events : Vec<Event>) -> Event {
+  pub fn create(&self, events : Vec<Event>) -> Result<Event> {
     unimplemented!();
   }
 
-  pub fn update(&self, events : Vec<Event>) -> Vec<Event> {
+  pub fn update(&self, events : Vec<Event>) -> Result<Vec<Event>> {
     unimplemented!();
   }
 
-  pub fn delete(&self, event_ids : Vec<u64>) -> () {
+  pub fn delete(&self, event_ids : Vec<u64>) -> Result<()> {
     unimplemented!();
   }
 }

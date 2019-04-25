@@ -105,19 +105,19 @@ impl Datapoints {
     unimplemented!();
   }
 
-  pub fn delete_single_in_time_serie_by_id(&self, time_serie_id : u64, timestamp : u64) -> () {
+  pub fn delete_single_in_time_serie_by_id(&self, time_serie_id : u64, timestamp : u64) -> Result<()> {
     unimplemented!();
   }
 
-  pub fn delete_single_in_time_serie_by_name(&self, time_serie_name : String, timestamp : u64) -> () {
+  pub fn delete_single_in_time_serie_by_name(&self, time_serie_name : String, timestamp : u64) -> Result<()> {
     unimplemented!();
   }
 
-  pub fn delete_in_time_serie_by_id(&self, time_serie_id : u64, from : u64, to : u64) -> () {
+  pub fn delete_in_time_serie_by_id(&self, time_serie_id : u64, from : u64, to : u64) -> Result<()> {
     unimplemented!();
   }
 
-  pub fn delete_in_time_serie_by_name(&self, time_serie_name : String, from : u64, to : u64) -> () {
+  pub fn delete_in_time_serie_by_name(&self, time_serie_name : String, from : u64, to : u64) -> Result<()> {
     unimplemented!();
   }
 }

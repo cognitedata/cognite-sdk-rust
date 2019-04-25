@@ -26,7 +26,7 @@ pub struct User {
   pub groups : Vec<u64>,
   pub id : u64,
   pub is_deleted : bool,
-  pub deleted_time : u64
+  pub deleted_time : i64
 }
 
 pub struct Users {
@@ -50,11 +50,11 @@ impl Users {
     }
   }
 
-  pub fn create(&self, user_ids : Vec<u64>) -> Vec<User> {
+  pub fn create(&self, user_ids : Vec<u64>) -> Result<Vec<User>> {
     unimplemented!();
   }
 
-  pub fn delete(&self, user_ids : Vec<u64>) -> () {
+  pub fn delete(&self, user_ids : Vec<u64>) -> Result<()> {
     unimplemented!();
   }
 }
