@@ -5,16 +5,17 @@ use super::{
   Result,
 };
 use serde::{Deserialize, Serialize};
+use uuid::Uuid;
 
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct AssetResponseWrapper {
-  data : AssetListResponse
+  data : AssetResponse
 }
 
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
-pub struct AssetListResponse {
+pub struct AssetResponse {
   items : Vec<Asset>,
   previous_cursor : Option<String>,
   next_cursor : Option<String>
@@ -23,16 +24,42 @@ pub struct AssetListResponse {
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct Asset {
-  name : String,
-  id : u64,
-  parent_id : Option<u64>,
-  description : String,
-  metadata: Option<HashMap<String, String>>,
-  source : Option<String>,
-  source_id : Option<u64>,
-  created_time : u64,
-  last_updated_time : u64,
-  path : Vec<u64>
+  pub name : String,
+  pub id : u64,
+  pub ref_id : Option<String>,
+  pub parent_id : Option<u64>,
+  pub parent_ref_id : Option<String>,
+  pub description : String,
+  pub depth: u64,
+  pub metadata: Option<HashMap<String, String>>,
+  pub source : Option<String>,
+  pub source_id : Option<u64>,
+  pub created_time : u64,
+  pub last_updated_time : u64,
+  pub path : Vec<u64>
+}
+
+impl Asset {
+  pub fn new(name : &str, 
+            description : &str, 
+            parent_id : Option<u64>,
+            metadata : Option<HashMap<String, String>>) -> Asset {
+    Asset {
+      name : String::from(name),
+      id : 0,
+      ref_id : Some(Uuid::new_v4().to_hyphenated().to_string()),
+      parent_id : parent_id,
+      parent_ref_id : None,
+      description : String::from(description),
+      depth : 0,
+      metadata : metadata,
+      source : None,
+      source_id : None,
+      created_time : 0,
+      last_updated_time : 0,
+      path : vec!(),
+    }
+  }
 }
 
 pub struct Assets {
@@ -85,8 +112,15 @@ impl Assets {
     }
   }
 
-  pub fn create(&self, assets : Vec<Asset>) -> Result<Asset> {
-    unimplemented!();
+  pub fn create(&self, assets : Vec<Asset>) -> Result<Vec<Asset>> {
+    let request_body = format!("{{\"items\":{} }}", serde_json::to_string(&assets).unwrap());
+    match self.api_client.post::<AssetResponseWrapper>("assets", &request_body){
+      Ok(assets_response) => {
+        let assets = assets_response.data.items;
+        Ok(assets)
+      },
+      Err(e) => Err(e)
+    }
   }
 
   pub fn update_single(&self, asset : Asset) -> Result<Asset> {
@@ -98,6 +132,12 @@ impl Assets {
   }
 
   pub fn delete(&self, asset_ids : Vec<u64>) -> Result<()> {
-    unimplemented!();
+    let request_body = format!("{{\"items\":{} }}", serde_json::to_string(&asset_ids).unwrap());
+    match self.api_client.post::<::serde_json::Value>("assets/delete", &request_body){
+      Ok(_) => {
+        Ok(())
+      },
+      Err(e) => Err(e)
+    }
   }
 }

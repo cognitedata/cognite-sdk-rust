@@ -1,6 +1,7 @@
 extern crate reqwest;
 extern crate serde;
 extern crate serde_json;
+extern crate uuid;
 
 mod api_client;
 mod cognite_client;

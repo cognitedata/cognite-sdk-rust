@@ -9,15 +9,22 @@ use serde_json::value::Value;
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct DatapointListResponseWrapper {
-  data : DatapointListResponse
+  data : DatapointItems
 }
 
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
-pub struct DatapointListResponse {
+pub struct DatapointItems {
   items : Vec<DatapointsResponse>,
   previous_cursor : Option<String>,
   next_cursor : Option<String>
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct DatapointsResponse {
+  name : String,
+  datapoints : Vec<Datapoint>,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -30,13 +37,6 @@ pub struct DatapointResponseWrapper {
 #[serde(rename_all = "camelCase")]
 pub struct DatapointResponse {
   items : Vec<Datapoint>,
-}
-
-#[derive(Serialize, Deserialize, Debug)]
-#[serde(rename_all = "camelCase")]
-pub struct DatapointsResponse {
-  name : String,
-  datapoints : Vec<Datapoint>,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
