@@ -23,17 +23,45 @@ pub struct EventListResponse {
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct Event {
-  start_time : Option<u64>,
-  end_time : Option<u64>,
-  description : Option<String>,
-  r#type : String,
-  subtype : Option<String>,
-  metadata : HashMap<String, String>,
-  asset_ids : Vec<u64>,
-  source : String,
-  source_id : String,
-  created_time : u64,
-  last_updated_time : u64,
+  pub id : u64,
+  pub start_time : Option<u128>,
+  pub end_time : Option<u128>,
+  pub description : Option<String>,
+  pub r#type : String,
+  pub subtype : Option<String>,
+  pub metadata : Option<HashMap<String, String>>,
+  pub asset_ids : Vec<u64>,
+  pub source : String,
+  pub source_id : String,
+  pub created_time : u128,
+  pub last_updated_time : u128,
+}
+
+impl Event {
+  pub fn new(start_time : Option<u128>,
+          end_time : Option<u128>,
+          description : Option<String>,
+          r#type : String,
+          subtype : Option<String>,
+          metadata : Option<HashMap<String, String>>,
+          asset_ids : Vec<u64>,
+          source : String,
+          source_id : String) -> Event {
+    Event {
+      id : 0,
+      start_time : start_time,
+      end_time : end_time,
+      description : description,
+      r#type : r#type,
+      subtype : subtype,
+      metadata : metadata,
+      asset_ids : asset_ids,
+      source : source,
+      source_id : source_id,
+      created_time : 0,
+      last_updated_time : 0,
+    }
+  }
 }
 
 pub struct Events {
@@ -89,16 +117,33 @@ impl Events {
     }
   }
 
-  pub fn create(&self, events : Vec<Event>) -> Result<Event> {
-    unimplemented!();
+  pub fn create(&self, events : Vec<Event>) -> Result<Vec<Event>> {
+    let request_body = format!("{{\"items\":{} }}", serde_json::to_string(&events).unwrap());
+    match self.api_client.post::<EventResponseWrapper>("events", &request_body){
+      Ok(events_response) => {
+        let events = events_response.data.items;
+        Ok(events)
+      },
+      Err(e) => Err(e)
+    }
   }
 
-  pub fn update(&self, events : Vec<Event>) -> Result<Vec<Event>> {
-    unimplemented!();
+  pub fn update(&self, events : &[Event]) -> Result<()> {
+    let request_body = format!("{{\"items\":{} }}", serde_json::to_string(&events).unwrap());
+    match self.api_client.post::<::serde_json::Value>("events/update", &request_body){
+      Ok(_) => Ok(()),
+      Err(e) => Err(e)
+    }
   }
 
   pub fn delete(&self, event_ids : Vec<u64>) -> Result<()> {
-    unimplemented!();
+    let request_body = format!("{{\"items\":{} }}", serde_json::to_string(&event_ids).unwrap());
+    match self.api_client.post::<::serde_json::Value>("events/delete", &request_body){
+      Ok(_) => {
+        Ok(())
+      },
+      Err(e) => Err(e)
+    }
   }
 }
 

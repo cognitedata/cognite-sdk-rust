@@ -30,8 +30,8 @@ pub struct TimeSerie {
   description: String,
   security_categories: Option<Vec<u64>>,
   id: u64,
-  created_time: u64,
-  last_updated_time: u64
+  created_time: u128,
+  last_updated_time: u128
 }
 
 pub struct TimeSeries {

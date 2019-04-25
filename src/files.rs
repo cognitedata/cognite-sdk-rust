@@ -31,8 +31,8 @@ pub struct File {
   asset_ids  : Option<Vec<u64>>,
   uploaded  : bool,
   uploaded_at  : u64,
-  created_time : u64,
-  last_updated_time : u64
+  created_time : u128,
+  last_updated_time : u128
 }
 
 #[derive(Serialize, Deserialize, Debug)]
