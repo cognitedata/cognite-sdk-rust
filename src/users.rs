@@ -24,9 +24,24 @@ pub struct UserResponse {
 pub struct User {
   pub unique_name : String,
   pub groups : Vec<u64>,
+  #[serde(skip_serializing)]
   pub id : u64,
+  #[serde(skip_serializing)]
   pub is_deleted : bool,
-  pub deleted_time : i64
+  #[serde(skip_serializing)]
+  pub deleted_time : Option<i64>
+}
+
+impl User {
+  pub fn new(unique_name : &str, groups : Vec<u64>) -> User {
+    User {
+      unique_name : String::from(unique_name),
+      groups : groups,
+      id : 0,
+      is_deleted : false,
+      deleted_time : None
+    }
+  }
 }
 
 pub struct Users {
@@ -50,11 +65,24 @@ impl Users {
     }
   }
 
-  pub fn create(&self, user_ids : Vec<u64>) -> Result<Vec<User>> {
-    unimplemented!();
+  pub fn create(&self, users : Vec<User>) -> Result<Vec<User>> {
+    let request_body = format!("{{\"items\":{} }}", serde_json::to_string(&users).unwrap());
+    match self.api_client.post::<UserResponseWrapper>("users", &request_body){
+      Ok(assets_response) => {
+        let assets = assets_response.data.items;
+        Ok(assets)
+      },
+      Err(e) => Err(e)
+    }
   }
 
   pub fn delete(&self, user_ids : Vec<u64>) -> Result<()> {
-    unimplemented!();
+    let request_body = format!("{{\"items\":{} }}", serde_json::to_string(&user_ids).unwrap());
+    match self.api_client.post::<::serde_json::Value>("users/delete", &request_body){
+      Ok(_) => {
+        Ok(())
+      },
+      Err(e) => Err(e)
+    }
   }
 }

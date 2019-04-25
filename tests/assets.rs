@@ -8,7 +8,7 @@ mod assets {
 
     let cognite_client = CogniteClient::new();
     let new_asset_name = Uuid::new_v4().to_hyphenated().to_string();
-    let new_asset : Asset = Asset::new(&new_asset_name, "description", None, None);
+    let new_asset : Asset = Asset::new(&new_asset_name, "description", None, None, None, None);
     match cognite_client.assets.create(vec!(new_asset)) {
       Ok(mut assets) => {
         assert_eq!(assets.len(), 1);
@@ -41,10 +41,10 @@ mod assets {
 
     let cognite_client = CogniteClient::new();
     let new_asset_name = Uuid::new_v4().to_hyphenated().to_string();
-    let new_asset : Asset = Asset::new(&new_asset_name, "description 1", None, None);
+    let new_asset : Asset = Asset::new(&new_asset_name, "description 1", None, None, None, None);
 
     let new_asset_2_name = Uuid::new_v4().to_hyphenated().to_string();
-    let new_asset_2 : Asset = Asset::new(&new_asset_2_name, "description 2", None, None);
+    let new_asset_2 : Asset = Asset::new(&new_asset_2_name, "description 2", None, None, None, None);
 
     match cognite_client.assets.create(vec!(new_asset, new_asset_2)) {
       Ok(mut assets) => {

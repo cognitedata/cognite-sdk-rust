@@ -44,7 +44,9 @@ impl Asset {
   pub fn new(name : &str, 
             description : &str, 
             parent_id : Option<u64>,
-            metadata : Option<HashMap<String, String>>) -> Asset {
+            metadata : Option<HashMap<String, String>>,
+            source : Option<String>,
+            source_id : Option<u64>) -> Asset {
     Asset {
       name : String::from(name),
       id : 0,
@@ -54,8 +56,8 @@ impl Asset {
       description : String::from(description),
       depth : 0,
       metadata : metadata,
-      source : None,
-      source_id : None,
+      source : source,
+      source_id : source_id,
       created_time : 0,
       last_updated_time : 0,
       path : vec!(),
@@ -82,6 +84,7 @@ pub struct PatchAsset {
 }
 
 impl PatchAsset {
+  /// Convert an Asset to a PatchAsset which is used to update an asset.
   fn new(asset : &Asset) -> PatchAsset {
     PatchAsset {
       id : asset.id,
