@@ -5,6 +5,7 @@ use super::{
   Result,
 };
 use serde::{Deserialize, Serialize};
+use serde_json::json;
 use uuid::Uuid;
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -58,6 +59,37 @@ impl Asset {
       created_time : 0,
       last_updated_time : 0,
       path : vec!(),
+    }
+  }
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+#[serde(rename_all = "camelCase")]
+struct PatchItem {
+  set : ::serde_json::Value,
+  set_null : bool,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct PatchAsset {
+  id : u64,
+  name : PatchItem,
+  description : PatchItem,
+  metadata : PatchItem,
+  source : PatchItem,
+  source_id : PatchItem,
+}
+
+impl PatchAsset {
+  fn new(asset : &Asset) -> PatchAsset {
+    PatchAsset {
+      id : asset.id,
+      name : PatchItem { set : json!(asset.name), set_null : false },
+      description : PatchItem { set : json!(asset.description), set_null : false  },
+      metadata : PatchItem { set : json!(asset.metadata), set_null : asset.metadata.is_none() },
+      source : PatchItem { set : json!(asset.source), set_null : asset.source.is_none() },
+      source_id : PatchItem { set : json!(asset.source_id), set_null : asset.source_id.is_none() }
     }
   }
 }
@@ -124,11 +156,25 @@ impl Assets {
   }
 
   pub fn update_single(&self, asset : Asset) -> Result<Asset> {
-    unimplemented!();
+    let patch_asset = PatchAsset::new(&asset);
+    let request_body = serde_json::to_string(&patch_asset).unwrap();
+    match self.api_client.post::<AssetResponseWrapper>(&format!("assets/{}/update", asset.id), &request_body){
+      Ok(mut asset_response) => {
+        Ok(asset_response.data.items.pop().unwrap())
+      }
+      Err(e) => Err(e)
+    }
   }
 
   pub fn update(&self, assets : Vec<Asset>) -> Result<Vec<Asset>> {
-    unimplemented!();
+    let patch_assets : Vec<PatchAsset> = assets.iter().map(| a | PatchAsset::new(a)).collect();
+    let request_body = format!("{{\"items\":{} }}", serde_json::to_string(&patch_assets).unwrap());
+    match self.api_client.post::<AssetResponseWrapper>("assets/update", &request_body){
+      Ok(assets_response) => {
+        Ok(assets_response.data.items)
+      }
+      Err(e) => Err(e)
+    }
   }
 
   pub fn delete(&self, asset_ids : Vec<u64>) -> Result<()> {
