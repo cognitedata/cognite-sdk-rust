@@ -1,38 +1,7 @@
-use super::{
-  ApiClient, 
-  Params,
-  Result,
-};
-use serde::{Deserialize, Serialize};
-
-#[derive(Serialize, Deserialize, Debug)]
-#[serde(rename_all = "camelCase")]
-pub struct TimeSerieResponseWrapper {
-  data : TimeSerieListResponse
-}
-
-#[derive(Serialize, Deserialize, Debug)]
-#[serde(rename_all = "camelCase")]
-pub struct TimeSerieListResponse {
-  items : Vec<TimeSerie>,
-  previous_cursor : Option<String>,
-  next_cursor : Option<String>,
-}
-
-#[derive(Serialize, Deserialize, Debug)]
-#[serde(rename_all = "camelCase")]
-pub struct TimeSerie {
-  name: String,
-  is_string: bool,
-  unit: Option<String>,
-  asset_id: Option<u64>,
-  is_step: bool,
-  description: String,
-  security_categories: Option<Vec<u64>>,
-  id: u64,
-  created_time: u128,
-  last_updated_time: u128
-}
+use crate::api::ApiClient;
+use crate::api::params::{Params};
+use crate::error::{Result};
+use crate::dto::time_serie::*;
 
 pub struct TimeSeries {
   api_client : ApiClient,
@@ -86,15 +55,35 @@ impl TimeSeries {
     }
   }
 
-  pub fn create(&self, time_series : Vec<TimeSerie>) -> Result<TimeSerie> {
-    unimplemented!();
+  pub fn create(&self, time_series : &[TimeSerie]) -> Result<()> {
+    let request_body = format!("{{\"items\":{} }}", serde_json::to_string(&time_series).unwrap());
+    match self.api_client.post::<::serde_json::Value>("timeseries", &request_body){
+      Ok(_) => {
+        Ok(())
+      },
+      Err(e) => Err(e)
+    }
   }
 
-  pub fn update(&self, time_series : Vec<TimeSerie>) -> Result<Vec<TimeSerie>> {
-    unimplemented!();
+  pub fn update(&self, time_series : &[TimeSerie]) -> Result<Vec<TimeSerie>> {
+    let patch_time_series : Vec<PatchTimeSerie> = time_series.iter().map(| a | PatchTimeSerie::new(a)).collect();
+    let request_body = format!("{{\"items\":{} }}", serde_json::to_string(&patch_time_series).unwrap());
+    println!("{:?}", request_body);
+    match self.api_client.post::<TimeSerieResponseWrapper>("timeseries/update", &request_body){
+      Ok(time_series_response) => {
+        let time_series = time_series_response.data.items;
+        Ok(time_series)
+      },
+      Err(e) => Err(e)
+    }
   }
 
-  pub fn delete(&self, time_serie_ids : Vec<u64>) -> Result<()> {
-    unimplemented!();
+  pub fn delete(&self, time_serie_name: &str) -> Result<()> {
+    match self.api_client.delete::<::serde_json::Value>(&format!("timeseries/{}", time_serie_name)){
+      Ok(_) => {
+        Ok(())
+      },
+      Err(e) => Err(e)
+    }
   }
 }

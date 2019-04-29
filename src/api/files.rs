@@ -1,9 +1,7 @@
 use std::collections::HashMap;
-use super::{
-  ApiClient,
-  Params,
-  Result,
-};
+use crate::api::ApiClient;
+use crate::api::params::{Params};
+use crate::error::{Result};
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Debug)]

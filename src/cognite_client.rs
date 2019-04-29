@@ -13,9 +13,6 @@ use super::{
 };
 
 pub struct CogniteClient {
-  api_key : String,
-  project : String,
-  base_url : String,
   pub api_client : ApiClient,
 
   pub assets : Assets,
@@ -69,9 +66,6 @@ impl CogniteClient {
     let users_api_client = ApiClient::new(api_base_path.clone(), api_key.clone());
 
     CogniteClient { 
-      api_key : api_key,
-      base_url : api_base_url,
-      project : project,
       api_client : api_client,
 
       assets : Assets::new(assets_api_client),

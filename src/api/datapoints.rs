@@ -1,8 +1,7 @@
-use super::{
-  ApiClient,
-  Params,
-  Result,
-};
+use crate::api::ApiClient;
+use crate::api::params::{Params};
+use crate::error::{Result};
+
 use serde::{Deserialize, Serialize};
 use serde_json::value::Value;
 

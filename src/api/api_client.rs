@@ -13,13 +13,13 @@ use reqwest::header::{
   USER_AGENT
 };
 
-use super::{
-  Params, 
+use crate::api::params::{Params};
+use crate::error::{
+  Result,
   Error,
   Kind,
   ApiErrorWrapper,
 };
-
 
 pub struct ApiClient {
   api_base_url : String,
@@ -36,13 +36,15 @@ impl ApiClient {
     }
   }
 
-  fn send_request<T : DeserializeOwned>(&self, request : RequestBuilder) -> Result<T, Error> {
+  fn send_request<T : DeserializeOwned>(&self, request : RequestBuilder) -> Result<T> {
     match request.send() {
       Ok(mut response) => {
         match response.status() {
           StatusCode::OK => {
-            let obj : T = response.json().unwrap();
-            Ok(obj)
+            match response.json::<T>() {
+              Ok(json) => Ok(json),
+              Err(e) => Err(Error::from(e))
+            }
           },
           StatusCode::BAD_REQUEST => {
             let error_message : ApiErrorWrapper = response.json().unwrap();
@@ -93,7 +95,7 @@ impl ApiClient {
     http_params
   }
 
-  pub fn get<T : DeserializeOwned>(&self, path : &str, params : Option<Vec<Params>>) -> Result<T, Error> {
+  pub fn get<T : DeserializeOwned>(&self, path : &str, params : Option<Vec<Params>>) -> Result<T> {
     let http_params : Vec<(String, String)> = self.convert_params_to_tuples(params);
 
     let url = format!("{}/{}", self.api_base_url, path);
@@ -110,7 +112,7 @@ impl ApiClient {
     self.send_request(request)
   }
 
-  pub fn post<T : DeserializeOwned>(&self, path : &str, body : &str) -> Result<T, Error> {
+  pub fn post<T : DeserializeOwned>(&self, path : &str, body : &str) -> Result<T> {
     let url = format!("{}/{}", self.api_base_url, path);
     let mut headers = HeaderMap::new();
     let api_key_header_value = HeaderValue::from_str(&self.api_key).expect("failed to set api key");
@@ -125,7 +127,7 @@ impl ApiClient {
     self.send_request(request)
   }
 
-  pub fn put<T : DeserializeOwned>(&self, path : &str, body : &str) -> Result<T, Error> {
+  pub fn put<T : DeserializeOwned>(&self, path : &str, body : &str) -> Result<T> {
     let url = format!("{}/{}", self.api_base_url, path);
     let mut headers = HeaderMap::new();
     let api_key_header_value = HeaderValue::from_str(&self.api_key).expect("failed to set api key");
@@ -140,7 +142,7 @@ impl ApiClient {
     self.send_request(request)
   }
 
-  pub fn delete(&self, path : &str) -> Result<(), Error> {
+  pub fn delete<T : DeserializeOwned>(&self, path : &str) -> Result<T> {
     let url = format!("{}/{}", self.api_base_url, path);
     let mut headers = HeaderMap::new();
     let api_key_header_value = HeaderValue::from_str(&self.api_key).expect("failed to set api key");
@@ -151,7 +153,7 @@ impl ApiClient {
     let request = self.client
                           .delete(&url)
                           .headers(headers);
-    self.send_request(request)
+    self.send_request::<T>(request)
   }
 
 }

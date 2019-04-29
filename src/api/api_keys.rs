@@ -1,5 +1,5 @@
 use super::{
-  ApiClient,
+  ApiClient
 };
 use serde::{Deserialize, Serialize};
 

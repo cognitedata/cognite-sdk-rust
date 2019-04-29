@@ -1,7 +1,5 @@
-use super::{
-  ApiClient,
-  Result,
-};
+use crate::api::ApiClient;
+use crate::error::{Result};
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Debug)]
