@@ -59,7 +59,10 @@ impl CogniteClient {
     // Get project name associated to API KEY
     let login_api_client = ApiClient::new(api_base_url.clone(), api_key.clone());
     let login = Login::new(login_api_client);
-    let login_status = login.status().unwrap();
+    let login_status = match login.status() {
+      Ok(status) => status,
+      Err(e) => return Err(e)
+    };
 
     let project = login_status.project;
     println!("API PROJECT: {}", project);
