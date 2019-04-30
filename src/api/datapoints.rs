@@ -44,7 +44,7 @@ impl Datapoints {
     }
   }
 
-  pub fn insert_in_time_serie_by_id(&self, time_serie_id : String, datapoints : Vec<Datapoint>) -> Result<()> {
+  pub fn insert_in_time_serie_by_id(&self, time_serie_id : u64, datapoints : &[Datapoint]) -> Result<()> {
     let add_datapoints : Vec<AddDatapoint> = datapoints.iter().map(| d | AddDatapoint::from(d)).collect();
     let request_body = format!("{{\"items\":{} }}", serde_json::to_string(&add_datapoints).unwrap());
     match self.api_client.post::<::serde_json::Value>(&format!("timeseries/{}/data", time_serie_id), &request_body){
@@ -53,7 +53,7 @@ impl Datapoints {
     }
   }
 
-  pub fn insert_in_time_serie_by_name(&self, time_serie_name : String, datapoints : Vec<Datapoint>) -> Result<()> {
+  pub fn insert_in_time_serie_by_name(&self, time_serie_name : &str, datapoints : &[Datapoint]) -> Result<()> {
     let add_datapoints : Vec<AddDatapoint> = datapoints.iter().map(| d | AddDatapoint::from(d)).collect();
     let request_body = format!("{{\"items\":{} }}", serde_json::to_string(&add_datapoints).unwrap());
     match self.api_client.post::<::serde_json::Value>(&format!("timeseries/data/{}", time_serie_name), &request_body){
@@ -62,7 +62,7 @@ impl Datapoints {
     }
   }
 
-  pub fn delete_single_in_time_serie_by_id(&self, time_serie_id : u64, timestamp : u64) -> Result<()> {
+  pub fn delete_single_in_time_serie_by_id(&self, time_serie_id : u64, timestamp : u128) -> Result<()> {
     let params = vec!(Params::DatapointsDelete_Timestamp(timestamp));
     match self.api_client.delete_with_params::<::serde_json::Value>(&format!("timeseries/{}/data/deletesingle", time_serie_id), Some(params)){
       Ok(_) => {
@@ -72,7 +72,7 @@ impl Datapoints {
     }
   }
 
-  pub fn delete_single_in_time_serie_by_name(&self, time_serie_name : String, timestamp : u64) -> Result<()> {
+  pub fn delete_single_in_time_serie_by_name(&self, time_serie_name : &str, timestamp : u128) -> Result<()> {
     let params = vec!(Params::DatapointsDelete_Timestamp(timestamp));
     match self.api_client.delete_with_params::<::serde_json::Value>(&format!("timeseries/data/{}/deletesognle", time_serie_name), Some(params)){
       Ok(_) => {
@@ -82,7 +82,7 @@ impl Datapoints {
     }
   }
 
-  pub fn delete_in_time_serie_by_id(&self, time_serie_id : u64, from : u64, to : u64) -> Result<()> {
+  pub fn delete_in_time_serie_by_id(&self, time_serie_id : u64, from : u128, to : u128) -> Result<()> {
     let params = vec!(Params::DatapointsDelete_TimestampInclusiveBegin(from), Params::DatapointsDelete_TimestampExclusideEnd(to));
     match self.api_client.delete_with_params::<::serde_json::Value>(&format!("timeseries/{}/data/deleterange", time_serie_id), Some(params)){
       Ok(_) => {
@@ -92,7 +92,7 @@ impl Datapoints {
     }
   }
 
-  pub fn delete_in_time_serie_by_name(&self, time_serie_name : String, from : u64, to : u64) -> Result<()> {
+  pub fn delete_in_time_serie_by_name(&self, time_serie_name : &str, from : u128, to : u128) -> Result<()> {
     let params = vec!(Params::DatapointsDelete_TimestampInclusiveBegin(from), Params::DatapointsDelete_TimestampExclusideEnd(to));
     match self.api_client.delete_with_params::<::serde_json::Value>(&format!("timeseries/data/{}/deleterange", time_serie_name), Some(params)){
       Ok(_) => {

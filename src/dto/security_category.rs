@@ -2,9 +2,23 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
+pub struct SecurityCategorieResponseWrapper {
+  pub data: SecurityCategorieResponse,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct SecurityCategorieResponse {
+  pub items : Vec<SecurityCategory>,
+  previous_cursor : Option<String>,
+  next_cursor : Option<String>,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+#[serde(rename_all = "camelCase")]
 pub struct SecurityCategory {
-  pub id : u64,
   pub name : String,
+  pub id : Option<u64>,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -15,12 +29,12 @@ pub struct PatchSecurityCategory {
   pub set : Option<Vec<u64>>,
 }
 
-impl From<&Vec<u64>> for PatchSecurityCategory {
-  fn from(items : &Vec<u64>) -> PatchSecurityCategory {
+impl From<&[u64]> for PatchSecurityCategory {
+  fn from(items : &[u64]) -> PatchSecurityCategory {
       PatchSecurityCategory { 
         add : None,
         remove : None,
-        set : Some(items.clone()),
+        set : Some(items.to_vec()),
       }
   }
 }

@@ -34,8 +34,8 @@ impl TimeSeries {
     }
   }
 
-  pub fn retrieve_multiple(&self, time_serie_ids : Vec<u64>) -> Result<Vec<TimeSerie>> {
-    let request_body = format!("{{\"items\":{} }}", serde_json::to_string(&time_serie_ids).unwrap());
+  pub fn retrieve_multiple(&self, time_serie_ids : &[u64]) -> Result<Vec<TimeSerie>> {
+    let request_body = format!("{{\"items\":{} }}", serde_json::to_string(time_serie_ids).unwrap());
     match self.api_client.post::<TimeSerieResponseWrapper>("timeseries/byids", &request_body){
       Ok(time_series_response) => {
         let time_series = time_series_response.data.items;
@@ -56,7 +56,7 @@ impl TimeSeries {
   }
 
   pub fn create(&self, time_series : &[TimeSerie]) -> Result<()> {
-    let request_body = format!("{{\"items\":{} }}", serde_json::to_string(&time_series).unwrap());
+    let request_body = format!("{{\"items\":{} }}", serde_json::to_string(time_series).unwrap());
     match self.api_client.post::<::serde_json::Value>("timeseries", &request_body){
       Ok(_) => {
         Ok(())

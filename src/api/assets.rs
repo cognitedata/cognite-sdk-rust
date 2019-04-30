@@ -33,8 +33,8 @@ impl Assets {
     }
   }
 
-  pub fn retrieve_multiple(&self, asset_ids : Vec<u64>) -> Result<Vec<Asset>> {
-    let request_body = format!("{{\"items\":{} }}", serde_json::to_string(&asset_ids).unwrap());
+  pub fn retrieve_multiple(&self, asset_ids : &[u64]) -> Result<Vec<Asset>> {
+    let request_body = format!("{{\"items\":{} }}", serde_json::to_string(asset_ids).unwrap());
     match self.api_client.post::<AssetResponseWrapper>("assets/byids", &request_body){
       Ok(assets_response) => {
         let assets = assets_response.data.items;
@@ -53,8 +53,8 @@ impl Assets {
     }
   }
 
-  pub fn create(&self, assets : Vec<Asset>) -> Result<Vec<Asset>> {
-    let request_body = format!("{{\"items\":{} }}", serde_json::to_string(&assets).unwrap());
+  pub fn create(&self, assets : &[Asset]) -> Result<Vec<Asset>> {
+    let request_body = format!("{{\"items\":{} }}", serde_json::to_string(assets).unwrap());
     match self.api_client.post::<AssetResponseWrapper>("assets", &request_body){
       Ok(assets_response) => {
         let assets = assets_response.data.items;
@@ -64,8 +64,8 @@ impl Assets {
     }
   }
 
-  pub fn update_single(&self, asset : Asset) -> Result<Asset> {
-    let patch_asset = PatchAsset::new(&asset);
+  pub fn update_single(&self, asset : &Asset) -> Result<Asset> {
+    let patch_asset = PatchAsset::new(asset);
     let request_body = serde_json::to_string(&patch_asset).unwrap();
     match self.api_client.post::<AssetResponseWrapper>(&format!("assets/{}/update", asset.id), &request_body){
       Ok(mut asset_response) => {
@@ -75,7 +75,7 @@ impl Assets {
     }
   }
 
-  pub fn update(&self, assets : Vec<Asset>) -> Result<Vec<Asset>> {
+  pub fn update(&self, assets : &[Asset]) -> Result<Vec<Asset>> {
     let patch_assets : Vec<PatchAsset> = assets.iter().map(| a | PatchAsset::new(a)).collect();
     let request_body = format!("{{\"items\":{} }}", serde_json::to_string(&patch_assets).unwrap());
     match self.api_client.post::<AssetResponseWrapper>("assets/update", &request_body){
@@ -86,8 +86,8 @@ impl Assets {
     }
   }
 
-  pub fn delete(&self, asset_ids : Vec<u64>) -> Result<()> {
-    let request_body = format!("{{\"items\":{} }}", serde_json::to_string(&asset_ids).unwrap());
+  pub fn delete(&self, asset_ids : &[u64]) -> Result<()> {
+    let request_body = format!("{{\"items\":{} }}", serde_json::to_string(asset_ids).unwrap());
     match self.api_client.post::<::serde_json::Value>("assets/delete", &request_body){
       Ok(_) => {
         Ok(())

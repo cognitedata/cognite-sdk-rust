@@ -31,7 +31,7 @@ fn main() {
   println!("Search found: {:?} assets", asset_search);
 
   // Retrieve multiple assets
-  match cognite_client.assets.retrieve_multiple(vec!(6687602007296940)) {
+  match cognite_client.assets.retrieve_multiple(&vec!(6687602007296940)) {
     Ok(assets_multiple) => println!("{:?}", assets_multiple),
     Err(e) => println!("{:?}", e)
   }

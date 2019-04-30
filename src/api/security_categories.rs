@@ -1,27 +1,7 @@
 use crate::api::ApiClient;
+use crate::api::params::{Params};
 use crate::error::{Result};
-use serde::{Deserialize, Serialize};
-
-#[derive(Serialize, Deserialize, Debug)]
-#[serde(rename_all = "camelCase")]
-pub struct SecurityCategorieResponseWrapper {
-  data: SecurityCategorieResponse,
-}
-
-#[derive(Serialize, Deserialize, Debug)]
-#[serde(rename_all = "camelCase")]
-pub struct SecurityCategorieResponse {
-  items : Vec<SecurityCategorie>,
-  previous_cursor : Option<String>,
-  next_cursor : Option<String>,
-}
-
-#[derive(Serialize, Deserialize, Debug)]
-#[serde(rename_all = "camelCase")]
-pub struct SecurityCategorie {
-  pub name : String,
-  pub id : u64,
-}
+use crate::dto::security_category::*;
 
 pub struct SecurityCategories {
   api_client : ApiClient
@@ -34,15 +14,33 @@ impl SecurityCategories {
     }
   }
 
-  pub fn list_all(&self) -> Result<Vec<SecurityCategorie>> {
-    unimplemented!();
+  pub fn list_all(&self, params : Option<Vec<Params>>) -> Result<Vec<SecurityCategory>> {
+    match self.api_client.get::<SecurityCategorieResponseWrapper>("securitycategories", params) {
+      Ok(security_categories_response) => {
+        Ok(security_categories_response.data.items)
+      }
+      Err(e) => Err(e)
+    }
   }
 
-  pub fn create(&self, security_categorie_ids : Vec<u64>) -> Result<Vec<SecurityCategorie>> {
-    unimplemented!();
+  pub fn create(&self, security_category_names : &[SecurityCategory]) -> Result<Vec<SecurityCategory>> {
+    let request_body = format!("{{\"items\":{} }}", serde_json::to_string(security_category_names).unwrap());
+    match self.api_client.post::<SecurityCategorieResponseWrapper>("securitycategories", &request_body){
+      Ok(security_categories_response) => {
+        let security_categories = security_categories_response.data.items;
+        Ok(security_categories)
+      },
+      Err(e) => Err(e)
+    }
   }
 
-  pub fn delete(&self, security_categorie_ids : Vec<u64>) -> Result<()> {
-    unimplemented!();
+  pub fn delete(&self, security_category_ids : &[u64]) -> Result<()> {
+    let request_body = format!("{{\"items\":{} }}", serde_json::to_string(security_category_ids).unwrap());
+    match self.api_client.post::<::serde_json::Value>("securitycategories/delete", &request_body){
+      Ok(_) => {
+        Ok(())
+      },
+      Err(e) => Err(e)
+    }
   }
 }

@@ -94,8 +94,8 @@ impl Events {
     }
   }
 
-  pub fn retrieve_multiple(&self, event_ids : Vec<u64>) -> Result<Vec<Event>> {
-    let request_body = format!("{{\"items\":{} }}", serde_json::to_string(&event_ids).unwrap());
+  pub fn retrieve_multiple(&self, event_ids : &[u64]) -> Result<Vec<Event>> {
+    let request_body = format!("{{\"items\":{} }}", serde_json::to_string(event_ids).unwrap());
     match self.api_client.post::<EventResponseWrapper>("events/byids", &request_body){
       Ok(events_response) => {
         let events = events_response.data.items;
@@ -115,8 +115,8 @@ impl Events {
     }
   }
 
-  pub fn create(&self, events : Vec<Event>) -> Result<Vec<Event>> {
-    let request_body = format!("{{\"items\":{} }}", serde_json::to_string(&events).unwrap());
+  pub fn create(&self, events : &[Event]) -> Result<Vec<Event>> {
+    let request_body = format!("{{\"items\":{} }}", serde_json::to_string(events).unwrap());
     match self.api_client.post::<EventResponseWrapper>("events", &request_body){
       Ok(events_response) => {
         let events = events_response.data.items;
@@ -127,15 +127,15 @@ impl Events {
   }
 
   pub fn update(&self, events : &[Event]) -> Result<()> {
-    let request_body = format!("{{\"items\":{} }}", serde_json::to_string(&events).unwrap());
+    let request_body = format!("{{\"items\":{} }}", serde_json::to_string(events).unwrap());
     match self.api_client.post::<::serde_json::Value>("events/update", &request_body){
       Ok(_) => Ok(()),
       Err(e) => Err(e)
     }
   }
 
-  pub fn delete(&self, event_ids : Vec<u64>) -> Result<()> {
-    let request_body = format!("{{\"items\":{} }}", serde_json::to_string(&event_ids).unwrap());
+  pub fn delete(&self, event_ids : &[u64]) -> Result<()> {
+    let request_body = format!("{{\"items\":{} }}", serde_json::to_string(event_ids).unwrap());
     match self.api_client.post::<::serde_json::Value>("events/delete", &request_body){
       Ok(_) => {
         Ok(())

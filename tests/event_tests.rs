@@ -18,7 +18,7 @@ mod users {
                                         vec!(),
                                         "source".to_owned(),
                                         "source id".to_owned());
-    match cognite_client.events.create(vec!(new_event)) {
+    match cognite_client.events.create(&vec!(new_event)) {
       Ok(mut events) => {
         
         for event in events.iter_mut() {
@@ -31,7 +31,7 @@ mod users {
         };
 
         let event_ids : Vec<u64> = events.iter().map(| e | e.id).collect();
-        match cognite_client.events.delete(event_ids) {
+        match cognite_client.events.delete(&event_ids) {
           Ok(_) => assert!(true),
           Err(e) => panic!("{:?}", e)
         }

@@ -199,11 +199,11 @@ pub enum Params {
 
   // Delete
   #[serde(rename = "timestamp")]
-  DatapointsDelete_Timestamp(u64),
+  DatapointsDelete_Timestamp(u128),
   #[serde(rename = "timestampInclusiveBegin")]
-  DatapointsDelete_TimestampInclusiveBegin(u64),
+  DatapointsDelete_TimestampInclusiveBegin(u128),
   #[serde(rename = "timestampExclusiveEnd")]
-  DatapointsDelete_TimestampExclusideEnd(u64),
+  DatapointsDelete_TimestampExclusideEnd(u128),
 
   // FILES
 
@@ -262,4 +262,14 @@ pub enum Params {
   FilesSearch_Limit(u32),
   #[serde(rename = "offset")]
   FilesSearch_Offset(u32),
+
+  // SECURITY CATEGORIES
+
+  // List all
+  #[serde(rename = "cursor")]
+  SecurityCategoriesListAll_Cursor(String),
+  #[serde(rename = "sort")]
+  SecurityCategoriesListAll_Sort(String),
+  #[serde(rename = "limit")]
+  SecurityCategoriesListAll_Limit(u32),
 } 
