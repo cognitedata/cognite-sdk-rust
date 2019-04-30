@@ -1,5 +1,6 @@
 use std::env;
 
+use crate::error::Kind;
 use super::{ 
   Assets,
   Datapoints,
@@ -10,6 +11,8 @@ use super::{
   Users,
   ApiKeys,
   ApiClient,
+  Result,
+  Error,
 };
 
 pub struct CogniteClient {
@@ -29,13 +32,16 @@ static COGNITE_BASE_URL : &'static str = "COGNITE_BASE_URL";
 
 impl CogniteClient {
 
-  pub fn new() -> Self {
+  pub fn new() -> Result<Self> {
     let api_key : String = match env::var(COGNITE_API_KEY) {
       Ok(api_key) => {
         println!("API KEY is set");
         api_key
       },
-      Err(e) => panic!("{} is not defined in the environment. Error: {}", COGNITE_API_KEY, e)
+      Err(e) => {
+        let error_message = format!("{} is not defined in the environment. Error: {}", COGNITE_API_KEY, e);
+        return Err(Error::new(Kind::EnvironmentVariableMissing(error_message)))
+      }
     };
 
     let api_base_url : String = match env::var(COGNITE_BASE_URL) {
@@ -43,7 +49,10 @@ impl CogniteClient {
         println!("API BASE URL: {}", base_url);
         base_url
       },
-      Err(e) => panic!("{} is not defined in the environment. Error: {}", COGNITE_BASE_URL, e)
+      Err(e) => {
+        let error_message = format!("{} is not defined in the environment. Error: {}", COGNITE_BASE_URL, e);
+        return Err(Error::new(Kind::EnvironmentVariableMissing(error_message)))
+      }
     };
     let api_client = ApiClient::new(api_base_url.clone(), api_key.clone());
 
@@ -65,7 +74,7 @@ impl CogniteClient {
     let api_keys_api_client = ApiClient::new(api_base_path.clone(), api_key.clone());
     let users_api_client = ApiClient::new(api_base_path.clone(), api_key.clone());
 
-    CogniteClient { 
+    Ok(CogniteClient { 
       api_client : api_client,
 
       assets : Assets::new(assets_api_client),
@@ -75,6 +84,6 @@ impl CogniteClient {
       time_series : TimeSeries::new(time_series_api_client),
       users : Users::new(users_api_client),
       api_keys : ApiKeys::new(api_keys_api_client),
-    }
+    })
   }
 }

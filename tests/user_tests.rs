@@ -4,7 +4,7 @@ mod users {
 
   #[test]
   fn create_and_delete_user() {
-    let cognite_client = CogniteClient::new();
+    let cognite_client = CogniteClient::new().unwrap();
     let new_user : User = User::new("test-user-should-be-deleted-after-creation", &vec!());
     match cognite_client.users.create(&vec!(new_user)) {
       Ok(users) => {

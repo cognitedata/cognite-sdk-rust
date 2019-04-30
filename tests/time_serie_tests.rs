@@ -4,7 +4,7 @@ mod users {
 
   #[test]
   fn create_and_delete_time_series() {
-    let cognite_client = CogniteClient::new();
+    let cognite_client = CogniteClient::new().unwrap();
     let time_serie = TimeSerie::new("name",
                                     false,
                                     None,

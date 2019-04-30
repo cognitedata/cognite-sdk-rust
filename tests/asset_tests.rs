@@ -6,7 +6,7 @@ mod assets {
   fn create_update_and_delete_asset() {
     use uuid::Uuid;
 
-    let cognite_client = CogniteClient::new();
+    let cognite_client = CogniteClient::new().unwrap();
     let new_asset_name = Uuid::new_v4().to_hyphenated().to_string();
     let new_asset : Asset = Asset::new(&new_asset_name, "description", None, None, None, None);
     match cognite_client.assets.create(&vec!(new_asset)) {
@@ -39,7 +39,7 @@ mod assets {
   fn create_update_multiple_and_delete_asset() {
     use uuid::Uuid;
 
-    let cognite_client = CogniteClient::new();
+    let cognite_client = CogniteClient::new().unwrap();
     let new_asset_name = Uuid::new_v4().to_hyphenated().to_string();
     let new_asset : Asset = Asset::new(&new_asset_name, "description 1", None, None, None, None);
 

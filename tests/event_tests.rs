@@ -8,7 +8,7 @@ mod users {
     let start = SystemTime::now();
     let since_the_epoch = start.duration_since(UNIX_EPOCH).unwrap();
 
-    let cognite_client = CogniteClient::new();
+    let cognite_client = CogniteClient::new().unwrap();
     let new_event : Event = Event::new(Some(since_the_epoch.as_millis()),
                                         Some(since_the_epoch.as_millis()+1), 
                                         Some("description".to_owned()),
