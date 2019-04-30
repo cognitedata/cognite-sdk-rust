@@ -47,20 +47,28 @@ impl ApiClient {
             }
           },
           StatusCode::BAD_REQUEST => {
-            let error_message : ApiErrorWrapper = response.json().unwrap();
-            Err(Error::new(Kind::BadRequest(error_message.error.message)))
+            match response.json::<ApiErrorWrapper>() {
+              Ok(error_message) => Err(Error::new(Kind::BadRequest(error_message.error.message))),
+              Err(e) => Err(Error::from(e))
+            }
           },
           StatusCode::UNAUTHORIZED => {
-            let error_message : ApiErrorWrapper = response.json().unwrap();
-            Err(Error::new(Kind::Unauthorized(error_message.error.message)))
+            match response.json::<ApiErrorWrapper>() {
+              Ok(error_message) => Err(Error::new(Kind::Unauthorized(error_message.error.message))),
+              Err(e) => Err(Error::from(e))
+            }
           },
           StatusCode::FORBIDDEN => {
-            let error_message : ApiErrorWrapper = response.json().unwrap();
-            Err(Error::new(Kind::Forbidden(error_message.error.message)))
+            match response.json::<ApiErrorWrapper>() {
+              Ok(error_message) => Err(Error::new(Kind::Forbidden(error_message.error.message))),
+              Err(e) => Err(Error::from(e))
+            }
           },
           StatusCode::NOT_FOUND => {
-            let error_message : ApiErrorWrapper = response.json().unwrap();
-            Err(Error::new(Kind::NotFound(error_message.error.message)))
+            match response.json::<ApiErrorWrapper>() {
+              Ok(error_message) => Err(Error::new(Kind::NotFound(error_message.error.message))),
+              Err(e) => Err(Error::from(e))
+            }
           },
           s => {
             let error_message = format!("Received API response {} with result: {:?}", s, response.text());
@@ -143,6 +151,11 @@ impl ApiClient {
   }
 
   pub fn delete<T : DeserializeOwned>(&self, path : &str) -> Result<T> {
+    self.delete_with_params::<T>(path, None)
+  }
+
+  pub fn delete_with_params<T : DeserializeOwned>(&self, path : &str, params : Option<Vec<Params>>) -> Result<T> {
+    let http_params : Vec<(String, String)> = self.convert_params_to_tuples(params);
     let url = format!("{}/{}", self.api_base_url, path);
     let mut headers = HeaderMap::new();
     let api_key_header_value = HeaderValue::from_str(&self.api_key).expect("failed to set api key");
@@ -152,7 +165,8 @@ impl ApiClient {
     headers.insert(ACCEPT, HeaderValue::from_static("application/json"));
     let request = self.client
                           .delete(&url)
-                          .headers(headers);
+                          .headers(headers)
+                          .query(&http_params);
     self.send_request::<T>(request)
   }
 

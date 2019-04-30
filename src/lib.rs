@@ -14,6 +14,7 @@ pub use self::{
   },
   dto::{
     asset::*,
+    datapoint::*,
     time_serie::*,
     security_category::*,
   },

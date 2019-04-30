@@ -197,6 +197,14 @@ pub enum Params {
   #[serde(rename = "before")]
   DatapointsRetrieveLatest_Before(String),
 
+  // Delete
+  #[serde(rename = "timestamp")]
+  DatapointsDelete_Timestamp(u64),
+  #[serde(rename = "timestampInclusiveBegin")]
+  DatapointsDelete_TimestampInclusiveBegin(u64),
+  #[serde(rename = "timestampExclusiveEnd")]
+  DatapointsDelete_TimestampExclusideEnd(u64),
+
   // FILES
 
   // ListAll
