@@ -1,23 +1,7 @@
-pub mod assets;
-pub mod datapoints;
-pub mod events;
-pub mod files;
-pub mod login;
-pub mod time_series;
-pub mod users;
-pub mod api_keys;
-pub mod security_categories;
 pub mod api_client;
-pub mod params;
 
-pub use self::params::*;
+pub mod auth;
+pub mod core;
+pub mod iam;
+
 pub use self::api_client::*;
-pub use self::assets::*;
-pub use self::datapoints::*;
-pub use self::events::*;
-pub use self::files::*;
-pub use self::login::*;
-pub use self::time_series::*;
-pub use self::users::*;
-pub use self::api_keys::*;
-pub use self::security_categories::*;

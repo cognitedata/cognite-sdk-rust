@@ -7,34 +7,30 @@ use cognite::{
   TimeSerie,
   File,
   Params,
+  AssetFilter,
+  AssetSearch,
 };
 
 fn main() {
   let cognite_client = CogniteClient::new().unwrap();
 
   // List all assets
-  let assets : Vec<Asset> = cognite_client.assets.list_all(None).unwrap();
+
+  let filter : AssetFilter = AssetFilter::new();
+  let assets : Vec<Asset> = cognite_client.assets.filter_all(filter).unwrap();
   println!("{} assets retrieved.", assets.len());
   
   // Retrieve asset
-  match cognite_client.assets.retrieve(6687602007296940) {
+  match cognite_client.assets.retrieve(&vec!(6687602007296940_u64)) {
     Ok(asset) => println!("{:?}", asset),
     Err(e) => println!("{:?}", e)
   }
 
   // Search asset
-  let params = Some(vec!(
-    Params::AssetsSearch_Name("Aker".to_owned()), 
-    Params::AssetsSearch_Description("Aker".to_owned())
-  ));
-  let asset_search : Vec<Asset> = cognite_client.assets.search(params).unwrap();
-  println!("Search found: {:?} assets", asset_search);
-
-  // Retrieve multiple assets
-  match cognite_client.assets.retrieve_multiple(&vec!(6687602007296940)) {
-    Ok(assets_multiple) => println!("{:?}", assets_multiple),
-    Err(e) => println!("{:?}", e)
-  }
+  let asset_search : AssetSearch = AssetSearch::new();
+  let asset_filter : AssetFilter = AssetFilter::new();
+  let asset_search : Vec<Asset> = cognite_client.assets.search(asset_filter, asset_search).unwrap();
+  println!("Search found: {:?} assets", asset_search.len());
 
   // List all events
   let events : Vec<Event> = cognite_client.events.list_all(None).unwrap();

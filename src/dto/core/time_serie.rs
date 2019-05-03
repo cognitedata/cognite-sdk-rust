@@ -1,5 +1,5 @@
-use super::patch_item::PatchItem;
-use super::security_category::PatchSecurityCategory;
+use crate::dto::patch_item::PatchItem;
+use crate::dto::iam::security_category::PatchSecurityCategory;
 
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;

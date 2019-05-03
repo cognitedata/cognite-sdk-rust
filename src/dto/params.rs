@@ -3,6 +3,7 @@ use serde::{Deserialize, Serialize};
 
 #[allow(non_camel_case_types)]
 #[derive(Serialize, Deserialize, Debug)]
+#[serde(rename_all = "camelCase")]
 pub enum Params {
   // ASSET
 

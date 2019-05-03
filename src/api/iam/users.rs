@@ -1,5 +1,5 @@
 use crate::api::ApiClient;
-use crate::api::params::{Params};
+use crate::dto::params::{Params};
 use crate::error::{Result};
 use serde::{Deserialize, Serialize};
 
@@ -54,7 +54,7 @@ impl Users {
   }
 
   pub fn list_all(&self, params : Option<Vec<Params>>) -> Result<Vec<User>> {
-    match self.api_client.get::<UserResponseWrapper>("users", params){
+    match self.api_client.get_with_params::<UserResponseWrapper>("users", params){
       Ok(users_response) => {
         let users = users_response.data.items;
         Ok(users)

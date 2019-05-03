@@ -1,7 +1,7 @@
 use crate::api::ApiClient;
-use crate::api::params::{Params};
 use crate::error::{Result};
-use crate::dto::time_serie::*;
+use crate::dto::params::{Params};
+use crate::dto::core::time_serie::*;
 
 pub struct TimeSeries {
   api_client : ApiClient,
@@ -15,7 +15,7 @@ impl TimeSeries {
   }
 
   pub fn list_all(&self, params : Option<Vec<Params>>) -> Result<Vec<TimeSerie>> {
-    match self.api_client.get::<TimeSerieResponseWrapper>("timeseries", params){
+    match self.api_client.get_with_params::<TimeSerieResponseWrapper>("timeseries", params){
       Ok(time_series_response) => {
         let time_series = time_series_response.data.items;
         Ok(time_series)
@@ -25,7 +25,7 @@ impl TimeSeries {
   }
 
   pub fn retrieve(&self, time_serie_id : u64, params : Option<Vec<Params>>) -> Result<TimeSerie> {
-    match self.api_client.get::<TimeSerieResponseWrapper>(&format!("timeseries/{}", time_serie_id), params){
+    match self.api_client.get_with_params::<TimeSerieResponseWrapper>(&format!("timeseries/{}", time_serie_id), params){
       Ok(mut time_serie_response) => {
         let time_serie = time_serie_response.data.items.pop().unwrap();
         Ok(time_serie)
@@ -46,7 +46,7 @@ impl TimeSeries {
   }
 
   pub fn search(&self, params : Option<Vec<Params>>) -> Result<Vec<TimeSerie>> {
-    match self.api_client.get::<TimeSerieResponseWrapper>("timeseries/search", params){
+    match self.api_client.get_with_params::<TimeSerieResponseWrapper>("timeseries/search", params){
       Ok(time_series_response) => {
         let time_series = time_series_response.data.items;
         Ok(time_series)

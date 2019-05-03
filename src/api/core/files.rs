@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 use crate::api::ApiClient;
-use crate::api::params::{Params};
+use crate::dto::params::{Params};
 use crate::error::{Result};
 use serde::{Deserialize, Serialize};
 
@@ -52,7 +52,7 @@ impl Files {
   }
 
   pub fn list_all(&self, params : Option<Vec<Params>>) -> Result<Vec<File>> {
-    match self.api_client.get::<FileResponseWrapper>("files", params){
+    match self.api_client.get_with_params::<FileResponseWrapper>("files", params){
       Ok(files_response) => {
         let files = files_response.data.items;
         Ok(files)
@@ -62,7 +62,7 @@ impl Files {
   }
 
   pub fn search(&self, params : Option<Vec<Params>>) -> Result<Vec<File>> {
-    match self.api_client.get::<FileResponseWrapper>("files/search", params){
+    match self.api_client.get_with_params::<FileResponseWrapper>("files/search", params){
       Ok(files_response) => {
         let files = files_response.data.items;
         Ok(files)

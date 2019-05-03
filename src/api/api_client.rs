@@ -13,7 +13,7 @@ use reqwest::header::{
   USER_AGENT
 };
 
-use crate::api::params::{Params};
+use crate::dto::params::{Params};
 use crate::error::{
   Result,
   Error,
@@ -103,7 +103,11 @@ impl ApiClient {
     http_params
   }
 
-  pub fn get<T : DeserializeOwned>(&self, path : &str, params : Option<Vec<Params>>) -> Result<T> {
+  pub fn get<T : DeserializeOwned>(&self, path : &str) -> Result<T> {
+    self.get_with_params::<T>(path, None)
+  }
+
+  pub fn get_with_params<T : DeserializeOwned>(&self, path : &str, params : Option<Vec<Params>>) -> Result<T> {
     let http_params : Vec<(String, String)> = self.convert_params_to_tuples(params);
 
     let url = format!("{}/{}", self.api_base_url, path);
@@ -121,6 +125,7 @@ impl ApiClient {
   }
 
   pub fn post<T : DeserializeOwned>(&self, path : &str, body : &str) -> Result<T> {
+    println!("POST: {}, with body: {:?}", path, body);
     let url = format!("{}/{}", self.api_base_url, path);
     let mut headers = HeaderMap::new();
     let api_key_header_value = HeaderValue::from_str(&self.api_key).expect("failed to set api key");

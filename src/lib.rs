@@ -13,22 +13,33 @@ pub use self::{
     Result
   },
   dto::{
-    asset::*,
-    datapoint::*,
-    time_serie::*,
-    security_category::*,
+    core::{
+      asset::*,
+      datapoint::*,
+      time_serie::*,
+    },
+    iam::{
+      security_category::*,
+    },
+    search_filter::*,
+    params::*,
   },
   api::{
-    params::*,
     api_client::*,
-    assets::*,
-    datapoints::*,
-    events::*,
-    files::*,
-    login::*,
-    time_series::*,
-    users::*,
-    api_keys::*,
-    security_categories::*,
+    core::{
+      assets::*,
+      datapoints::*,
+      events::*,
+      files::*,
+      time_series::*,
+    },
+    auth::{
+      login::*,
+    },
+    iam::{
+      users::*,
+      api_keys::*,
+      security_categories::*,
+    },
   }
 };

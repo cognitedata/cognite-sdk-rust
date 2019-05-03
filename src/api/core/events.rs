@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 use crate::api::ApiClient;
-use crate::api::params::{Params};
+use crate::dto::params::{Params};
 use crate::error::{Result};
 use serde::{Deserialize, Serialize};
 
@@ -74,7 +74,7 @@ impl Events {
   }
 
   pub fn list_all(&self, params : Option<Vec<Params>>) -> Result<Vec<Event>> {
-    match self.api_client.get::<EventResponseWrapper>("events", params) {
+    match self.api_client.get_with_params::<EventResponseWrapper>("events", params) {
       Ok(events_response) => {
         let events = events_response.data.items;
         Ok(events)
@@ -85,7 +85,7 @@ impl Events {
 
   pub fn retrieve(&self, event_id : u64) -> Result<Event> {
     let params = None;
-    match self.api_client.get::<EventResponseWrapper>(&format!("events/{}", event_id), params) {
+    match self.api_client.get_with_params::<EventResponseWrapper>(&format!("events/{}", event_id), params) {
       Ok(mut event_response) => {
         let event = event_response.data.items.pop().unwrap();
         Ok(event)
@@ -106,7 +106,7 @@ impl Events {
   }
 
   pub fn search(&self, params : Option<Vec<Params>>) -> Result<Vec<Event>> {
-    match self.api_client.get::<EventResponseWrapper>("events/search", params) {
+    match self.api_client.get_with_params::<EventResponseWrapper>("events/search", params) {
       Ok(events_response) => {
         let events = events_response.data.items;
         Ok(events)

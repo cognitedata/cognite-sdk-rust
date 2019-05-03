@@ -39,7 +39,7 @@ use cognite::{
 };
 
 fn main() {
-  let cognite_client = CogniteClient::new();
+  let cognite_client = CogniteClient::new().unwrap();
 
   // List all assets
   let assets : Vec<Asset> = cognite_client.assets.list_all(None).unwrap();

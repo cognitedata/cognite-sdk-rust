@@ -1,6 +1,7 @@
 pub mod patch_item;
+pub mod search_filter;
+pub mod params;
 
-pub mod asset;
-pub mod datapoint;
-pub mod time_serie;
-pub mod security_category;
+pub mod auth;
+pub mod core;
+pub mod iam;

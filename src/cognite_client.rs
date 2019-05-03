@@ -67,7 +67,7 @@ impl CogniteClient {
     let project = login_status.project;
     println!("API PROJECT: {}", project);
     
-    let api_version = "0.5".to_string();
+    let api_version = "v1".to_string();
     let api_base_path = format!("{}/api/{}/projects/{}", api_base_url, api_version, project);
     let assets_api_client = ApiClient::new(api_base_path.clone(), api_key.clone());
     let datapoints_api_client = ApiClient::new(api_base_path.clone(), api_key.clone());

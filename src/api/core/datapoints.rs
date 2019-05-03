@@ -1,7 +1,7 @@
 use crate::api::ApiClient;
-use crate::api::params::{Params};
 use crate::error::{Result};
-use crate::dto::datapoint::*;
+use crate::dto::params::{Params};
+use crate::dto::core::datapoint::*;
 
 pub struct Datapoints {
   api_client : ApiClient,
@@ -15,7 +15,7 @@ impl Datapoints {
   }
 
   pub fn retrieve_from_time_serie_by_id(&self, time_serie_id : u64, params : Option<Vec<Params>>) -> Result<Vec<Datapoint>> {
-    match self.api_client.get::<DatapointListResponseWrapper>(&format!("timeseries/{}/data", time_serie_id), params){
+    match self.api_client.get_with_params::<DatapointListResponseWrapper>(&format!("timeseries/{}/data", time_serie_id), params){
       Ok(mut datapoints_response) => {
         let datapoints = datapoints_response.data.items.pop().unwrap();
         Ok(datapoints.datapoints)
@@ -25,7 +25,7 @@ impl Datapoints {
   }
 
   pub fn retrieve_from_time_serie_by_name(&self, time_serie_name : &str, params : Option<Vec<Params>>) -> Result<Vec<Datapoint>> {
-    match self.api_client.get::<DatapointListResponseWrapper>(&format!("timeseries/data/{}", time_serie_name), params) {
+    match self.api_client.get_with_params::<DatapointListResponseWrapper>(&format!("timeseries/data/{}", time_serie_name), params) {
       Ok(mut datapoints_response) => {
         let datapoints = datapoints_response.data.items.pop().unwrap();
         Ok(datapoints.datapoints)
@@ -35,7 +35,7 @@ impl Datapoints {
   }
 
   pub fn retrieve_latest_from_time_serie_by_name(&self, time_serie_name : &str, params : Option<Vec<Params>>) -> Result<Datapoint> {
-    match self.api_client.get::<DatapointResponseWrapper>(&format!("timeseries/latest/{}", time_serie_name), params) {
+    match self.api_client.get_with_params::<DatapointResponseWrapper>(&format!("timeseries/latest/{}", time_serie_name), params) {
       Ok(mut datapoint_response) => {
         let datapoint = datapoint_response.data.items.pop().unwrap();
         Ok(datapoint)
