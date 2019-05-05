@@ -1,5 +1,5 @@
 pub mod patch_item;
-pub mod search_filter;
+pub mod filter_types;
 pub mod params;
 
 pub mod auth;

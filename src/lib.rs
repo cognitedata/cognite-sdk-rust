@@ -16,12 +16,13 @@ pub use self::{
     core::{
       asset::*,
       datapoint::*,
+      event::*,
       time_serie::*,
     },
     iam::{
       security_category::*,
     },
-    search_filter::*,
+    filter_types::*,
     params::*,
   },
   api::{
