@@ -118,12 +118,12 @@ pub struct PatchAsset {
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
 struct PatchAssetFields {
-    external_id : PatchItem,
-    name : PatchItem,
-    description : PatchItem,
-    //metadata : PatchItem,
-    source : PatchItem,
-  }
+  external_id : PatchItem,
+  name : PatchItem,
+  description : PatchItem,
+  //metadata : PatchItem,
+  source : PatchItem,
+}
 
 impl From<&Asset> for PatchAsset {
   fn from(asset : &Asset) -> PatchAsset {

@@ -11,6 +11,8 @@ use cognite::{
   AssetSearch,
   TimeSerieSearch,
   TimeSerieFilter,
+  EventFilter,
+  EventSearch,
 };
 
 fn main() {
@@ -35,15 +37,15 @@ fn main() {
   println!("Search found: {:?} assets", asset_search.len());
 
   // List all events
-  let events : Vec<Event> = cognite_client.events.list_all(None).unwrap();
+  let event_filter : EventFilter = EventFilter::new();
+  let events : Vec<Event> = cognite_client.events.filter_all(event_filter).unwrap();
   println!("{} events retrieved.", events.len());
 
   // Search events
-  let event_search_params = Some(vec!(
-    Params::EventsSearch_SubType("val".to_owned()),
-  ));
-  let event_search : Vec<Event> = cognite_client.events.search(event_search_params).unwrap();
-  println!("Search found {:?} events", event_search.len());
+  let event_filter_2 : EventFilter = EventFilter::new();
+  let event_search : EventSearch = EventSearch::new();
+  let event_search_result : Vec<Event> = cognite_client.events.search(event_filter_2, event_search).unwrap();
+  println!("Search found {:?} events", event_search_result.len());
 
   // List all events
   let time_series : Vec<TimeSerie> = cognite_client.time_series.list_all(None).unwrap();

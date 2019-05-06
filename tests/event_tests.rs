@@ -12,12 +12,10 @@ mod users {
     let new_event : Event = Event::new(Some(since_the_epoch.as_millis()),
                                         Some(since_the_epoch.as_millis()+1), 
                                         Some("description".to_owned()),
-                                        "type".to_owned(),
                                         None,
                                         None,
-                                        vec!(),
-                                        "source".to_owned(),
-                                        "source id".to_owned());
+                                        Some(vec!()),
+                                        "source".to_owned());
     match cognite_client.events.create(&vec!(new_event)) {
       Ok(mut events) => {
         

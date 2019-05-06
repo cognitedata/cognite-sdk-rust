@@ -29,8 +29,26 @@ impl From<bool> for PatchItem {
   }
 }
 
+impl From<&[u64]> for PatchItem {
+  fn from(item : &[u64]) -> PatchItem {
+      PatchItem { 
+        set : json!(item), 
+        set_null : None
+      }
+  }
+}
+
 impl From<&Option<String>> for PatchItem {
   fn from(item : &Option<String>) -> PatchItem {
+      PatchItem { 
+        set : json!(item), 
+        set_null : if item.is_none() { Some(item.is_none()) } else { None }
+      }
+  }
+}
+
+impl From<&Option<u128>> for PatchItem {
+  fn from(item : &Option<u128>) -> PatchItem {
       PatchItem { 
         set : json!(item), 
         set_null : if item.is_none() { Some(item.is_none()) } else { None }
