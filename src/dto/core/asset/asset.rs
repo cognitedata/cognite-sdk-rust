@@ -112,12 +112,12 @@ impl From<u64> for AssetId {
 #[serde(rename_all = "camelCase")]
 pub struct PatchAsset {
   id : u64,
-  update : UpdateAssetFields
+  update : PatchAssetFields
 }
 
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
-struct UpdateAssetFields {
+struct PatchAssetFields {
     external_id : PatchItem,
     name : PatchItem,
     description : PatchItem,
@@ -129,7 +129,7 @@ impl From<&Asset> for PatchAsset {
   fn from(asset : &Asset) -> PatchAsset {
     PatchAsset {
       id : asset.id,
-      update : UpdateAssetFields {
+      update : PatchAssetFields {
         name : PatchItem::from(&asset.name),
         external_id : PatchItem::from(&asset.external_id),
         description : PatchItem::from(&asset.description),

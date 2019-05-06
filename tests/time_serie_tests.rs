@@ -6,6 +6,7 @@ mod users {
   fn create_and_delete_time_series() {
     let cognite_client = CogniteClient::new().unwrap();
     let time_serie = TimeSerie::new("name",
+                                    None,
                                     false,
                                     None,
                                     None,
@@ -29,14 +30,11 @@ mod users {
           Err(e) => panic!("{:?}", e)
         };
         */
-
-        for time_serie in time_series.iter() {
-
-          match cognite_client.time_series.delete(&time_serie.name) {
-            Ok(_) => assert!(true),
-            Err(e) => panic!("{:?}", e)
-          };
-        }
+        let id_list : Vec<u64> = time_series.iter().map(| ts | ts.id).collect();
+        match cognite_client.time_series.delete(&id_list) {
+          Ok(_) => assert!(true),
+          Err(e) => panic!("{:?}", e)
+        };
       },
       Err(e) => panic!("{:?}", e)
     }

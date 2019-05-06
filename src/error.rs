@@ -46,6 +46,8 @@ impl fmt::Display for Error {
       Kind::Unauthorized(ref e) => f.write_str(e),
       Kind::Forbidden(ref e) => f.write_str(e),
       Kind::NotFound(ref e) => f.write_str(e),
+      Kind::Conflict(ref e) => f.write_str(e),
+      Kind::UnprocessableEntity(ref e) => f.write_str(e),
       Kind::Http(ref e) => f.write_str(e),
       Kind::EnvironmentVariableMissing(ref e) => f.write_str(e),
     }
@@ -60,6 +62,8 @@ impl StdError for Error {
       Kind::Unauthorized(ref e) => e,
       Kind::Forbidden(ref e) => e,
       Kind::NotFound(ref e) => e,
+      Kind::Conflict(ref e) => e,
+      Kind::UnprocessableEntity(ref e) => e,
       Kind::Http(ref e) => e,
       Kind::EnvironmentVariableMissing(ref e) => e,
     }
@@ -77,6 +81,8 @@ pub enum Kind {
   Unauthorized(String),
   Forbidden(String),
   NotFound(String),
+  Conflict(String),
+  UnprocessableEntity(String),
   Http(String),
   EnvironmentVariableMissing(String),
   Reqwest(::reqwest::Error),

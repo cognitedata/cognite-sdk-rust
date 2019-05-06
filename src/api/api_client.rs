@@ -70,6 +70,18 @@ impl ApiClient {
               Err(e) => Err(Error::from(e))
             }
           },
+          StatusCode::CONFLICT => {
+            match response.json::<ApiErrorWrapper>() {
+              Ok(error_message) => Err(Error::new(Kind::Conflict(error_message.error.message))),
+              Err(e) => Err(Error::from(e))
+            }
+          },
+          StatusCode::UNPROCESSABLE_ENTITY => {
+            match response.json::<ApiErrorWrapper>() {
+              Ok(error_message) => Err(Error::new(Kind::UnprocessableEntity(error_message.error.message))),
+              Err(e) => Err(Error::from(e))
+            }
+          },
           s => {
             let error_message = format!("Received API response {} with result: {:?}", s, response.text());
             Err(Error::new(Kind::Http(error_message)))

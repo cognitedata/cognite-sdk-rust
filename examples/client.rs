@@ -9,6 +9,8 @@ use cognite::{
   Params,
   AssetFilter,
   AssetSearch,
+  TimeSerieSearch,
+  TimeSerieFilter,
 };
 
 fn main() {
@@ -48,11 +50,10 @@ fn main() {
   println!("{} time series retrieved.", time_series.len());
 
   // Search time serie
-  let time_serie_search_params = Some(vec!(
-    Params::TimeSeriesSearch_Name("val".to_owned()),
-  ));
-  let time_series_search : Vec<TimeSerie> = cognite_client.time_series.search(time_serie_search_params).unwrap();
-  println!("Search found {:?} time series", time_series_search.len());
+  let time_serie_search : TimeSerieSearch = TimeSerieSearch::new();
+  let time_serie_filter : TimeSerieFilter = TimeSerieFilter::new();
+  let time_series_search_result : Vec<TimeSerie> = cognite_client.time_series.search(time_serie_filter, time_serie_search).unwrap();
+  println!("Search found {:?} time series", time_series_search_result.len());
 
   // List all files
   let files : Vec<File> = cognite_client.files.list_all(None).unwrap();

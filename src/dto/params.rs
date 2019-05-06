@@ -122,62 +122,14 @@ pub enum Params {
   // TIME SERIES
 
   // ListAll 
-  #[serde(rename = "q")]
-  TimeSeriesListAll_Q(String),
-  #[serde(rename = "description")]
-  TimeSeriesListAll_Description(String),
   #[serde(rename = "limit")]
   TimeSeriesListAll_Limit(u32),
   #[serde(rename = "includeMetadata")]
   TimeSeriesListAll_IncludeMetadata(bool),
   #[serde(rename = "cursor")]
   TimeSeriesListAll_Cursor(String),
-  #[serde(rename = "assetId")]
-  TimeSeriesListAll_AssetId(u64),
-  #[serde(rename = "path")]
-  TimeSeriesListAll_Path(String),
-
-  // Retrieve
-  #[serde(rename = "includeMetadata")]
-  TimeSeriesRetrieve_IncludeMetadata(bool),
-
-  // Search
-  #[serde(rename = "name")]
-  TimeSeriesSearch_Name(String),
-  #[serde(rename = "description")]
-  TimeSeriesSearch_Description(String),
-  #[serde(rename = "query")]
-  TimeSeriesSearch_Query(String),
-  #[serde(rename = "unit")]
-  TimeSeriesSearch_Unit(String),
-  #[serde(rename = "isString")]
-  TimeSeriesSearch_IsString(bool),
-  #[serde(rename = "isStep")]
-  TimeSeriesSearch_IsStep(bool),
-  #[serde(rename = "metadata")]
-  TimeSeriesSearch_Metadata(HashMap<String, String>),
   #[serde(rename = "assetIds")]
-  TimeSeriesSearch_AssetIds(String),
-  #[serde(rename = "assetSubtrees")]
-  TimeSeriesSearch_AssetSubtrees(String),
-  #[serde(rename = "minCreatedTime")]
-  TimeSeriesSearch_MinCreatedTime(u64),
-  #[serde(rename = "maxCreatedTime")]
-  TimeSeriesSearch_MaxCreatedTime(u64),
-  #[serde(rename = "minLastUpdatedTime")]
-  TimeSeriesSearch_MinLastUpdatedTime(u64),
-  #[serde(rename = "maxLastUpdatedTime")]
-  TimeSeriesSearch_MaxLastUpdatedTime(u64),
-  #[serde(rename = "sort")]
-  TimeSeriesSearch_Sort(String),
-  #[serde(rename = "dir")]
-  TimeSeriesSearch_Dir(String),
-  #[serde(rename = "limit")]
-  TimeSeriesSearch_Limit(u32),
-  #[serde(rename = "offset")]
-  TimeSeriesSearch_Offset(u32),
-  #[serde(rename = "boostName")]
-  TimeSeriesSearch_BoostName(bool),
+  TimeSeriesListAll_AssetIds(Vec<u64>),
 
   // DATAPOINTS
 
