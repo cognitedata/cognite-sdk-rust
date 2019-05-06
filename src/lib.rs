@@ -12,19 +12,6 @@ pub use self::{
     Error,
     Result
   },
-  dto::{
-    core::{
-      asset::*,
-      datapoint::*,
-      event::*,
-      time_serie::*,
-    },
-    iam::{
-      security_category::*,
-    },
-    filter_types::*,
-    params::*,
-  },
   api::{
     api_client::*,
     core::{
@@ -42,5 +29,19 @@ pub use self::{
       api_keys::*,
       security_categories::*,
     },
-  }
+  },
+  dto::{
+    core::{
+      asset::*,
+      datapoint::*,
+      event::*,
+      time_serie::*,
+      files::*,
+    },
+    iam::{
+      security_category::*,
+    },
+    filter_types::*,
+    params::*,
+  },
 };

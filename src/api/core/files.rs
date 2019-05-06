@@ -1,44 +1,6 @@
-use std::collections::HashMap;
 use crate::api::ApiClient;
-use crate::dto::params::{Params};
 use crate::error::{Result};
-use serde::{Deserialize, Serialize};
-
-#[derive(Serialize, Deserialize, Debug)]
-#[serde(rename_all = "camelCase")]
-pub struct FileResponseWrapper {
-  data : FileListResponse
-}
-
-#[derive(Serialize, Deserialize, Debug)]
-#[serde(rename_all = "camelCase")]
-pub struct FileListResponse {
-  items : Vec<File>
-}
-
-#[derive(Serialize, Deserialize, Debug)]
-#[serde(rename_all = "camelCase")]
-pub struct File {
-  id : u64,
-  file_name : String,
-  directory : String,
-  source : String,
-  source_id : Option<String>,
-  file_type : String,
-  metadata: HashMap<String, String>,
-  asset_ids  : Option<Vec<u64>>,
-  uploaded  : bool,
-  uploaded_at  : u64,
-  created_time : u128,
-  last_updated_time : u128
-}
-
-#[derive(Serialize, Deserialize, Debug)]
-#[serde(rename_all = "camelCase")]
-pub struct FileResource {
-  file_id : u64,
-  upload_url : String,
-}
+use crate::dto::core::files::*;
 
 pub struct Files {
   api_client : ApiClient,
@@ -51,8 +13,9 @@ impl Files {
     }
   }
 
-  pub fn list_all(&self, params : Option<Vec<Params>>) -> Result<Vec<File>> {
-    match self.api_client.get_with_params::<FileResponseWrapper>("files", params){
+  pub fn filter_all(&self, file_filter : FileFilter) -> Result<Vec<FileMetadata>> {
+    let filter : Filter = Filter::new(file_filter, None, None);
+    match self.api_client.post::<FileResponseWrapper>("files/list", &serde_json::to_string(&filter).unwrap()){
       Ok(files_response) => {
         let files = files_response.data.items;
         Ok(files)
@@ -61,21 +24,57 @@ impl Files {
     }
   }
 
-  pub fn search(&self, params : Option<Vec<Params>>) -> Result<Vec<File>> {
-    match self.api_client.get_with_params::<FileResponseWrapper>("files/search", params){
-      Ok(files_response) => {
-        let files = files_response.data.items;
-        Ok(files)
-      },
-      Err(e) => Err(e)
-    }
-  }
-
-  pub fn upload(&self, file_stream : Vec<u8>) -> Result<FileResource> {
+  pub fn upload(&self, file_stream : Vec<u8>) -> Result<FileMetadata> {
     unimplemented!();
   }
 
+  pub fn retrieve_metadata(&self, file_ids : &[u64]) -> Result<Vec<FileMetadata>> {
+    let id_list : Vec<FileId> = file_ids.iter().map(| f_id | FileId::from(*f_id)).collect();
+    let request_body = format!("{{\"items\":{} }}", serde_json::to_string(&id_list).unwrap());
+    match self.api_client.post::<FileResponseWrapper>("files/byids", &request_body){
+      Ok(files_response) => {
+        let files = files_response.data.items;
+        Ok(files)
+      },
+      Err(e) => Err(e)
+    }
+  }
+
+  pub fn search(&self, file_filter : FileFilter, file_search : FileSearch) -> Result<Vec<FileMetadata>> {
+    let filter : Search = Search::new(file_filter, file_search, None);
+    match self.api_client.post::<FileResponseWrapper>("files/search", &serde_json::to_string(&filter).unwrap()){
+      Ok(files_response) => {
+        let files = files_response.data.items;
+        Ok(files)
+      },
+      Err(e) => Err(e)
+    }
+  }
+
   pub fn delete(&self, file_ids : Vec<u64>) -> Result<()> {
+    let id_list : Vec<FileId> = file_ids.iter().map(| a_id | FileId::from(*a_id)).collect();
+    let request_body = format!("{{\"items\":{} }}", serde_json::to_string(&id_list).unwrap());
+    match self.api_client.post::<::serde_json::Value>("files/delete", &request_body){
+      Ok(_) => {
+        Ok(())
+      },
+      Err(e) => Err(e)
+    }
+  }
+  
+  pub fn download(&self, file_ids : Vec<u64>) -> Result<Vec<FileLink>> {
+    let id_list : Vec<FileId> = file_ids.iter().map(| a_id | FileId::from(*a_id)).collect();
+    let request_body = format!("{{\"items\":{} }}", serde_json::to_string(&id_list).unwrap());
+    match self.api_client.post::<FileLinkResponseWrapper>("files/download", &request_body){
+      Ok(file_links_response) => {
+        let file_links = file_links_response.data.items;
+        Ok(file_links)
+      },
+      Err(e) => Err(e)
+    }
+  }
+
+  pub fn update(&self, file_ids : Vec<u64>) -> Result<()> {
     unimplemented!();
   }
 }

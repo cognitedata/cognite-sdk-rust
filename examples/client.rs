@@ -5,14 +5,15 @@ use cognite::{
   Asset,
   Event,
   TimeSerie,
-  File,
-  Params,
+  FileMetadata,
   AssetFilter,
   AssetSearch,
   TimeSerieSearch,
   TimeSerieFilter,
   EventFilter,
   EventSearch,
+  FileSearch,
+  FileFilter,
 };
 
 fn main() {
@@ -58,15 +59,15 @@ fn main() {
   println!("Search found {:?} time series", time_series_search_result.len());
 
   // List all files
-  let files : Vec<File> = cognite_client.files.list_all(None).unwrap();
+  let file_filter : FileFilter = FileFilter::new();
+  let files : Vec<FileMetadata> = cognite_client.files.filter_all(file_filter).unwrap();
   println!("{} files retrieved.", files.len());
 
   // Search files
-  let files_search_params = Some(vec!(
-    Params::FilesSearch_Name("ph".to_owned()),
-  ));
-  let files_search : Vec<File> = cognite_client.files.search(files_search_params).unwrap();
-  println!("Search found {:?} files", files_search.len());
+  let file_search : FileSearch = FileSearch::new();
+  let file_filter_2 : FileFilter = FileFilter::new();
+  let files_search_result : Vec<FileMetadata> = cognite_client.files.search(file_filter_2, file_search).unwrap();
+  println!("Search found {:?} files", files_search_result.len());
 
   // List all users
   match cognite_client.users.list_all(None) {
