@@ -6,23 +6,23 @@ use serde::{Deserialize, Serialize};
 #[serde(rename_all = "camelCase")]
 pub struct AssetFilter {
   #[serde(skip_serializing_if = "Option::is_none")]
-  name : Option<String>,
+  pub name : Option<String>,
   #[serde(skip_serializing_if = "Option::is_none")]
-  parent_ids: Option<Vec<u32>>,
+  pub parent_ids: Option<Vec<u32>>,
   #[serde(skip_serializing_if = "Option::is_none")]
-  metadata: Option<HashMap<String, String>>,
+  pub metadata: Option<HashMap<String, String>>,
   #[serde(skip_serializing_if = "Option::is_none")]
-  source: Option<String>,
+  pub source: Option<String>,
   #[serde(skip_serializing_if = "Option::is_none")]
-  created_time: Option<EpochTimestampRange>,
+  pub created_time: Option<EpochTimestampRange>,
   #[serde(skip_serializing_if = "Option::is_none")]
-  last_updated_time: Option<EpochTimestampRange>,
+  pub last_updated_time: Option<EpochTimestampRange>,
   #[serde(skip_serializing_if = "Option::is_none")]
-  asset_subtrees: Option<Vec<u64>>,
+  pub asset_subtrees: Option<Vec<u64>>,
   #[serde(skip_serializing_if = "Option::is_none")]
-  depth: Option<IntegerRange>,
+  pub depth: Option<IntegerRange>,
   #[serde(skip_serializing_if = "Option::is_none")]
-  external_id_prefix: Option<String>
+  pub external_id_prefix: Option<String>
 }
 
 impl AssetFilter {
@@ -45,9 +45,9 @@ impl AssetFilter {
 #[serde(rename_all = "camelCase")]
 pub struct AssetSearch {
   #[serde(skip_serializing_if = "Option::is_none")]
-  name : Option<String>,
+  pub name : Option<String>,
   #[serde(skip_serializing_if = "Option::is_none")]
-  description : Option<String>,
+  pub description : Option<String>,
 }
 
 impl AssetSearch {
@@ -62,10 +62,10 @@ impl AssetSearch {
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct Search {
-  filter : AssetFilter,
-  search : AssetSearch,
+  pub filter : AssetFilter,
+  pub search : AssetSearch,
   #[serde(skip_serializing_if = "Option::is_none")]
-  limit : Option<u32>,
+  pub limit : Option<u32>,
 }
 
 impl Search {
@@ -81,11 +81,11 @@ impl Search {
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct Filter {
-  filter : AssetFilter,
+  pub filter : AssetFilter,
   #[serde(skip_serializing_if = "Option::is_none")]
-  cursor : Option<String>,
+  pub cursor : Option<String>,
   #[serde(skip_serializing_if = "Option::is_none")]
-  limit : Option<u32>,
+  pub limit : Option<u32>,
 }
 
 impl Filter {

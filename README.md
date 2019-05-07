@@ -41,28 +41,29 @@ use cognite::{
 fn main() {
   let cognite_client = CogniteClient::new().unwrap();
 
-  // List all assets
-  let assets : Vec<Asset> = cognite_client.assets.list_all(None).unwrap();
+  // Filter all assets
+
+  let mut filter : AssetFilter = AssetFilter::new();
+  filter.name.replace("aker".to_string());
+  filter.asset_subtrees.replace(vec!(...));
+  ...
+  let assets : Vec<Asset> = cognite_client.assets.filter_all(filter).unwrap();
   
   // Retrieve asset
-  let asset : Asset = cognite_client.assets.retrieve(<asset_id>).unwrap();
+  match cognite_client.assets.retrieve(&vec!(6687602007296940_u64)) {
+    Ok(asset) => println!("{:?}", asset),
+    Err(e) => println!("{:?}", e)
+  }
 
   // Search asset
-  let params = Some(vec!(
-    Params::AssetSearch_Name(<asset_name>), 
-    Params::AssetSearch_Description(<asset_description>),
-    ...
-  ));
-  let asset_search : Vec<Asset> = cognite_client.assets.search(params).unwrap();
-
-  // Retrieve multiple assets
-  let asset_ids = vec!(
-    <asset_id>, 
-    <asset_id>, 
-    <asset_id>,
-    ...
-  );
-  let assets_multiple : Vec<Asset> = cognite_client.assets.retrieve_multiple(asset_ids).unwrap();
+  let mut asset_search : AssetSearch = AssetSearch::new();
+  asset_search.description.replace("aker".to_string());
+  asset_search.name.replace("...".to_string());
+  ...
+  let mut asset_filter : AssetFilter = AssetFilter::new();
+  asset_filter.source.replace("...".to_string());
+  ...
+  let assets_search_result : Vec<Asset> = cognite_client.assets.search(asset_filter, asset_search).unwrap();
 }
 ```
 

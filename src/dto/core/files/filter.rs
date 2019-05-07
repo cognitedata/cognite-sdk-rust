@@ -6,17 +6,17 @@ use serde::{Deserialize, Serialize};
 #[serde(rename_all = "camelCase")]
 pub struct FileFilter {
   #[serde(skip_serializing_if = "Option::is_none")]
-  metadata: Option<HashMap<String, String>>,
+  pub metadata: Option<HashMap<String, String>>,
   #[serde(skip_serializing_if = "Option::is_none")]
-  asset_ids: Option<Vec<u64>>,
+  pub asset_ids: Option<Vec<u64>>,
   #[serde(skip_serializing_if = "Option::is_none")]
-  source: Option<String>,
+  pub source: Option<String>,
   #[serde(skip_serializing_if = "Option::is_none")]
-  created_time: Option<EpochTimestampRange>,
+  pub created_time: Option<EpochTimestampRange>,
   #[serde(skip_serializing_if = "Option::is_none")]
-  last_updated_time: Option<EpochTimestampRange>,
+  pub last_updated_time: Option<EpochTimestampRange>,
   #[serde(skip_serializing_if = "Option::is_none")]
-  external_id_prefix: Option<String>
+  pub external_id_prefix: Option<String>
 }
 
 impl FileFilter {
@@ -36,7 +36,7 @@ impl FileFilter {
 #[serde(rename_all = "camelCase")]
 pub struct FileSearch {
   #[serde(skip_serializing_if = "Option::is_none")]
-  name : Option<String>,
+  pub name : Option<String>,
 }
 
 impl FileSearch {
@@ -50,10 +50,10 @@ impl FileSearch {
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct Search {
-  filter : FileFilter,
-  search : FileSearch,
+  pub filter : FileFilter,
+  pub search : FileSearch,
   #[serde(skip_serializing_if = "Option::is_none")]
-  limit : Option<u32>,
+  pub limit : Option<u32>,
 }
 
 impl Search {
@@ -69,11 +69,11 @@ impl Search {
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct Filter {
-  filter : FileFilter,
+  pub filter : FileFilter,
   #[serde(skip_serializing_if = "Option::is_none")]
-  cursor : Option<String>,
+  pub cursor : Option<String>,
   #[serde(skip_serializing_if = "Option::is_none")]
-  limit : Option<u32>,
+  pub limit : Option<u32>,
 }
 
 impl Filter {
