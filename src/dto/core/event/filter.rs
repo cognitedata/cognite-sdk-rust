@@ -1,4 +1,4 @@
-use crate::dto::filter_types::{EpochTimestampRange, IntegerRange};
+use crate::dto::filter_types::{EpochTimestampRange};
 use std::collections::HashMap;
 use serde::{Deserialize, Serialize};
 

@@ -1,6 +1,5 @@
 use crate::api::ApiClient;
 use crate::error::{Result};
-use crate::dto::params::{Params};
 use crate::dto::core::datapoint::*;
 
 pub struct Datapoints {
@@ -14,28 +13,29 @@ impl Datapoints {
     }
   }
 
-  pub fn retrieve_from_time_serie_by_id(&self, time_serie_id : u64, params : Option<Vec<Params>>) -> Result<Vec<Datapoint>> {
-    match self.api_client.get_with_params::<DatapointListResponseWrapper>(&format!("timeseries/{}/data", time_serie_id), params){
-      Ok(mut datapoints_response) => {
-        let datapoints = datapoints_response.data.items.pop().unwrap();
-        Ok(datapoints.datapoints)
+  pub fn insert(&self, add_datapoints : &[AddDatapoints]) -> Result<()> {
+    let request_body = format!("{{\"items\":{} }}", serde_json::to_string(add_datapoints).unwrap());
+    match self.api_client.post::<::serde_json::Value>("timeseries/data", &request_body){
+      Ok(_) => Ok(()),
+      Err(e) => Err(e)
+    }
+  }
+
+  pub fn retrieve(&self, datapoints_filter : DatapointsFilter) -> Result<Vec<DatapointsResponse>> {
+    let request_body = serde_json::to_string(&datapoints_filter).unwrap();
+    match self.api_client.post::<DatapointListResponseWrapper>("timeseries/data/list", &request_body){
+      Ok(datapoints_response) => {
+        let datapoints = datapoints_response.data.items;
+        Ok(datapoints)
       },
       Err(e) => Err(e)
     }
   }
 
-  pub fn retrieve_from_time_serie_by_name(&self, time_serie_name : &str, params : Option<Vec<Params>>) -> Result<Vec<Datapoint>> {
-    match self.api_client.get_with_params::<DatapointListResponseWrapper>(&format!("timeseries/data/{}", time_serie_name), params) {
-      Ok(mut datapoints_response) => {
-        let datapoints = datapoints_response.data.items.pop().unwrap();
-        Ok(datapoints.datapoints)
-      },
-      Err(e) => Err(e)
-    }
-  }
-
-  pub fn retrieve_latest_from_time_serie_by_name(&self, time_serie_name : &str, params : Option<Vec<Params>>) -> Result<Datapoint> {
-    match self.api_client.get_with_params::<DatapointResponseWrapper>(&format!("timeseries/latest/{}", time_serie_name), params) {
+  pub fn retrieve_latest(&self, time_serie_id : u64, before : &str) -> Result<DatapointsResponse> {
+    let latest_datapoint_query : LatestDatapointsQuery = LatestDatapointsQuery::new(time_serie_id, before);
+    let request_body = serde_json::to_string(&latest_datapoint_query).unwrap();
+    match self.api_client.post::<DatapointListResponseWrapper>("timeseries/data/latest", &request_body) {
       Ok(mut datapoint_response) => {
         let datapoint = datapoint_response.data.items.pop().unwrap();
         Ok(datapoint)
@@ -44,27 +44,10 @@ impl Datapoints {
     }
   }
 
-  pub fn insert_in_time_serie_by_id(&self, time_serie_id : u64, datapoints : &[Datapoint]) -> Result<()> {
-    let add_datapoints : Vec<AddDatapoint> = datapoints.iter().map(| d | AddDatapoint::from(d)).collect();
-    let request_body = format!("{{\"items\":{} }}", serde_json::to_string(&add_datapoints).unwrap());
-    match self.api_client.post::<::serde_json::Value>(&format!("timeseries/{}/data", time_serie_id), &request_body){
-      Ok(_) => Ok(()),
-      Err(e) => Err(e)
-    }
-  }
-
-  pub fn insert_in_time_serie_by_name(&self, time_serie_name : &str, datapoints : &[Datapoint]) -> Result<()> {
-    let add_datapoints : Vec<AddDatapoint> = datapoints.iter().map(| d | AddDatapoint::from(d)).collect();
-    let request_body = format!("{{\"items\":{} }}", serde_json::to_string(&add_datapoints).unwrap());
-    match self.api_client.post::<::serde_json::Value>(&format!("timeseries/data/{}", time_serie_name), &request_body){
-      Ok(_) => Ok(()),
-      Err(e) => Err(e)
-    }
-  }
-
-  pub fn delete_single_in_time_serie_by_id(&self, time_serie_id : u64, timestamp : u128) -> Result<()> {
-    let params = vec!(Params::DatapointsDelete_Timestamp(timestamp));
-    match self.api_client.delete_with_params::<::serde_json::Value>(&format!("timeseries/{}/data/deletesingle", time_serie_id), Some(params)){
+  pub fn delete(&self, time_serie_id : u64, inclusive_begin : u128, exclusive_end : u128) -> Result<()> {
+    let delete_datapoint_query : DeleteDatapointsQuery = DeleteDatapointsQuery::new(time_serie_id, inclusive_begin, exclusive_end);
+    let request_body = serde_json::to_string(&delete_datapoint_query).unwrap();
+    match self.api_client.post::<::serde_json::Value>("timeseries/data/delete", &request_body){
       Ok(_) => {
         Ok(())
       },
@@ -72,33 +55,4 @@ impl Datapoints {
     }
   }
 
-  pub fn delete_single_in_time_serie_by_name(&self, time_serie_name : &str, timestamp : u128) -> Result<()> {
-    let params = vec!(Params::DatapointsDelete_Timestamp(timestamp));
-    match self.api_client.delete_with_params::<::serde_json::Value>(&format!("timeseries/data/{}/deletesognle", time_serie_name), Some(params)){
-      Ok(_) => {
-        Ok(())
-      },
-      Err(e) => Err(e)
-    }
-  }
-
-  pub fn delete_in_time_serie_by_id(&self, time_serie_id : u64, from : u128, to : u128) -> Result<()> {
-    let params = vec!(Params::DatapointsDelete_TimestampInclusiveBegin(from), Params::DatapointsDelete_TimestampExclusideEnd(to));
-    match self.api_client.delete_with_params::<::serde_json::Value>(&format!("timeseries/{}/data/deleterange", time_serie_id), Some(params)){
-      Ok(_) => {
-        Ok(())
-      },
-      Err(e) => Err(e)
-    }
-  }
-
-  pub fn delete_in_time_serie_by_name(&self, time_serie_name : &str, from : u128, to : u128) -> Result<()> {
-    let params = vec!(Params::DatapointsDelete_TimestampInclusiveBegin(from), Params::DatapointsDelete_TimestampExclusideEnd(to));
-    match self.api_client.delete_with_params::<::serde_json::Value>(&format!("timeseries/data/{}/deleterange", time_serie_name), Some(params)){
-      Ok(_) => {
-        Ok(())
-      },
-      Err(e) => Err(e)
-    }
-  }
 }

@@ -24,7 +24,7 @@ impl Files {
     }
   }
 
-  pub fn upload(&self, file_stream : Vec<u8>) -> Result<FileMetadata> {
+  pub fn upload(&self, _file_stream : Vec<u8>) -> Result<FileMetadata> {
     unimplemented!();
   }
 
@@ -74,7 +74,7 @@ impl Files {
     }
   }
 
-  pub fn update(&self, file_ids : Vec<u64>) -> Result<()> {
+  pub fn update(&self, _file_ids : Vec<u64>) -> Result<()> {
     unimplemented!();
   }
 }

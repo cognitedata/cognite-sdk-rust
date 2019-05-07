@@ -1,7 +1,5 @@
-use std::collections::HashMap;
 use crate::api::ApiClient;
 use crate::error::{Result};
-use crate::dto::params::{Params};
 use crate::dto::core::event::*;
 
 pub struct Events {

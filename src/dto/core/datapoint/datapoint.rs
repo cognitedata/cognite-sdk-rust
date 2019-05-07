@@ -18,20 +18,11 @@ pub struct DatapointItems {
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct DatapointsResponse {
-  pub name : String,
+  #[serde(rename = "id")]
+  pub time_serie_id : u64,
+  pub external_id : Option<String>,
+  pub is_string : Option<bool>,
   pub datapoints : Vec<Datapoint>,
-}
-
-#[derive(Serialize, Deserialize, Debug)]
-#[serde(rename_all = "camelCase")]
-pub struct DatapointResponseWrapper {
-  pub data : DatapointResponse
-}
-
-#[derive(Serialize, Deserialize, Debug)]
-#[serde(rename_all = "camelCase")]
-pub struct DatapointResponse {
-  pub items : Vec<Datapoint>,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -39,30 +30,22 @@ pub struct DatapointResponse {
 pub struct Datapoint {
   pub timestamp : u64,
   pub value : Value,
-  pub average : Option<u64>,
-  pub max : Option<u64>,
-  pub min : Option<u64>,
-  pub count : Option<u64>,
-  pub sum : Option<u64>,
-  pub interpolation : Option<u64>,
-  pub step_interpolation : Option<u64>,
-  pub continous_variance : Option<u64>,
-  pub discrete_variance : Option<u64>,
-  pub total_variance : Option<u64>,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
-pub struct AddDatapoint {
-  pub timestamp : u64,
-  pub value : Value,
+pub struct AddDatapoints {
+  #[serde(rename = "id")]
+  pub time_serie_id : u64,
+  pub datapoints : Vec<Datapoint>,
 }
 
-impl From<&Datapoint> for AddDatapoint {
-  fn from(datapoint : &Datapoint) -> AddDatapoint {
-      AddDatapoint { 
-        timestamp : datapoint.timestamp,
-        value : datapoint.value.clone(),
+impl AddDatapoints {
+  pub fn new(time_serie_id : u64, datapoints : Vec<Datapoint>) -> AddDatapoints {
+    AddDatapoints {
+        time_serie_id : time_serie_id,
+        datapoints : datapoints,
       }
   }
 }
+
