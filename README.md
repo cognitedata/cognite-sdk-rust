@@ -36,6 +36,8 @@ extern crate cognite;
 use cognite::{
   CogniteClient,
   Asset,
+  AssetFilter,
+  AssetSearch,
 };
 
 fn main() {
