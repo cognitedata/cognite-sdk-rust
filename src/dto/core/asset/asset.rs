@@ -5,13 +5,7 @@ use uuid::Uuid;
 
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
-pub struct AssetResponseWrapper {
-  pub data : AssetResponse
-}
-
-#[derive(Serialize, Deserialize, Debug)]
-#[serde(rename_all = "camelCase")]
-pub struct AssetResponse {
+pub struct AssetListResponse {
   pub items : Vec<Asset>,
   previous_cursor : Option<String>,
   next_cursor : Option<String>

@@ -4,12 +4,6 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
-pub struct EventResponseWrapper {
-  pub data : EventListResponse
-}
-
-#[derive(Serialize, Deserialize, Debug)]
-#[serde(rename_all = "camelCase")]
 pub struct EventListResponse {
   pub items : Vec<Event>,
   previous_cursor : Option<String>,

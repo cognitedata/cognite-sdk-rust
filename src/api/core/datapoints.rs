@@ -23,9 +23,9 @@ impl Datapoints {
 
   pub fn retrieve(&self, datapoints_filter : DatapointsFilter) -> Result<Vec<DatapointsResponse>> {
     let request_body = serde_json::to_string(&datapoints_filter).unwrap();
-    match self.api_client.post::<DatapointListResponseWrapper>("timeseries/data/list", &request_body){
+    match self.api_client.post::<DatapointsListResponse>("timeseries/data/list", &request_body){
       Ok(datapoints_response) => {
-        let datapoints = datapoints_response.data.items;
+        let datapoints = datapoints_response.items;
         Ok(datapoints)
       },
       Err(e) => Err(e)
@@ -35,9 +35,9 @@ impl Datapoints {
   pub fn retrieve_latest(&self, time_serie_id : u64, before : &str) -> Result<DatapointsResponse> {
     let latest_datapoint_query : LatestDatapointsQuery = LatestDatapointsQuery::new(time_serie_id, before);
     let request_body = serde_json::to_string(&latest_datapoint_query).unwrap();
-    match self.api_client.post::<DatapointListResponseWrapper>("timeseries/data/latest", &request_body) {
+    match self.api_client.post::<DatapointsListResponse>("timeseries/data/latest", &request_body) {
       Ok(mut datapoint_response) => {
-        let datapoint = datapoint_response.data.items.pop().unwrap();
+        let datapoint = datapoint_response.items.pop().unwrap();
         Ok(datapoint)
       },
       Err(e) => Err(e)

@@ -3,12 +3,6 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
-pub struct FileResponseWrapper {
-  pub data : FileListResponse
-}
-
-#[derive(Serialize, Deserialize, Debug)]
-#[serde(rename_all = "camelCase")]
 pub struct FileListResponse {
   pub items : Vec<FileMetadata>,
   next_cursor : Option<String>,
@@ -28,12 +22,6 @@ pub struct FileMetadata {
   pub uploaded_time : u64,
   pub created_time : u128,
   pub last_updated_time : u128
-}
-
-#[derive(Serialize, Deserialize, Debug)]
-#[serde(rename_all = "camelCase")]
-pub struct FileLinkResponseWrapper {
-  pub data : FileLinkListResponse
 }
 
 #[derive(Serialize, Deserialize, Debug)]

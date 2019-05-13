@@ -2,13 +2,7 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
-pub struct SecurityCategorieResponseWrapper {
-  pub data: SecurityCategorieResponse,
-}
-
-#[derive(Serialize, Deserialize, Debug)]
-#[serde(rename_all = "camelCase")]
-pub struct SecurityCategorieResponse {
+pub struct SecurityCategoryListResponse {
   pub items : Vec<SecurityCategory>,
   previous_cursor : Option<String>,
   next_cursor : Option<String>,

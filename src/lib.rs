@@ -39,6 +39,7 @@ pub use self::{
       files::*,
     },
     iam::{
+      api_key::*,
       security_category::*,
     },
     filter_types::*,

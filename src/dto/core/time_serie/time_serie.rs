@@ -6,12 +6,6 @@ use std::collections::HashMap;
 
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
-pub struct TimeSerieResponseWrapper {
-  pub data : TimeSerieListResponse
-}
-
-#[derive(Serialize, Deserialize, Debug)]
-#[serde(rename_all = "camelCase")]
 pub struct TimeSerieListResponse {
   pub items : Vec<TimeSerie>,
   previous_cursor : Option<String>,

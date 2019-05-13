@@ -15,9 +15,9 @@ impl TimeSeries {
   }
 
   pub fn list_all(&self, params : Option<Vec<Params>>) -> Result<Vec<TimeSerie>> {
-    match self.api_client.get_with_params::<TimeSerieResponseWrapper>("timeseries", params){
+    match self.api_client.get_with_params::<TimeSerieListResponse>("timeseries", params){
       Ok(time_series_response) => {
-        let time_series = time_series_response.data.items;
+        let time_series = time_series_response.items;
         Ok(time_series)
       },
       Err(e) => Err(e)
@@ -36,9 +36,9 @@ impl TimeSeries {
 
   pub fn search(&self, time_serie_filter : TimeSerieFilter, time_serie_search : TimeSerieSearch) -> Result<Vec<TimeSerie>> {
     let filter : Search = Search::new(time_serie_filter, time_serie_search, None);
-    match self.api_client.post::<TimeSerieResponseWrapper>("timeseries/search", &serde_json::to_string(&filter).unwrap()){
+    match self.api_client.post::<TimeSerieListResponse>("timeseries/search", &serde_json::to_string(&filter).unwrap()){
       Ok(time_series_response) => {
-        let time_series = time_series_response.data.items;
+        let time_series = time_series_response.items;
         Ok(time_series)
       },
       Err(e) => Err(e)
@@ -48,9 +48,9 @@ impl TimeSeries {
   pub fn retrieve(&self, time_serie_ids : &[u64]) -> Result<Vec<TimeSerie>> {
     let id_list : Vec<TimeSerieId> = time_serie_ids.iter().map(| ts_id | TimeSerieId::from(*ts_id)).collect();
     let request_body = format!("{{\"items\":{} }}", serde_json::to_string(&id_list).unwrap());
-    match self.api_client.post::<TimeSerieResponseWrapper>("timeseries/byids", &request_body){
+    match self.api_client.post::<TimeSerieListResponse>("timeseries/byids", &request_body){
       Ok(time_series_response) => {
-        let time_series = time_series_response.data.items;
+        let time_series = time_series_response.items;
         Ok(time_series)
       },
       Err(e) => Err(e)
@@ -61,9 +61,9 @@ impl TimeSeries {
     let patch_time_series : Vec<PatchTimeSerie> = time_series.iter().map(| a | PatchTimeSerie::from(a)).collect();
     let request_body = format!("{{\"items\":{} }}", serde_json::to_string(&patch_time_series).unwrap());
     println!("{:?}", request_body);
-    match self.api_client.post::<TimeSerieResponseWrapper>("timeseries/update", &request_body){
+    match self.api_client.post::<TimeSerieListResponse>("timeseries/update", &request_body){
       Ok(time_series_response) => {
-        let time_series = time_series_response.data.items;
+        let time_series = time_series_response.items;
         Ok(time_series)
       },
       Err(e) => Err(e)

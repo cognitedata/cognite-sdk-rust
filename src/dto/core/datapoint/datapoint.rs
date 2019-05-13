@@ -3,13 +3,7 @@ use serde_json::value::Value;
 
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
-pub struct DatapointListResponseWrapper {
-  pub data : DatapointItems
-}
-
-#[derive(Serialize, Deserialize, Debug)]
-#[serde(rename_all = "camelCase")]
-pub struct DatapointItems {
+pub struct DatapointsListResponse {
   pub items : Vec<DatapointsResponse>,
   previous_cursor : Option<String>,
   next_cursor : Option<String>

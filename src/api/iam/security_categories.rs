@@ -15,9 +15,9 @@ impl SecurityCategories {
   }
 
   pub fn list_all(&self, params : Option<Vec<Params>>) -> Result<Vec<SecurityCategory>> {
-    match self.api_client.get_with_params::<SecurityCategorieResponseWrapper>("securitycategories", params) {
+    match self.api_client.get_with_params::<SecurityCategoryListResponse>("securitycategories", params) {
       Ok(security_categories_response) => {
-        Ok(security_categories_response.data.items)
+        Ok(security_categories_response.items)
       }
       Err(e) => Err(e)
     }
@@ -25,9 +25,9 @@ impl SecurityCategories {
 
   pub fn create(&self, security_category_names : &[SecurityCategory]) -> Result<Vec<SecurityCategory>> {
     let request_body = format!("{{\"items\":{} }}", serde_json::to_string(security_category_names).unwrap());
-    match self.api_client.post::<SecurityCategorieResponseWrapper>("securitycategories", &request_body){
+    match self.api_client.post::<SecurityCategoryListResponse>("securitycategories", &request_body){
       Ok(security_categories_response) => {
-        let security_categories = security_categories_response.data.items;
+        let security_categories = security_categories_response.items;
         Ok(security_categories)
       },
       Err(e) => Err(e)
