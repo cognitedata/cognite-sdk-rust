@@ -54,10 +54,10 @@ impl CogniteClient {
         return Err(Error::new(Kind::EnvironmentVariableMissing(error_message)))
       }
     };
-    let api_client = ApiClient::new(api_base_url.clone(), api_key.clone());
+    let api_client = ApiClient::new(&api_base_url, &api_key);
 
     // Get project name associated to API KEY
-    let login_api_client = ApiClient::new(api_base_url.clone(), api_key.clone());
+    let login_api_client = ApiClient::new(&api_base_url, &api_key);
     let login = Login::new(login_api_client);
     let login_status = match login.status() {
       Ok(status) => status,
@@ -69,13 +69,13 @@ impl CogniteClient {
     
     let api_version = "v1".to_string();
     let api_base_path = format!("{}/api/{}/projects/{}", api_base_url, api_version, project);
-    let assets_api_client = ApiClient::new(api_base_path.clone(), api_key.clone());
-    let datapoints_api_client = ApiClient::new(api_base_path.clone(), api_key.clone());
-    let events_api_client = ApiClient::new(api_base_path.clone(), api_key.clone());
-    let files_api_client = ApiClient::new(api_base_path.clone(), api_key.clone());
-    let time_series_api_client = ApiClient::new(api_base_path.clone(), api_key.clone());
-    let api_keys_api_client = ApiClient::new(api_base_path.clone(), api_key.clone());
-    let service_accounts_api_client = ApiClient::new(api_base_path.clone(), api_key.clone());
+    let assets_api_client = ApiClient::new(&api_base_path, &api_key);
+    let datapoints_api_client = ApiClient::new(&api_base_path, &api_key);
+    let events_api_client = ApiClient::new(&api_base_path, &api_key);
+    let files_api_client = ApiClient::new(&api_base_path, &api_key);
+    let time_series_api_client = ApiClient::new(&api_base_path, &api_key);
+    let api_keys_api_client = ApiClient::new(&api_base_path, &api_key);
+    let service_accounts_api_client = ApiClient::new(&api_base_path, &api_key);
 
     Ok(CogniteClient { 
       api_client : api_client,

@@ -28,10 +28,10 @@ pub struct ApiClient {
 }
 
 impl ApiClient {
-  pub fn new(api_base_url : String, api_key : String) -> ApiClient {
+  pub fn new(api_base_url : &str, api_key : &str) -> ApiClient {
     ApiClient { 
-      api_base_url : api_base_url,
-      api_key : api_key,
+      api_base_url : String::from(api_base_url),
+      api_key : String::from(api_key),
       client : Client::new(),
     }
   }
@@ -53,6 +53,12 @@ impl ApiClient {
       Ok(mut response) => {
         match response.status() {
           StatusCode::OK => {
+            match response.json::<T>() {
+              Ok(json) => Ok(json),
+              Err(e) => Err(Error::from(e))
+            }
+          },
+          StatusCode::CREATED => {
             match response.json::<T>() {
               Ok(json) => Ok(json),
               Err(e) => Err(Error::from(e))
