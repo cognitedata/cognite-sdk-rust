@@ -36,6 +36,18 @@ impl ApiClient {
     }
   }
 
+  fn get_headers(&self) -> HeaderMap {
+    let mut headers = HeaderMap::new();
+    let api_key_header_value = HeaderValue::from_str(&self.api_key).expect("failed to set api key");
+    headers.insert("api-key", api_key_header_value);
+    headers.insert("x-cdp-sdk", HeaderValue::from_str("rust-sdk-v0.1").expect("x-cdp-sdk"));
+    headers.insert("x-cdp-app", HeaderValue::from_str("").expect("x-cdp-app"));
+    headers.insert(USER_AGENT, HeaderValue::from_static("user-agent-goes-here"));
+    headers.insert(CONTENT_TYPE, HeaderValue::from_static("application/json"));
+    headers.insert(ACCEPT, HeaderValue::from_static("application/json"));
+    headers
+  }
+
   fn send_request<T : DeserializeOwned>(&self, request : RequestBuilder) -> Result<T> {
     match request.send() {
       Ok(mut response) => {
@@ -123,12 +135,7 @@ impl ApiClient {
     let http_params : Vec<(String, String)> = self.convert_params_to_tuples(params);
 
     let url = format!("{}/{}", self.api_base_url, path);
-    let mut headers = HeaderMap::new();
-    let api_key_header_value = HeaderValue::from_str(&self.api_key).expect("failed to set api key");
-    headers.insert("api-key", api_key_header_value);
-    headers.insert(USER_AGENT, HeaderValue::from_static("user-agent-goes-here"));
-    headers.insert(CONTENT_TYPE, HeaderValue::from_static("application/json"));
-    headers.insert(ACCEPT, HeaderValue::from_static("application/json"));
+    let headers : HeaderMap = self.get_headers();
     let request = self.client
                     .get(&url)
                     .headers(headers)
@@ -137,14 +144,8 @@ impl ApiClient {
   }
 
   pub fn post<T : DeserializeOwned>(&self, path : &str, body : &str) -> Result<T> {
-    println!("POST: {}, with body: {:?}", path, body);
     let url = format!("{}/{}", self.api_base_url, path);
-    let mut headers = HeaderMap::new();
-    let api_key_header_value = HeaderValue::from_str(&self.api_key).expect("failed to set api key");
-    headers.insert("api-key", api_key_header_value);
-    headers.insert(USER_AGENT, HeaderValue::from_static("user-agent-goes-here"));
-    headers.insert(CONTENT_TYPE, HeaderValue::from_static("application/json"));
-    headers.insert(ACCEPT, HeaderValue::from_static("application/json"));
+    let headers : HeaderMap = self.get_headers();
     let request = self.client
                     .post(&url)
                     .headers(headers)
@@ -154,12 +155,7 @@ impl ApiClient {
 
   pub fn put<T : DeserializeOwned>(&self, path : &str, body : &str) -> Result<T> {
     let url = format!("{}/{}", self.api_base_url, path);
-    let mut headers = HeaderMap::new();
-    let api_key_header_value = HeaderValue::from_str(&self.api_key).expect("failed to set api key");
-    headers.insert("api-key", api_key_header_value);
-    headers.insert(USER_AGENT, HeaderValue::from_static("user-agent-goes-here"));
-    headers.insert(CONTENT_TYPE, HeaderValue::from_static("application/json"));
-    headers.insert(ACCEPT, HeaderValue::from_static("application/json"));
+    let headers : HeaderMap = self.get_headers();
     let request = self.client
                           .put(&url)
                           .headers(headers)
@@ -174,12 +170,7 @@ impl ApiClient {
   pub fn delete_with_params<T : DeserializeOwned>(&self, path : &str, params : Option<Vec<Params>>) -> Result<T> {
     let http_params : Vec<(String, String)> = self.convert_params_to_tuples(params);
     let url = format!("{}/{}", self.api_base_url, path);
-    let mut headers = HeaderMap::new();
-    let api_key_header_value = HeaderValue::from_str(&self.api_key).expect("failed to set api key");
-    headers.insert("api-key", api_key_header_value);
-    headers.insert(USER_AGENT, HeaderValue::from_static("user-agent-goes-here"));
-    headers.insert(CONTENT_TYPE, HeaderValue::from_static("application/json"));
-    headers.insert(ACCEPT, HeaderValue::from_static("application/json"));
+    let headers : HeaderMap = self.get_headers();
     let request = self.client
                           .delete(&url)
                           .headers(headers)

@@ -71,9 +71,9 @@ fn main() {
   let files_search_result : Vec<FileMetadata> = cognite_client.files.search(file_filter_2, file_search).unwrap();
   println!("Search found {:?} files", files_search_result.len());
 
-  // List all users
-  match cognite_client.users.list_all(None) {
-    Ok(users) => println!("{} users retrieved.", users.len()),
+  // List all service accounts
+  match cognite_client.service_accounts.list_all(None) {
+    Ok(service_accounts) => println!("{} service accounts retrieved.", service_accounts.len()),
     Err(e) => println!("{:?}", e)
   }
 }

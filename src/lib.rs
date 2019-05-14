@@ -25,9 +25,9 @@ pub use self::{
       login::*,
     },
     iam::{
-      users::*,
       api_keys::*,
       security_categories::*,
+      service_accounts::*,
     },
   },
   dto::{
@@ -41,6 +41,7 @@ pub use self::{
     iam::{
       api_key::*,
       security_category::*,
+      service_account::*,
     },
     filter_types::*,
     params::*,

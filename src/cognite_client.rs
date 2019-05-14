@@ -8,7 +8,7 @@ use super::{
   Files,
   Login,
   TimeSeries,
-  Users,
+  ServiceAccounts,
   ApiKeys,
   ApiClient,
   Result,
@@ -23,7 +23,7 @@ pub struct CogniteClient {
   pub events : Events,
   pub files : Files,
   pub time_series : TimeSeries,
-  pub users : Users,
+  pub service_accounts : ServiceAccounts,
   pub api_keys : ApiKeys,
 }
 
@@ -75,7 +75,7 @@ impl CogniteClient {
     let files_api_client = ApiClient::new(api_base_path.clone(), api_key.clone());
     let time_series_api_client = ApiClient::new(api_base_path.clone(), api_key.clone());
     let api_keys_api_client = ApiClient::new(api_base_path.clone(), api_key.clone());
-    let users_api_client = ApiClient::new(api_base_path.clone(), api_key.clone());
+    let service_accounts_api_client = ApiClient::new(api_base_path.clone(), api_key.clone());
 
     Ok(CogniteClient { 
       api_client : api_client,
@@ -85,7 +85,7 @@ impl CogniteClient {
       events : Events::new(events_api_client),
       files : Files::new(files_api_client),
       time_series : TimeSeries::new(time_series_api_client),
-      users : Users::new(users_api_client),
+      service_accounts : ServiceAccounts::new(service_accounts_api_client),
       api_keys : ApiKeys::new(api_keys_api_client),
     })
   }
