@@ -14,12 +14,12 @@ pub struct FileMetadata {
   pub id : u64,
   pub external_id : Option<String>,
   pub name : String,
-  pub source : String,
-  pub mime_type : String,
+  pub source : Option<String>,
+  pub mime_type : Option<String>,
   pub metadata: HashMap<String, String>,
   pub asset_ids : Option<Vec<u64>>,
-  pub uploaded : bool,
-  pub uploaded_time : u64,
+  pub uploaded : Option<bool>,
+  pub uploaded_time : Option<u64>,
   pub created_time : u128,
   pub last_updated_time : u128
 }

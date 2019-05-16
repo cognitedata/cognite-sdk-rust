@@ -2,6 +2,7 @@ use crate::api::ApiClient;
 use crate::dto::params::{Params};
 use crate::error::{Result};
 use crate::dto::iam::security_category::*;
+use crate::dto::items::Items;
 
 pub struct SecurityCategories {
   api_client : ApiClient
@@ -24,9 +25,10 @@ impl SecurityCategories {
   }
 
   pub fn create(&self, security_category_names : &[SecurityCategory]) -> Result<Vec<SecurityCategory>> {
-    let request_body = format!("{{\"items\":{} }}", serde_json::to_string(security_category_names).unwrap());
-    match self.api_client.post::<SecurityCategoryListResponse>("securitycategories", &request_body){
-      Ok(security_categories_response) => {
+    let security_category_name_items = Items::from(security_category_names);
+    match self.api_client.post("securitycategories", &security_category_name_items){
+      Ok(result) => {
+        let security_categories_response : SecurityCategoryListResponse = result;
         let security_categories = security_categories_response.items;
         Ok(security_categories)
       },
@@ -35,8 +37,8 @@ impl SecurityCategories {
   }
 
   pub fn delete(&self, security_category_ids : &[u64]) -> Result<()> {
-    let request_body = format!("{{\"items\":{} }}", serde_json::to_string(security_category_ids).unwrap());
-    match self.api_client.post::<::serde_json::Value>("securitycategories/delete", &request_body){
+    let id_items = Items::from(security_category_ids);
+    match self.api_client.post::<::serde_json::Value, Items>("securitycategories/delete", &id_items){
       Ok(_) => {
         Ok(())
       },

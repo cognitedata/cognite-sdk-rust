@@ -1,5 +1,6 @@
 use std::collections::HashMap;
 use serde::de::DeserializeOwned;
+use serde::ser::Serialize;
 use reqwest::{
   Client,
   StatusCode,
@@ -51,6 +52,7 @@ impl ApiClient {
   fn send_request<T : DeserializeOwned>(&self, request : RequestBuilder) -> Result<T> {
     match request.send() {
       Ok(mut response) => {
+        
         match response.status() {
           StatusCode::OK => {
             match response.json::<T>() {
@@ -149,7 +151,16 @@ impl ApiClient {
     self.send_request(request)
   }
 
-  pub fn post<T : DeserializeOwned>(&self, path : &str, body : &str) -> Result<T> {
+  pub fn post<D, S>(&self, path: &str, object : &S) -> Result<D> 
+    where D : DeserializeOwned, S : Serialize {
+    let json = match serde_json::to_string(object) {
+      Ok(json) => json,
+      Err(e) => return Err(Error::from(e)),
+    };
+    self.post_json(path, &json)
+  }
+
+  pub fn post_json<T : DeserializeOwned>(&self, path : &str, body : &str) -> Result<T> {
     let url = format!("{}/{}", self.api_base_url, path);
     let headers : HeaderMap = self.get_headers();
     let request = self.client
@@ -159,7 +170,16 @@ impl ApiClient {
     self.send_request(request)
   }
 
-  pub fn put<T : DeserializeOwned>(&self, path : &str, body : &str) -> Result<T> {
+  pub fn put<D, S>(&self, path: &str, object : &S) -> Result<D> 
+    where D : DeserializeOwned, S : Serialize {
+    let json = match serde_json::to_string(object) {
+      Ok(json) => json,
+      Err(e) => return Err(Error::from(e)),
+    };
+    self.put_json(path, &json)
+  }
+
+  pub fn put_json<T : DeserializeOwned>(&self, path : &str, body : &str) -> Result<T> {
     let url = format!("{}/{}", self.api_base_url, path);
     let headers : HeaderMap = self.get_headers();
     let request = self.client

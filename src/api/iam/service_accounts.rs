@@ -2,6 +2,7 @@ use crate::api::ApiClient;
 use crate::dto::params::{Params};
 use crate::error::{Result};
 use crate::dto::iam::service_account::*;
+use crate::dto::items::Items;
 
 pub struct ServiceAccounts {
   api_client : ApiClient
@@ -25,9 +26,10 @@ impl ServiceAccounts {
   }
 
   pub fn create(&self, service_accounts : &[ServiceAccount]) -> Result<Vec<ServiceAccount>> {
-    let request_body = format!("{{\"items\":{} }}", serde_json::to_string(service_accounts).unwrap());
-    match self.api_client.post::<ServiceAccountListResponse>("serviceaccounts", &request_body){
-      Ok(service_accounts_response) => {
+    let service_accounts_items = Items::from(service_accounts);
+    match self.api_client.post("serviceaccounts", &service_accounts_items){
+      Ok(result) => {
+        let service_accounts_response : ServiceAccountListResponse = result;
         let service_accounts = service_accounts_response.items;
         Ok(service_accounts)
       },
@@ -36,8 +38,8 @@ impl ServiceAccounts {
   }
 
   pub fn delete(&self, user_ids : &[u64]) -> Result<()> {
-    let request_body = format!("{{\"items\":{} }}", serde_json::to_string(user_ids).unwrap());
-    match self.api_client.post::<::serde_json::Value>("serviceaccounts/delete", &request_body){
+    let id_items = Items::from(user_ids);
+    match self.api_client.post::<::serde_json::Value, Items>("serviceaccounts/delete", &id_items){
       Ok(_) => {
         Ok(())
       },

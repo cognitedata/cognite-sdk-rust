@@ -1,5 +1,5 @@
 #[cfg(test)]
-mod service_accounts {
+mod service_account_tests {
   use cognite::*;
 
   #[test]

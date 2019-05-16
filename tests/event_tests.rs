@@ -1,5 +1,5 @@
 #[cfg(test)]
-mod users {
+mod event_tests {
   use cognite::*;
 
   #[test]
@@ -11,11 +11,11 @@ mod users {
     let cognite_client = CogniteClient::new().unwrap();
     let new_event : Event = Event::new(Some(since_the_epoch.as_millis()),
                                         Some(since_the_epoch.as_millis()+1), 
+                                        None,
                                         Some("description".to_owned()),
                                         None,
-                                        None,
                                         Some(vec!()),
-                                        "source".to_owned());
+                                        Some("source".to_owned()));
     match cognite_client.events.create(&vec!(new_event)) {
       Ok(mut events) => {
         

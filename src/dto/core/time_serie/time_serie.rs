@@ -58,6 +58,36 @@ impl TimeSerie {
 
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
+pub struct AddTimeSerie {
+  pub external_id : Option<String>,
+  pub name: String,
+  pub is_string: bool,
+  pub metadata: Option<HashMap<String, String>>,
+  pub unit: Option<String>,
+  pub asset_id: Option<u64>,
+  pub is_step: bool,
+  pub description: String,
+  pub security_categories: Option<Vec<u64>>,
+}
+
+impl From<&TimeSerie> for AddTimeSerie {
+  fn from(time_serie : &TimeSerie) -> AddTimeSerie {
+    AddTimeSerie {
+      name: time_serie.name.clone(),
+      external_id: time_serie.external_id.clone(),
+      is_string: time_serie.is_string.clone(),
+      metadata : time_serie.metadata.clone(),
+      unit: time_serie.unit.clone(),
+      asset_id: time_serie.asset_id.clone(),
+      is_step: time_serie.is_step.clone(),
+      description: time_serie.description.clone(),
+      security_categories: time_serie.security_categories.clone(),
+    }
+  }
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+#[serde(rename_all = "camelCase")]
 pub struct PatchTimeSerie {
   id : u64,
   update : PatchTimeSerieFields,

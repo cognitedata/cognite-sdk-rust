@@ -1,5 +1,5 @@
 #[cfg(test)]
-mod users {
+mod time_serie_tests {
   use cognite::*;
 
   #[test]

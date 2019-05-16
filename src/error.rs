@@ -42,6 +42,7 @@ impl fmt::Display for Error {
   fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
     match self.kind {
       Kind::Reqwest(ref e) => fmt::Display::fmt(e, f),
+      Kind::SerdeJson(ref e) => fmt::Display::fmt(e, f),
       Kind::BadRequest(ref e) => f.write_str(e),
       Kind::Unauthorized(ref e) => f.write_str(e),
       Kind::Forbidden(ref e) => f.write_str(e),
@@ -58,6 +59,7 @@ impl StdError for Error {
   fn description(&self) -> &str {
     match self.kind {
       Kind::Reqwest(ref e) => e.description(),
+      Kind::SerdeJson(ref e) => e.description(),
       Kind::BadRequest(ref e) => e,
       Kind::Unauthorized(ref e) => e,
       Kind::Forbidden(ref e) => e,
@@ -86,16 +88,27 @@ pub enum Kind {
   Http(String),
   EnvironmentVariableMissing(String),
   Reqwest(::reqwest::Error),
+  SerdeJson(::serde_json::Error),
 }
 
 impl From<::reqwest::Error> for Kind {
-  #[inline]
   fn from(err: ::reqwest::Error) -> Kind {
       Kind::Reqwest(err)
   }
 }
 impl From<::reqwest::Error> for Error {
   fn from(err: ::reqwest::Error) -> Error {
+      Error::new(Kind::from(err))
+  }
+}
+
+impl From<::serde_json::Error> for Kind {
+  fn from(err: ::serde_json::Error) -> Kind {
+      Kind::SerdeJson(err)
+  }
+}
+impl From<::serde_json::Error> for Error {
+  fn from(err: ::serde_json::Error) -> Error {
       Error::new(Kind::from(err))
   }
 }

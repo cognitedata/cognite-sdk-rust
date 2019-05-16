@@ -1,6 +1,7 @@
 use crate::api::ApiClient;
 use crate::error::{Result};
 use crate::dto::core::files::*;
+use crate::dto::items::Items;
 
 pub struct Files {
   api_client : ApiClient,
@@ -15,8 +16,9 @@ impl Files {
 
   pub fn filter_all(&self, file_filter : FileFilter) -> Result<Vec<FileMetadata>> {
     let filter : Filter = Filter::new(file_filter, None, None);
-    match self.api_client.post::<FileListResponse>("files/list", &serde_json::to_string(&filter).unwrap()){
-      Ok(files_response) => {
+    match self.api_client.post("files/list", &filter){
+      Ok(result) => {
+        let files_response : FileListResponse = result;
         let files = files_response.items;
         Ok(files)
       },
@@ -30,9 +32,10 @@ impl Files {
 
   pub fn retrieve_metadata(&self, file_ids : &[u64]) -> Result<Vec<FileMetadata>> {
     let id_list : Vec<FileId> = file_ids.iter().map(| f_id | FileId::from(*f_id)).collect();
-    let request_body = format!("{{\"items\":{} }}", serde_json::to_string(&id_list).unwrap());
-    match self.api_client.post::<FileListResponse>("files/byids", &request_body){
-      Ok(files_response) => {
+    let id_items = Items::from(&id_list);
+    match self.api_client.post("files/byids", &id_items){
+      Ok(result) => {
+        let files_response : FileListResponse = result;
         let files = files_response.items;
         Ok(files)
       },
@@ -42,8 +45,9 @@ impl Files {
 
   pub fn search(&self, file_filter : FileFilter, file_search : FileSearch) -> Result<Vec<FileMetadata>> {
     let filter : Search = Search::new(file_filter, file_search, None);
-    match self.api_client.post::<FileListResponse>("files/search", &serde_json::to_string(&filter).unwrap()){
-      Ok(files_response) => {
+    match self.api_client.post("files/search", &filter){
+      Ok(result) => {
+        let files_response : FileListResponse = result;
         let files = files_response.items;
         Ok(files)
       },
@@ -53,8 +57,8 @@ impl Files {
 
   pub fn delete(&self, file_ids : Vec<u64>) -> Result<()> {
     let id_list : Vec<FileId> = file_ids.iter().map(| a_id | FileId::from(*a_id)).collect();
-    let request_body = format!("{{\"items\":{} }}", serde_json::to_string(&id_list).unwrap());
-    match self.api_client.post::<::serde_json::Value>("files/delete", &request_body){
+    let id_items = Items::from(&id_list);
+    match self.api_client.post::<::serde_json::Value, Items>("files/delete", &id_items){
       Ok(_) => {
         Ok(())
       },
@@ -64,9 +68,10 @@ impl Files {
   
   pub fn download(&self, file_ids : Vec<u64>) -> Result<Vec<FileLink>> {
     let id_list : Vec<FileId> = file_ids.iter().map(| a_id | FileId::from(*a_id)).collect();
-    let request_body = format!("{{\"items\":{} }}", serde_json::to_string(&id_list).unwrap());
-    match self.api_client.post::<FileLinkListResponse>("files/download", &request_body){
-      Ok(file_links_response) => {
+    let id_items = Items::from(&id_list);
+    match self.api_client.post("files/download", &id_items){
+      Ok(result) => {
+        let file_links_response : FileLinkListResponse = result;
         let file_links = file_links_response.items;
         Ok(file_links)
       },

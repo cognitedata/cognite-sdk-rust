@@ -1,5 +1,5 @@
 #[cfg(test)]
-mod assets {
+mod api_keys_tests {
   use cognite::*;
 
   #[test]

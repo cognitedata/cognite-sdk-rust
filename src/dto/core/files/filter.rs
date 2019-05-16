@@ -15,8 +15,12 @@ pub struct FileFilter {
   pub created_time: Option<EpochTimestampRange>,
   #[serde(skip_serializing_if = "Option::is_none")]
   pub last_updated_time: Option<EpochTimestampRange>,
+   #[serde(skip_serializing_if = "Option::is_none")]
+  pub uploaded_time: Option<EpochTimestampRange>,
   #[serde(skip_serializing_if = "Option::is_none")]
-  pub external_id_prefix: Option<String>
+  pub external_id_prefix: Option<String>,
+   #[serde(skip_serializing_if = "Option::is_none")]
+  pub uploaded: Option<bool>,
 }
 
 impl FileFilter {
@@ -27,7 +31,9 @@ impl FileFilter {
       source: None,
       created_time: None,
       last_updated_time: None,
+      uploaded_time: None,
       external_id_prefix: None,
+      uploaded: None,
     }
   }
 }

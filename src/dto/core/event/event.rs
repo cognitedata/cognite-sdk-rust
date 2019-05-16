@@ -20,8 +20,8 @@ pub struct Event {
   pub description : Option<String>,
   pub metadata : Option<HashMap<String, String>>,
   pub asset_ids : Option<Vec<u64>>,
-  pub source : String,
-  pub created_time : u128,
+  pub source : Option<String>,
+  pub created_time : Option<u128>,
   pub last_updated_time : u128,
 }
 
@@ -32,7 +32,7 @@ impl Event {
           description : Option<String>,
           metadata : Option<HashMap<String, String>>,
           asset_ids : Option<Vec<u64>>,
-          source : String) -> Event {
+          source : Option<String>) -> Event {
     Event {
       id : 0,
       external_id : external_id,
@@ -42,9 +42,35 @@ impl Event {
       metadata : metadata,
       asset_ids : asset_ids,
       source : source,
-      created_time : 0,
+      created_time : Some(0),
       last_updated_time : 0,
     }
+  }
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct AddEvent {
+  external_id: Option<String>,
+  start_time : Option<u128>,
+  end_time : Option<u128>,
+  description : Option<String>,
+  metadata : Option<HashMap<String, String>>,
+  asset_ids : Option<Vec<u64>>,
+  source : Option<String>,
+}
+
+impl From<&Event> for AddEvent {
+  fn from(event : &Event) -> AddEvent {
+      AddEvent { 
+        external_id : event.external_id.clone(),
+        start_time : event.start_time.clone(),
+        end_time : event.end_time.clone(),
+        description : event.description.clone(),
+        metadata : event.metadata.clone(),
+        asset_ids : event.asset_ids.clone(),
+        source : event.source.clone(),
+      }
   }
 }
 

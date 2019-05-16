@@ -1,5 +1,5 @@
 #[cfg(test)]
-mod assets {
+mod datapoints_tests {
   use cognite::*;
 
   #[test]

@@ -1,5 +1,5 @@
 #[cfg(test)]
-mod assets {
+mod security_categories_tests {
   use cognite::*;
 
   #[test]

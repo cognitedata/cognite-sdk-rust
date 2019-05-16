@@ -1,6 +1,7 @@
 use crate::api::ApiClient;
 use crate::error::{Result};
 use crate::dto::core::event::*;
+use crate::dto::items::Items;
 
 pub struct Events {
   api_client : ApiClient,
@@ -14,9 +15,11 @@ impl Events {
   }
 
   pub fn create(&self, events : &[Event]) -> Result<Vec<Event>> {
-    let request_body = format!("{{\"items\":{} }}", serde_json::to_string(events).unwrap());
-    match self.api_client.post::<EventListResponse>("events", &request_body){
-      Ok(events_response) => {
+    let add_events : Vec<AddEvent> = events.iter().map(| e | AddEvent::from(e)).collect();
+    let event_items = Items::from(&add_events);
+    match self.api_client.post("events", &event_items){
+      Ok(result) => {
+        let events_response : EventListResponse = result;
         let events = events_response.items;
         Ok(events)
       },
@@ -26,8 +29,9 @@ impl Events {
 
   pub fn filter_all(&self, event_filter : EventFilter) -> Result<Vec<Event>> {
     let filter : Filter = Filter::new(event_filter, None, None);
-    match self.api_client.post::<EventListResponse>("events/list", &serde_json::to_string(&filter).unwrap()) {
-      Ok(events_response) => {
+    match self.api_client.post("events/list", &filter) {
+      Ok(result) => {
+        let events_response : EventListResponse = result;
         let events = events_response.items;
         Ok(events)
       },
@@ -36,9 +40,10 @@ impl Events {
   }
 
   pub fn retrieve_single(&self, event_id : u64) -> Result<Event> {
-    match self.api_client.get::<EventListResponse>(&format!("events/{}", event_id)) {
-      Ok(mut event_response) => {
-        let event = event_response.items.pop().unwrap();
+    match self.api_client.get(&format!("events/{}", event_id)) {
+      Ok(result) => {
+        let mut events_response : EventListResponse = result;
+        let event = events_response.items.pop().unwrap();
         Ok(event)
       },
       Err(e) => Err(e)
@@ -47,9 +52,10 @@ impl Events {
 
   pub fn retrieve(&self, event_ids : &[u64]) -> Result<Vec<Event>> {
     let id_list : Vec<EventId> = event_ids.iter().map(| e_id | EventId::from(*e_id)).collect();
-    let request_body = format!("{{\"items\":{} }}", serde_json::to_string(&id_list).unwrap());
-    match self.api_client.post::<EventListResponse>("events/byids", &request_body){
-      Ok(events_response) => {
+    let event_items = Items::from(&id_list);
+    match self.api_client.post("events/byids", &event_items){
+      Ok(result) => {
+        let events_response : EventListResponse = result;
         let events = events_response.items;
         Ok(events)
       },
@@ -59,9 +65,10 @@ impl Events {
 
   pub fn update(&self, events : &[Event]) -> Result<Vec<Event>> {
     let patch_events : Vec<PatchEvent> = events.iter().map(| e | PatchEvent::from(e)).collect();
-    let request_body = format!("{{\"items\":{} }}", serde_json::to_string(&patch_events).unwrap());
-    match self.api_client.post::<EventListResponse>("events/update", &request_body){
-      Ok(events_response) => {
+    let event_items = Items::from(&patch_events);
+    match self.api_client.post("events/update", &event_items){
+      Ok(result) => {
+        let events_response : EventListResponse = result;
         let events = events_response.items;
         Ok(events)
       },
@@ -71,7 +78,7 @@ impl Events {
   
   pub fn search(&self, event_filter : EventFilter, event_search : EventSearch) -> Result<Vec<Event>> {
     let filter : Search = Search::new(event_filter, event_search, None);
-    match self.api_client.post::<EventListResponse>("events/search", &serde_json::to_string(&filter).unwrap()) {
+    match self.api_client.post_json::<EventListResponse>("events/search", &serde_json::to_string(&filter).unwrap()) {
       Ok(events_response) => {
         let events = events_response.items;
         Ok(events)
@@ -82,8 +89,8 @@ impl Events {
 
   pub fn delete(&self, event_ids : &[u64]) -> Result<()> {
     let id_list : Vec<EventId> = event_ids.iter().map(| e_id | EventId::from(*e_id)).collect();
-    let request_body = format!("{{\"items\":{} }}", serde_json::to_string(&id_list).unwrap());
-    match self.api_client.post::<::serde_json::Value>("events/delete", &request_body){
+    let event_items = Items::from(&id_list);
+    match self.api_client.post::<::serde_json::Value, Items>("events/delete", &event_items){
       Ok(_) => {
         Ok(())
       },
