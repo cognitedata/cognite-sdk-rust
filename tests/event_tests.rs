@@ -9,8 +9,8 @@ mod event_tests {
     let since_the_epoch = start.duration_since(UNIX_EPOCH).unwrap();
 
     let cognite_client = CogniteClient::new().unwrap();
-    let new_event : Event = Event::new(Some(since_the_epoch.as_millis()),
-                                        Some(since_the_epoch.as_millis()+1), 
+    let new_event : Event = Event::new(Some(since_the_epoch.as_millis() as u64),
+                                        Some((since_the_epoch.as_millis()+1) as u64), 
                                         None,
                                         Some("description".to_owned()),
                                         None,
@@ -22,7 +22,7 @@ mod event_tests {
         for event in events.iter_mut() {
           event.description = Some(String::from("changed"));
         }
-
+      
         match cognite_client.events.update(&events) {
           Ok(_) => (),
           Err(e) => panic!("{:?}", e)

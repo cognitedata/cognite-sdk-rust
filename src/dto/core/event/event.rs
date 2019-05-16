@@ -1,4 +1,4 @@
-use crate::dto::patch_item::PatchItem;
+use crate::dto::patch_item::{PatchItem, PatchList};
 use std::collections::HashMap;
 use serde::{Deserialize, Serialize};
 
@@ -15,19 +15,19 @@ pub struct EventListResponse {
 pub struct Event {
   pub id : u64,
   pub external_id: Option<String>,
-  pub start_time : Option<u128>,
-  pub end_time : Option<u128>,
+  pub start_time : Option<u64>,
+  pub end_time : Option<u64>,
   pub description : Option<String>,
   pub metadata : Option<HashMap<String, String>>,
   pub asset_ids : Option<Vec<u64>>,
   pub source : Option<String>,
-  pub created_time : Option<u128>,
-  pub last_updated_time : u128,
+  pub created_time : Option<u64>,
+  pub last_updated_time : Option<u64>,
 }
 
 impl Event {
-  pub fn new(start_time : Option<u128>,
-          end_time : Option<u128>,
+  pub fn new(start_time : Option<u64>,
+          end_time : Option<u64>,
           external_id: Option<String>,
           description : Option<String>,
           metadata : Option<HashMap<String, String>>,
@@ -43,7 +43,7 @@ impl Event {
       asset_ids : asset_ids,
       source : source,
       created_time : Some(0),
-      last_updated_time : 0,
+      last_updated_time : Some(0),
     }
   }
 }
@@ -52,8 +52,8 @@ impl Event {
 #[serde(rename_all = "camelCase")]
 pub struct AddEvent {
   external_id: Option<String>,
-  start_time : Option<u128>,
-  end_time : Option<u128>,
+  start_time : Option<u64>,
+  end_time : Option<u64>,
   description : Option<String>,
   metadata : Option<HashMap<String, String>>,
   asset_ids : Option<Vec<u64>>,
@@ -111,7 +111,7 @@ struct PatchEventFields {
   end_time : PatchItem,
   description : PatchItem,
   //metadata : PatchItem,
-  asset_ids : PatchItem,
+  //asset_ids : PatchList,
   source : PatchItem,
 }
 
@@ -125,7 +125,7 @@ impl From<&Event> for PatchEvent {
         end_time : PatchItem::from(&event.end_time),
         description : PatchItem::from(&event.description),
         //metadata : PatchItem::from(&event.metadata),
-        asset_ids : PatchItem::from(&event.asset_ids),
+        //asset_ids : PatchList::from(&event.asset_ids),
         source : PatchItem::from(&event.source),
       }
     }

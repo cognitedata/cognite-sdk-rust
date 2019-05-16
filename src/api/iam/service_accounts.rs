@@ -37,8 +37,8 @@ impl ServiceAccounts {
     }
   }
 
-  pub fn delete(&self, user_ids : &[u64]) -> Result<()> {
-    let id_items = Items::from(user_ids);
+  pub fn delete(&self, service_account_ids : &[u64]) -> Result<()> {
+    let id_items = Items::from(service_account_ids);
     match self.api_client.post::<::serde_json::Value, Items>("serviceaccounts/delete", &id_items){
       Ok(_) => {
         Ok(())

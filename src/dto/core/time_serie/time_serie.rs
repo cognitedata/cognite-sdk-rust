@@ -1,5 +1,4 @@
-use crate::dto::patch_item::PatchItem;
-use crate::dto::iam::security_category::PatchSecurityCategory;
+use crate::dto::patch_item::{PatchItem, PatchList};
 
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
@@ -102,9 +101,7 @@ struct PatchTimeSerieFields {
   unit : PatchItem,
   asset_id : PatchItem,
   description : PatchItem,
-  security_categories : PatchSecurityCategory,
-  is_string : PatchItem,
-  is_step : PatchItem,
+  security_categories : PatchList,
 }
 
 impl From<&TimeSerie> for PatchTimeSerie {
@@ -118,9 +115,7 @@ impl From<&TimeSerie> for PatchTimeSerie {
         unit : PatchItem::from(&time_serie.unit),
         asset_id : PatchItem::from(&time_serie.asset_id),
         description : PatchItem::from(&time_serie.description),
-        security_categories : PatchSecurityCategory::from(&time_serie.security_categories),
-        is_string : PatchItem::from(time_serie.is_string),
-        is_step : PatchItem::from(time_serie.is_step),
+        security_categories : PatchList::from(&time_serie.security_categories),
       }
     }
   }

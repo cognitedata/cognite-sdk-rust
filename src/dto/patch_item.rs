@@ -11,6 +11,7 @@ pub struct PatchItem {
   pub set_null : Option<bool>,
 }
 
+
 impl From<&String> for PatchItem {
   fn from(item : &String) -> PatchItem {
       PatchItem { 
@@ -79,6 +80,46 @@ impl From<&Option<HashMap<String, String>>> for PatchItem {
       PatchItem { 
         set : if item.is_none() { json!(HashMap::<String,String>::new())} else { json!(item) }, 
         set_null : None
+      }
+  }
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct PatchList {
+  #[serde(skip_serializing_if = "Option::is_none")]
+  pub add : Option<Vec<u64>>,
+  #[serde(skip_serializing_if = "Option::is_none")]
+  pub remove : Option<Vec<u64>>,
+  #[serde(skip_serializing_if = "Option::is_none")]
+  pub set : Option<Vec<u64>>,
+}
+
+impl From<&[u64]> for PatchList {
+  fn from(items : &[u64]) -> PatchList {
+      PatchList { 
+        add : None,
+        remove : None,
+        set : Some(items.to_vec()),
+      }
+  }
+}
+
+impl From<&Option<Vec<u64>>> for PatchList {
+  fn from(items : &Option<Vec<u64>>) -> PatchList {
+      PatchList { 
+        add : None,
+        remove : None,
+        set : match items {
+          Some(i) => {
+            if i.is_empty() {
+              None
+            }else {
+              Some(i.clone())
+            }
+          },
+          None => None
+        },
       }
   }
 }

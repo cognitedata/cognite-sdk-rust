@@ -22,14 +22,14 @@ mod time_serie_tests {
           time_serie.description = String::from("changed");
         }
 
-        /*
+        
         time_series = match cognite_client.time_series.update(&time_series) {
           Ok(updated_time_series) => {
             updated_time_series
           },
           Err(e) => panic!("{:?}", e)
         };
-        */
+        
         let id_list : Vec<u64> = time_series.iter().map(| ts | ts.id).collect();
         match cognite_client.time_series.delete(&id_list) {
           Ok(_) => assert!(true),
