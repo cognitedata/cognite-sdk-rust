@@ -14,9 +14,8 @@ mod time_serie_tests {
                                     true,
                                     "description",
                                     None);
-    let mut time_series = vec!(time_serie); 
-    match cognite_client.time_series.create(&time_series) {
-      Ok(_) => {
+    match cognite_client.time_series.create(&vec!(time_serie)) {
+      Ok(mut time_series) => {
         assert_eq!(time_series.len(), 1);
         for time_serie in time_series.iter_mut() {
           time_serie.description = String::from("changed");

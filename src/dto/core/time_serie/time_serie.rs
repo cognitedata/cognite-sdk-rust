@@ -95,13 +95,20 @@ pub struct PatchTimeSerie {
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
 struct PatchTimeSerieFields {
-  name : PatchItem,
-  external_id : PatchItem,
-  //metadata : PatchItem,
-  unit : PatchItem,
-  asset_id : PatchItem,
-  description : PatchItem,
-  security_categories : PatchList,
+  #[serde(skip_serializing_if = "Option::is_none")]
+  name : Option<PatchItem>,
+  #[serde(skip_serializing_if = "Option::is_none")]
+  external_id : Option<PatchItem>,
+  #[serde(skip_serializing_if = "Option::is_none")]
+  metadata : Option<PatchItem>,
+  #[serde(skip_serializing_if = "Option::is_none")]
+  unit : Option<PatchItem>,
+  #[serde(skip_serializing_if = "Option::is_none")]
+  asset_id : Option<PatchItem>,
+  #[serde(skip_serializing_if = "Option::is_none")]
+  description : Option<PatchItem>,
+  #[serde(skip_serializing_if = "Option::is_none")]
+  security_categories : Option<PatchList>,
 }
 
 impl From<&TimeSerie> for PatchTimeSerie {
@@ -109,13 +116,13 @@ impl From<&TimeSerie> for PatchTimeSerie {
     PatchTimeSerie {
       id : time_serie.id,
       update : PatchTimeSerieFields {
-        name : PatchItem::from(&time_serie.name),
-        external_id : PatchItem::from(&time_serie.external_id),
-        //metadata : PatchItem::from(&time_serie.metadata),
-        unit : PatchItem::from(&time_serie.unit),
-        asset_id : PatchItem::from(&time_serie.asset_id),
-        description : PatchItem::from(&time_serie.description),
-        security_categories : PatchList::from(&time_serie.security_categories),
+        name : PatchItem::convert(&time_serie.name),
+        external_id : PatchItem::convert_option(&time_serie.external_id),
+        metadata : PatchItem::convert_option(&time_serie.metadata),
+        unit : PatchItem::convert_option(&time_serie.unit),
+        asset_id : PatchItem::convert_option(&time_serie.asset_id),
+        description : PatchItem::convert(&time_serie.description),
+        security_categories : PatchList::convert(&time_serie.security_categories),
       }
     }
   }

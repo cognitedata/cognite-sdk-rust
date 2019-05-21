@@ -16,11 +16,11 @@ impl ApiKeys {
     unimplemented!();
   }
 
-  pub fn create(&self, user_ids : &[u64]) -> Vec<ApiKey> {
+  pub fn create(&self, service_account_ids : &[u64]) -> Vec<ApiKey> {
     unimplemented!();
   }
 
-  pub fn delete(&self, user_ids : &[u64]) -> () {
+  pub fn delete(&self, service_account_ids : &[u64]) -> () {
     unimplemented!();
   }
 }

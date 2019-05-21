@@ -25,12 +25,14 @@ impl TimeSeries {
     }
   }
 
-  pub fn create(&self, time_series : &[TimeSerie]) -> Result<()> {
+  pub fn create(&self, time_series : &[TimeSerie]) -> Result<Vec<TimeSerie>> {
     let add_time_series : Vec<AddTimeSerie> = time_series.iter().map(| ts | AddTimeSerie::from(ts)).collect();
     let add_time_series_items = Items::from(&add_time_series);
-    match self.api_client.post::<::serde_json::Value, Items>("timeseries", &add_time_series_items){
-      Ok(_) => {
-        Ok(())
+    match self.api_client.post("timeseries", &add_time_series_items){
+      Ok(result) => {
+        let time_series_response : TimeSerieListResponse = result;
+        let time_series = time_series_response.items;
+        Ok(time_series)
       },
       Err(e) => Err(e)
     }

@@ -1,4 +1,3 @@
-use std::collections::HashMap;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 
@@ -11,74 +10,23 @@ pub struct PatchItem {
   pub set_null : Option<bool>,
 }
 
+impl PatchItem {
+  pub fn convert_option<T : Serialize>(item : &Option<T>) -> Option<PatchItem> {
+    match item {
+      Some(i) => Some(PatchItem::from(i)),
+      None => None,
+    }
+  }
 
-impl From<&String> for PatchItem {
-  fn from(item : &String) -> PatchItem {
-      PatchItem { 
-        set : json!(item), 
-        set_null : None
-      }
+  pub fn convert<T : Serialize>(item : &T) -> Option<PatchItem> {
+    Some(PatchItem::from(item))
   }
 }
 
-impl From<bool> for PatchItem {
-  fn from(item : bool) -> PatchItem {
+impl<T : Serialize> From<&T> for PatchItem {
+  fn from(item : &T) -> PatchItem {
       PatchItem { 
         set : json!(item), 
-        set_null : None
-      }
-  }
-}
-
-impl From<&[u64]> for PatchItem {
-  fn from(item : &[u64]) -> PatchItem {
-      PatchItem { 
-        set : json!(item), 
-        set_null : None
-      }
-  }
-}
-
-impl From<&Option<String>> for PatchItem {
-  fn from(item : &Option<String>) -> PatchItem {
-      PatchItem { 
-        set : json!(item), 
-        set_null : if item.is_none() { Some(item.is_none()) } else { None }
-      }
-  }
-}
-
-impl From<&Option<u128>> for PatchItem {
-  fn from(item : &Option<u128>) -> PatchItem {
-      PatchItem { 
-        set : json!(item), 
-        set_null : if item.is_none() { Some(item.is_none()) } else { None }
-      }
-  }
-}
-
-impl From<&Option<u64>> for PatchItem {
-  fn from(item : &Option<u64>) -> PatchItem {
-      PatchItem { 
-        set : json!(item), 
-        set_null : if item.is_none() { Some(item.is_none()) } else { None }
-      }
-  }
-}
-
-impl From<&Option<Vec<u64>>> for PatchItem {
-  fn from(item : &Option<Vec<u64>>) -> PatchItem {
-      PatchItem { 
-        set : json!(item), 
-        set_null : if item.is_none() { Some(item.is_none()) } else { None }
-      }
-  }
-}
-
-impl From<&Option<HashMap<String, String>>> for PatchItem {
-  fn from(item : &Option<HashMap<String, String>>) -> PatchItem {
-      PatchItem { 
-        set : if item.is_none() { json!(HashMap::<String,String>::new())} else { json!(item) }, 
         set_null : None
       }
   }
@@ -95,6 +43,15 @@ pub struct PatchList {
   pub set : Option<Vec<u64>>,
 }
 
+impl PatchList {
+  pub fn convert(list : &Option<Vec<u64>>) -> Option<PatchList> {
+    match list {
+      Some(l) => if l.is_empty() { None } else { Some(PatchList::from(l)) },
+      None => None,
+    }
+  }
+}
+
 impl From<&[u64]> for PatchList {
   fn from(items : &[u64]) -> PatchList {
       PatchList { 
@@ -105,21 +62,12 @@ impl From<&[u64]> for PatchList {
   }
 }
 
-impl From<&Option<Vec<u64>>> for PatchList {
-  fn from(items : &Option<Vec<u64>>) -> PatchList {
+impl From<&Vec<u64>> for PatchList {
+  fn from(items : &Vec<u64>) -> PatchList {
       PatchList { 
         add : None,
         remove : None,
-        set : match items {
-          Some(i) => {
-            if i.is_empty() {
-              None
-            }else {
-              Some(i.clone())
-            }
-          },
-          None => None
-        },
+        set : Some(items.clone())
       }
   }
 }

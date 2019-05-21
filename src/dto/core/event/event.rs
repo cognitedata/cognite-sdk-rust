@@ -106,13 +106,20 @@ pub struct PatchEvent {
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
 struct PatchEventFields {
-  external_id : PatchItem,
-  start_time : PatchItem,
-  end_time : PatchItem,
-  description : PatchItem,
-  //metadata : PatchItem,
-  //asset_ids : PatchList,
-  source : PatchItem,
+  #[serde(skip_serializing_if = "Option::is_none")]
+  external_id : Option<PatchItem>,
+  #[serde(skip_serializing_if = "Option::is_none")]
+  start_time : Option<PatchItem>,
+  #[serde(skip_serializing_if = "Option::is_none")]
+  end_time : Option<PatchItem>,
+  #[serde(skip_serializing_if = "Option::is_none")]
+  description : Option<PatchItem>,
+  #[serde(skip_serializing_if = "Option::is_none")]
+  metadata : Option<PatchItem>,
+  #[serde(skip_serializing_if = "Option::is_none")]
+  asset_ids : Option<PatchList>,
+  #[serde(skip_serializing_if = "Option::is_none")]
+  source : Option<PatchItem>,
 }
 
 impl From<&Event> for PatchEvent {
@@ -120,13 +127,13 @@ impl From<&Event> for PatchEvent {
     PatchEvent {
       id : event.id,
       update : PatchEventFields {
-        external_id : PatchItem::from(&event.external_id),
-        start_time : PatchItem::from(&event.start_time),
-        end_time : PatchItem::from(&event.end_time),
-        description : PatchItem::from(&event.description),
-        //metadata : PatchItem::from(&event.metadata),
-        //asset_ids : PatchList::from(&event.asset_ids),
-        source : PatchItem::from(&event.source),
+        external_id : PatchItem::convert_option(&event.external_id),
+        start_time : PatchItem::convert_option(&event.start_time),
+        end_time : PatchItem::convert_option(&event.end_time),
+        description : PatchItem::convert_option(&event.description),
+        metadata : PatchItem::convert_option(&event.metadata),
+        asset_ids : PatchList::convert(&event.asset_ids),
+        source : PatchItem::convert_option(&event.source),
       }
     }
   }
