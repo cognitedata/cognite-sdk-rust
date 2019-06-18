@@ -7,117 +7,65 @@ use serde::{Deserialize, Serialize};
 pub enum Params {
   // ASSET
 
-  // Search
-  #[serde(rename = "name")]
-  AssetsSearch_Name(String),
-  #[serde(rename = "description")]
-  AssetsSearch_Description(String),
-  #[serde(rename = "query")]
-  AssetsSearch_Query(String),
-  #[serde(rename = "metadata")]
-  AssetsSearch_Metadata(HashMap<String, String>),
-  #[serde(rename = "assetSubtrees")]
-  AssetsSearch_AssetSubtrees(String),
-  #[serde(rename = "minCreatedTime")]
-  AssetsSearch_MinCreatedTime(u64),
-  #[serde(rename = "maxCreatedTime")]
-  AssetsSearch_MaxCreatedTime(u64),
-  #[serde(rename = "minLastUpdatedTime")]
-  AssetsSearch_MinLastUpdatedTime(u64),
-  #[serde(rename = "maxLastUpdatedTime")]
-  AssetsSearch_MaxLastUpdatedTime(u64),
-  #[serde(rename = "sort")]
-  AssetsSearch_Sort(String),
-  #[serde(rename = "dir")]
-  AssetsSearch_Dir(String),
+  // List
   #[serde(rename = "limit")]
-  AssetsSearch_Limit(u32),
-  #[serde(rename = "offset")]
-  AssetsSearch_Offset(u32),
-  #[serde(rename = "boostName")]
-  AssetsSearch_BoostName(bool),
-
-  // ListAll
-  #[serde(rename = "name")]
-  AssetsListAll_Name(String),
-  #[serde(rename = "fuzziness")]
-  AssetsListAll_Fuzziness(u32),
-  #[serde(rename = "path")]
-  AssetsListAll_Path(String),
-  #[serde(rename = "depth")]
-  AssetsListAll_Depth(String),
-  #[serde(rename = "metadata")]
-  AssetsListAll_Metadata(HashMap<String,String>),
-  #[serde(rename = "description")]
-  AssetsListAll_Description(String),
-  #[serde(rename = "source")]
-  AssetsListAll_Source(String),
+  AssetsList_Limit(u32),
   #[serde(rename = "cursor")]
-  AssetsListAll_Cursor(String),
-  #[serde(rename = "limit")]
-  AssetsListAll_Limit(u32),
+  AssetsList_Cursor(String),
+  #[serde(rename = "name")]
+  AssetsList_Name(String),
+  #[serde(rename = "parentIds")]
+  AssetsList_ParentIds(Vec<u64>),
+  #[serde(rename = "metadata")]
+  AssetsList_Metadata(HashMap<String, String>),
+  #[serde(rename = "source")]
+  AssetsList_Source(String),
+  #[serde(rename = "root")]
+  AssetsList_Root(String),
+  #[serde(rename = "minCreatedTime")]
+  AssetsList_MinCreatedTime(u64),
+  #[serde(rename = "maxCreatedTime")]
+  AssetsList_MaxCreatedTime(u64),
+  #[serde(rename = "minLastUpdatedTime")]
+  AssetsList_MinLastUpdatedTime(u64),
+  #[serde(rename = "maxLastUpdatedTime")]
+  AssetsList_MaxLastUpdatedTime(u64),
+  #[serde(rename = "externalIdPrefix")]
+  AssetsList_ExternalIdPrefix(String),
 
   // EVENTS 
 
-  // ListAll
-  #[serde(rename = "type")]
-  EventsListAll_Type(String),
-  #[serde(rename = "subType")]
-  EventsListAll_SubType(String),
-  #[serde(rename = "assetId")]
-  EventsListAll_AssetId(u64),
-  #[serde(rename = "sort")]
-  EventsListAll_Sort(String),
+  // Filter events
+  #[serde(rename = "limit")]
+  EventsFilter_Limit(u32),
   #[serde(rename = "cursor")]
-  EventsListAll_Cursor(String),
-  #[serde(rename = "limit")]
-  EventsListAll_Limit(u32),
-  #[serde(rename = "hasDescription")]
-  EventsListAll_HasDescription(bool),
+  EventsFilter_Cursor(String),
   #[serde(rename = "minStartTime")]
-  EventsListAll_MinStartTime(u64),
+  EventsFilter_MinStartTime(u64),
   #[serde(rename = "maxStartTime")]
-  EventsListAll_MaxStartTime(u64),
-  #[serde(rename = "source")]
-  EventsListAll_Source(String),
-
-  // Search
-  #[serde(rename = "description")]
-  EventsSearch_Description(String),
-  #[serde(rename = "type")]
-  EventsSearch_Type(String),
-  #[serde(rename = "subType")]
-  EventsSearch_SubType(String),
-  #[serde(rename = "minStartTime")]
-  EventsSearch_MinStartTime(u64),
-  #[serde(rename = "maxStartTime")]
-  EventsSearch_MaxStartTime(u64),
+  EventsFilter_MaxStartTime(u64),
   #[serde(rename = "minEndTime")]
-  EventsSearch_MinEndTime(u64),
+  EventsFilter_MinEndTime(u64),
   #[serde(rename = "maxEndTime")]
-  EventsSearch_MaxEndTime(u64),
-  #[serde(rename = "minCreatedTime")]
-  EventsSearch_MinCreatedTime(u64),
-  #[serde(rename = "maxCreatedTime")]
-  EventsSearch_MaxCreatedTime(u64),
-  #[serde(rename = "minLastUpdatedTime")]
-  EventsSearch_MinLastUpdatedTime(u64),
-  #[serde(rename = "maxLastUpdatedTime")]
-  EventsSearch_MaxLastUpdatedTime(u64),
-  #[serde(rename = "metadata")]
-  EventsSearch_Metadata(HashMap<String, String>),
+  EventsFilter_MaxEndTime(u64),
   #[serde(rename = "assetIds")]
-  EventsSearch_AssetIds(String),
-  #[serde(rename = "assetSubtrees")]
-  EventsSearch_AssetSubtrees(String),
-  #[serde(rename = "sort")]
-  EventsSearch_Sort(String),
-  #[serde(rename = "dir")]
-  EventsSearch_Dir(String),
-  #[serde(rename = "limit")]
-  EventsSearch_Limit(u32),
-  #[serde(rename = "offset")]
-  EventsSearch_Offset(u32),
+  EventsFilter_AssetIds(String),
+  #[serde(rename = "source")]
+  EventsFilter_Source(String),
+  #[serde(rename = "type")]
+  EventsFilter_Type(String),
+  #[serde(rename = "subType")]
+  EventsFilter_SubType(String),
+  #[serde(rename = "minCreatedTime")]
+  EventsFilter_MinCreatedTime(u64),
+  #[serde(rename = "maxCreatedTime")]
+  EventsFilter_MaxCreatedTime(u64),
+  #[serde(rename = "minLastUpdatedTime")]
+  EventsFilter_MinLastUpdatedTime(u64),
+  #[serde(rename = "maxLastUpdatedTime")]
+  EventsFilter_MaxLastUpdatedTime(u64),
+  #[serde(rename = "externalIdPrefix")]
+  EventsFilter_ExternalIdPrefix(String),
 
   // TIME SERIES
 
@@ -131,90 +79,37 @@ pub enum Params {
   #[serde(rename = "assetIds")]
   TimeSeriesListAll_AssetIds(Vec<u64>),
 
-  // DATAPOINTS
-
-  // Retrieve from time series
-  #[serde(rename = "start")]
-  DatapointsRetrieve_Start(String),
-  #[serde(rename = "end")]
-  DatapointsRetrieve_End(String),
-  #[serde(rename = "aggregates")]
-  DatapointsRetrieve_Aggregates(String),
-  #[serde(rename = "granularity")]
-  DatapointsRetrieve_Granularity(String),
-  #[serde(rename = "limit")]
-  DatapointsRetrieve_Limit(u32),
-  #[serde(rename = "includeOutsidePoints")]
-  DatapointsRetrieve_IncludeOutsidePoints(bool),
-
-  #[serde(rename = "before")]
-  DatapointsRetrieveLatest_Before(String),
-
-  // Delete
-  #[serde(rename = "timestamp")]
-  DatapointsDelete_Timestamp(u128),
-  #[serde(rename = "timestampInclusiveBegin")]
-  DatapointsDelete_TimestampInclusiveBegin(u128),
-  #[serde(rename = "timestampExclusiveEnd")]
-  DatapointsDelete_TimestampExclusideEnd(u128),
-
   // FILES
 
-  // ListAll
-  #[serde(rename = "assetId")]
-  FilesListAll_AssetId(String),
-  #[serde(rename = "dir")]
-  FilesListAll_Dir(String),
-  #[serde(rename = "name")]
-  FilesListAll_Name(String),
-  #[serde(rename = "type")]
-  FilesListAll_Type(String),
-  #[serde(rename = "source")]
-  FilesListAll_Source(String),
-  #[serde(rename = "isUploaded")]
-  FilesListAll_IsUploaded(bool),
+  // List files
   #[serde(rename = "limit")]
-  FilesListAll_Limit(u32),
-  #[serde(rename = "sort")]
-  FilesListAll_Sort(u32),
+  FilesList_Limit(u32),
   #[serde(rename = "cursor")]
-  FilesListAll_Cursor(u32),
-
-  // Search
+  FilesList_Cursor(String),
   #[serde(rename = "name")]
-  FilesSearch_Name(String),
-  #[serde(rename = "directory")]
-  FilesSearch_Directory(String),
-  #[serde(rename = "type")]
-  FilesSearch_Type(String),
-  #[serde(rename = "uploaded")]
-  FilesSearch_Uploaded(bool),
-  #[serde(rename = "minUploadedTime")]
-  FilesSearch_MinUploadedTime(u64),
-  #[serde(rename = "maxUploadedTime")]
-  FilesSearch_MaxUploadedTime(u64),
-  #[serde(rename = "minCreatedTime")]
-  FilesSearch_MinCreatedTime(u64),
-  #[serde(rename = "maxCreatedTime")]
-  FilesSearch_MaxCreatedTime(u64),
-  #[serde(rename = "minLastUpdatedTime")]
-  FilesSearch_MinLastUpdatedTime(u64),
-  #[serde(rename = "maxLastUpdatedTime")]
-  FilesSearch_MaxLastUpdatedTime(u64),
-  #[serde(rename = "metadata")]
-  FilesSearch_Metadata(HashMap<String, String>),
+  FilesList_Name(String),
+  #[serde(rename = "mimeType")]
+  FilesList_MimeType(String),
+  #[serde(rename = "source")]
+  FilesList_Source(u32),
   #[serde(rename = "assetIds")]
-  FilesSearch_AssetIds(String),
-  #[serde(rename = "assetSubtrees")]
-  FilesSearch_AssetSubtrees(String),
-  #[serde(rename = "sort")]
-  FilesSearch_Sort(String),
-  #[serde(rename = "dir")]
-  FilesSearch_Dir(String),
-  #[serde(rename = "limit")]
-  FilesSearch_Limit(u32),
-  #[serde(rename = "offset")]
-  FilesSearch_Offset(u32),
+  FilesList_AssetIds(String),
+  #[serde(rename = "minCreatedTime")]
+  FilesList_MinCreatedTime(u64),
+  #[serde(rename = "maxCreatedTime")]
+  FilesList_MaxCreatedTime(u64),
+  #[serde(rename = "minLastUpdatedTime")]
+  FilesList_MinLastUpdatedTime(u64),
+  #[serde(rename = "maxLastUpdatedTime")]
+  FilesList_MaxLastUpdatedTime(u64),
+  #[serde(rename = "minUploadedTime")]
+  FilesList_MinUploadedTime(u64),
+  #[serde(rename = "maxUploadedTime")]
+  FilesList_MaxUploadedTime(u64),
+  #[serde(rename = "externalIdPrefix")]
+  FilesList_ExternalIdPrefix(String),
+  #[serde(rename = "uploaded")]
+  FilesList_Uploaded(bool),
 
   // SECURITY CATEGORIES
 
@@ -225,4 +120,20 @@ pub enum Params {
   SecurityCategoriesListAll_Sort(String),
   #[serde(rename = "limit")]
   SecurityCategoriesListAll_Limit(u32),
+
+  // API KEYS
+
+  // List all
+  #[serde(rename = "all")]
+  ApiKeysListAll_All(bool),
+  #[serde(rename = "serviceAccountId")]
+  ApiKeysListAll_ServiceAccountId(u64),
+  #[serde(rename = "includeDeleted")]
+  ApiKeysListAll_IncludeDeleted(bool),
+
+   // GGROUPS
+
+  // List 
+  #[serde(rename = "all")]
+  GroupsList_All(bool),
 } 
