@@ -76,4 +76,10 @@ fn main() {
     Ok(service_accounts) => println!("{} service accounts retrieved.", service_accounts.len()),
     Err(e) => println!("{:?}", e)
   }
+
+  // List all api keys
+  match cognite_client.api_keys.list_all(None) {
+    Ok(api_keys) => println!("{} api keys retrieved.", api_keys.len()),
+    Err(e) => println!("{:?}", e)
+  }
 }

@@ -12,7 +12,7 @@ pub struct ApiKeyListResponse {
 #[serde(rename_all = "camelCase")]
 pub struct ApiKey {
   pub id : u64,
-  pub user_id : u64,
+  pub service_account_id : u64,
   pub created_time : u64,
   pub status : String,
   pub value : Option<String>
