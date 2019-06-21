@@ -161,7 +161,6 @@ impl ApiClient {
   }
 
   pub fn post_json<T : DeserializeOwned>(&self, path : &str, body : &str) -> Result<T> {
-    println!("{:?}", body);
     let url = format!("{}/{}", self.api_base_url, path);
     let headers : HeaderMap = self.get_headers();
     let request = self.client

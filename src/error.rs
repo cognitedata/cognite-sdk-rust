@@ -5,7 +5,7 @@ use std::fmt;
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct ApiErrorWrapper {
-  pub error : ApiErrorMessage
+  pub error : ApiErrorMessage,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
