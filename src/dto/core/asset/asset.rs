@@ -17,13 +17,12 @@ pub struct Asset {
   pub name : String,
   pub external_id: Option<String>,
   pub parent_id : Option<u64>,
-  pub parent_external_id : Option<String>,
   pub description : Option<String>,
   pub depth: Option<u64>,
   pub metadata: Option<HashMap<String, String>>,
   pub source : Option<String>,
   pub last_updated_time : u128,
-  pub path : Vec<u64>
+  pub root_id : Option<u64>
 }
 
 impl Asset {
@@ -38,13 +37,12 @@ impl Asset {
       id : 0,
       external_id : external_id,
       parent_id : parent_id,
-      parent_external_id : None,
       description : Some(String::from(description)),
       depth : Some(0),
       metadata : metadata,
       source : source,
       last_updated_time : 0,
-      path : vec!(),
+      root_id : None,
     }
   }
 }
@@ -58,7 +56,6 @@ pub struct AddAsset {
   description: Option<String>,
   metadata: Option<HashMap<String, String>>,
   source: Option<String>,
-  parent_external_id: Option<String>,
 }
 
 impl From<&Asset> for AddAsset {
@@ -70,7 +67,6 @@ impl From<&Asset> for AddAsset {
         description: asset.description.clone(),
         metadata: asset.metadata.clone(),
         source: asset.source.clone(),
-        parent_external_id: asset.parent_external_id.clone(),
       }
   }
 }

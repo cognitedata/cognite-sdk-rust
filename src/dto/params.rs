@@ -16,8 +16,8 @@ pub enum Params {
   AssetsList_Name(String),
   #[serde(rename = "parentIds")]
   AssetsList_ParentIds(Vec<u64>),
-  #[serde(rename = "metadata")]
-  AssetsList_Metadata(HashMap<String, String>),
+  #[serde(rename = "rootIds")]
+  AssetsList_RootIds(Vec<u64>),
   #[serde(rename = "source")]
   AssetsList_Source(String),
   #[serde(rename = "root")]
