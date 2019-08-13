@@ -14,7 +14,7 @@ mod event_tests {
                                         None,
                                         Some("description".to_owned()),
                                         None,
-                                        Some(vec!()),
+                                        None,
                                         Some("source".to_owned()));
     match cognite_client.events.create(&vec!(new_event)) {
       Ok(mut events) => {

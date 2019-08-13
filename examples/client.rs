@@ -76,4 +76,27 @@ fn main() {
     Ok(service_accounts) => println!("{} service accounts retrieved.", service_accounts.len()),
     Err(e) => println!("{:?}", e)
   }
+
+  // List all api keys
+  match cognite_client.api_keys.list_all(None) {
+    Ok(api_keys) => println!("{} api keys retrieved.", api_keys.len()),
+    Err(e) => println!("{:?}", e)
+  }
+
+  // List all groups
+  match cognite_client.groups.list_all(None) {
+    Ok(mut groups) => {
+      println!("{} groups retrieved.", groups.len());
+      if groups.len() > 0 {
+        let group_id = groups.pop().unwrap().id;
+        match cognite_client.groups.list_service_accounts(group_id) {
+          Ok(service_accounts) => {
+            println!("{} service accounts in group {} retrieved.", service_accounts.len(), group_id)
+          },
+          Err(e) => println!("{:?}", e)
+        }
+      }
+    },
+    Err(e) => println!("{:?}", e)
+  }
 }

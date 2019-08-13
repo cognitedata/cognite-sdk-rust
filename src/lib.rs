@@ -6,12 +6,7 @@ mod error;
 
 pub use self::{
   cognite_client::*,
-  error::{
-    ApiErrorMessage, 
-    ApiErrorWrapper,
-    Error,
-    Result
-  },
+  error::*,
   api::{
     api_client::*,
     core::{
@@ -26,6 +21,7 @@ pub use self::{
     },
     iam::{
       api_keys::*,
+      groups::*,
       security_categories::*,
       service_accounts::*,
     },
@@ -40,6 +36,7 @@ pub use self::{
     },
     iam::{
       api_key::*,
+      group::*,
       security_category::*,
       service_account::*,
     },

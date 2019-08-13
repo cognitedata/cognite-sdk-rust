@@ -49,8 +49,8 @@ impl ApiClient {
     headers
   }
 
-  fn send_request<T : DeserializeOwned>(&self, request : RequestBuilder) -> Result<T> {
-    match request.send() {
+  fn send_request<T : DeserializeOwned>(&self, request_builder : RequestBuilder) -> Result<T> {
+    match request_builder.send() {
       Ok(mut response) => {
         
         match response.status() {
@@ -144,11 +144,11 @@ impl ApiClient {
 
     let url = format!("{}/{}", self.api_base_url, path);
     let headers : HeaderMap = self.get_headers();
-    let request = self.client
-                    .get(&url)
-                    .headers(headers)
-                    .query(&http_params);
-    self.send_request(request)
+    let request_builder = self.client
+                            .get(&url)
+                            .headers(headers)
+                            .query(&http_params);
+    self.send_request(request_builder)
   }
 
   pub fn post<D, S>(&self, path: &str, object : &S) -> Result<D> 
@@ -161,14 +161,13 @@ impl ApiClient {
   }
 
   pub fn post_json<T : DeserializeOwned>(&self, path : &str, body : &str) -> Result<T> {
-    println!("{:?}", body);
     let url = format!("{}/{}", self.api_base_url, path);
     let headers : HeaderMap = self.get_headers();
-    let request = self.client
-                    .post(&url)
-                    .headers(headers)
-                    .body(String::from(body));
-    self.send_request(request)
+    let request_builder = self.client
+                            .post(&url)
+                            .headers(headers)
+                            .body(String::from(body));
+    self.send_request(request_builder)
   }
 
   pub fn put<D, S>(&self, path: &str, object : &S) -> Result<D> 
@@ -183,11 +182,11 @@ impl ApiClient {
   pub fn put_json<T : DeserializeOwned>(&self, path : &str, body : &str) -> Result<T> {
     let url = format!("{}/{}", self.api_base_url, path);
     let headers : HeaderMap = self.get_headers();
-    let request = self.client
-                          .put(&url)
-                          .headers(headers)
-                          .body(String::from(body));
-    self.send_request(request)
+    let request_builder = self.client
+                            .put(&url)
+                            .headers(headers)
+                            .body(String::from(body));
+    self.send_request(request_builder)
   }
 
   pub fn delete<T : DeserializeOwned>(&self, path : &str) -> Result<T> {
@@ -198,11 +197,11 @@ impl ApiClient {
     let http_params : Vec<(String, String)> = self.convert_params_to_tuples(params);
     let url = format!("{}/{}", self.api_base_url, path);
     let headers : HeaderMap = self.get_headers();
-    let request = self.client
-                          .delete(&url)
-                          .headers(headers)
-                          .query(&http_params);
-    self.send_request::<T>(request)
+    let request_builder = self.client
+                            .delete(&url)
+                            .headers(headers)
+                            .query(&http_params);
+    self.send_request::<T>(request_builder)
   }
 
 }
