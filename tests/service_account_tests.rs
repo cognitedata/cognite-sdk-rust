@@ -1,9 +1,9 @@
 #[cfg(test)]
 mod service_account_tests {
-  use cognite::*;
 
   #[test]
   fn create_and_delete_user() {
+    use cognite::*;
     let cognite_client = CogniteClient::new().unwrap();
     let new_service_account : ServiceAccount = ServiceAccount::new("test-service_account-should-be-deleted-after-creation", &vec!());
     match cognite_client.service_accounts.create(&vec!(new_service_account)) {
