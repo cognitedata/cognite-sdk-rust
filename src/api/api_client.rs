@@ -69,37 +69,37 @@ impl ApiClient {
           StatusCode::BAD_REQUEST => {
             match response.json::<ApiErrorWrapper>() {
               Ok(error_message) => Err(Error::new(Kind::BadRequest(error_message.error.message))),
-              Err(e) => Err(Error::from(e))
+              Err(e) => Err(Error::new_reqwest_error_with_kind(e, Kind::BadRequest("400".to_owned())))
             }
           },
           StatusCode::UNAUTHORIZED => {
             match response.json::<ApiErrorWrapper>() {
               Ok(error_message) => Err(Error::new(Kind::Unauthorized(error_message.error.message))),
-              Err(e) => Err(Error::from(e))
+              Err(e) => Err(Error::new_reqwest_error_with_kind(e, Kind::Unauthorized("401".to_owned())))
             }
           },
           StatusCode::FORBIDDEN => {
             match response.json::<ApiErrorWrapper>() {
               Ok(error_message) => Err(Error::new(Kind::Forbidden(error_message.error.message))),
-              Err(e) => Err(Error::from(e))
+              Err(e) => Err(Error::new_reqwest_error_with_kind(e, Kind::Forbidden("403".to_owned())))
             }
           },
           StatusCode::NOT_FOUND => {
             match response.json::<ApiErrorWrapper>() {
               Ok(error_message) => Err(Error::new(Kind::NotFound(error_message.error.message))),
-              Err(e) => Err(Error::from(e))
+              Err(e) => Err(Error::new_reqwest_error_with_kind(e, Kind::NotFound("404".to_owned())))
             }
           },
           StatusCode::CONFLICT => {
             match response.json::<ApiErrorWrapper>() {
               Ok(error_message) => Err(Error::new(Kind::Conflict(error_message.error.message))),
-              Err(e) => Err(Error::from(e))
+              Err(e) => Err(Error::new_reqwest_error_with_kind(e, Kind::Conflict("409".to_owned())))
             }
           },
           StatusCode::UNPROCESSABLE_ENTITY => {
             match response.json::<ApiErrorWrapper>() {
               Ok(error_message) => Err(Error::new(Kind::UnprocessableEntity(error_message.error.message))),
-              Err(e) => Err(Error::from(e))
+              Err(e) => Err(Error::new_reqwest_error_with_kind(e, Kind::UnprocessableEntity("422".to_owned())))
             }
           },
           s => {
