@@ -14,12 +14,7 @@ impl Login {
   }
 
   pub fn status(&self) -> Result<LoginStatus> {
-    match self.api_client.get::<LoginStatusResponseWrapper>("login/status") {
-      Ok(login_status_response) => {
-        let status = login_status_response.data;
-        Ok(status)
-      },
-      Err(e) => Err(e)
-    }
+    let login_status_response : LoginStatusResponseWrapper = self.api_client.get::<LoginStatusResponseWrapper>("login/status")?;
+    Ok(login_status_response.data)
   }
 }

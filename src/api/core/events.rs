@@ -17,85 +17,47 @@ impl Events {
   pub fn create(&self, events : &[Event]) -> Result<Vec<Event>> {
     let add_events : Vec<AddEvent> = events.iter().map(| e | AddEvent::from(e)).collect();
     let event_items = Items::from(&add_events);
-    match self.api_client.post("events", &event_items){
-      Ok(result) => {
-        let events_response : EventListResponse = result;
-        let events = events_response.items;
-        Ok(events)
-      },
-      Err(e) => Err(e)
-    }
+    let events_response : EventListResponse = self.api_client.post("events", &event_items)?;
+    Ok(events_response.items)
   }
 
   pub fn filter_all(&self, event_filter : EventFilter) -> Result<Vec<Event>> {
     let filter : Filter = Filter::new(event_filter, None, None);
-    match self.api_client.post("events/list", &filter) {
-      Ok(result) => {
-        let events_response : EventListResponse = result;
-        let events = events_response.items;
-        Ok(events)
-      },
-      Err(e) => Err(e)
-    }
+    let events_response : EventListResponse = self.api_client.post("events/list", &filter)?;
+    Ok(events_response.items)
   }
 
   pub fn retrieve_single(&self, event_id : u64) -> Result<Event> {
-    match self.api_client.get(&format!("events/{}", event_id)) {
-      Ok(result) => {
-        let mut events_response : EventListResponse = result;
-        let event = events_response.items.pop().unwrap();
-        Ok(event)
-      },
-      Err(e) => Err(e)
-    }
+    let mut events_response : EventListResponse = self.api_client.get(&format!("events/{}", event_id))?;
+    let event = events_response.items.pop().unwrap(); // TODO handle unwrap
+    Ok(event)
   }
 
   pub fn retrieve(&self, event_ids : &[u64]) -> Result<Vec<Event>> {
     let id_list : Vec<EventId> = event_ids.iter().map(| e_id | EventId::from(*e_id)).collect();
     let event_items = Items::from(&id_list);
-    match self.api_client.post("events/byids", &event_items){
-      Ok(result) => {
-        let events_response : EventListResponse = result;
-        let events = events_response.items;
-        Ok(events)
-      },
-      Err(e) => Err(e)
-    }
+    let events_response : EventListResponse = self.api_client.post("events/byids", &event_items)?;
+    Ok(events_response.items)
   }
 
   pub fn update(&self, events : &[Event]) -> Result<Vec<Event>> {
     let patch_events : Vec<PatchEvent> = events.iter().map(| e | PatchEvent::from(e)).collect();
     let event_items = Items::from(&patch_events);
-    match self.api_client.post("events/update", &event_items){
-      Ok(result) => {
-        let events_response : EventListResponse = result;
-        let events = events_response.items;
-        Ok(events)
-      },
-      Err(e) => Err(e)
-    }
+    let events_response : EventListResponse = self.api_client.post("events/update", &event_items)?;
+    Ok(events_response.items)
   }
   
   pub fn search(&self, event_filter : EventFilter, event_search : EventSearch) -> Result<Vec<Event>> {
     let filter : Search = Search::new(event_filter, event_search, None);
-    match self.api_client.post_json::<EventListResponse>("events/search", &serde_json::to_string(&filter).unwrap()) {
-      Ok(events_response) => {
-        let events = events_response.items;
-        Ok(events)
-      },
-      Err(e) => Err(e)
-    }
+    let events_response : EventListResponse = self.api_client.post_json("events/search", &serde_json::to_string(&filter).unwrap())?;
+    Ok(events_response.items)
   }
 
   pub fn delete(&self, event_ids : &[u64]) -> Result<()> {
     let id_list : Vec<EventId> = event_ids.iter().map(| e_id | EventId::from(*e_id)).collect();
     let event_items = Items::from(&id_list);
-    match self.api_client.post::<::serde_json::Value, Items>("events/delete", &event_items){
-      Ok(_) => {
-        Ok(())
-      },
-      Err(e) => Err(e)
-    }
+    self.api_client.post::<::serde_json::Value, Items>("events/delete", &event_items)?;
+    Ok(())
   }
 }
 

@@ -16,34 +16,19 @@ impl ApiKeys {
   }
 
   pub fn list_all(&self, params : Option<Vec<Params>>) -> Result<Vec<ApiKey>> {
-    match self.api_client.get_with_params::<ApiKeyListResponse>("apikeys", params){
-      Ok(api_keys_response) => {
-        let api_keys = api_keys_response.items;
-        Ok(api_keys)
-      },
-      Err(e) => Err(e)
-    }
+    let api_keys_response : ApiKeyListResponse = self.api_client.get_with_params("apikeys", params)?;
+    Ok(api_keys_response.items)
   }
 
   pub fn create(&self, service_account_ids : &[u64]) -> Result<Vec<ApiKey>> {
     let service_account_id_items = Items::from(service_account_ids);
-    match self.api_client.post("apikeys", &service_account_id_items){
-      Ok(result) => {
-        let api_keys_response : ApiKeyListResponse = result;
-        let api_keys = api_keys_response.items;
-        Ok(api_keys)
-      },
-      Err(e) => Err(e)
-    }
+    let api_keys_response : ApiKeyListResponse = self.api_client.post("apikeys", &service_account_id_items)?;
+    Ok(api_keys_response.items)
   }
 
   pub fn delete(&self, service_account_ids : &[u64]) -> Result<()> {
     let service_account_id_items = Items::from(service_account_ids);
-    match self.api_client.post::<::serde_json::Value, Items>("apikeys/delete", &service_account_id_items){
-      Ok(_) => {
-        Ok(())
-      },
-      Err(e) => Err(e)
-    }
+    self.api_client.post::<::serde_json::Value, Items>("apikeys/delete", &service_account_id_items)?;
+    Ok(())
   }
 }
