@@ -1,5 +1,5 @@
 use crate::api::ApiClient;
-use crate::error::{Result};
+use crate::error::{Result, Error, Kind};
 use crate::dto::core::datapoint::*;
 use crate::dto::items::Items;
 
@@ -28,7 +28,10 @@ impl Datapoints {
   pub fn retrieve_latest(&self, time_serie_id : u64, before : &str) -> Result<DatapointsResponse> {
     let latest_datapoint_query : LatestDatapointsQuery = LatestDatapointsQuery::new(time_serie_id, before);
     let mut datapoints_response : DatapointsListResponse = self.api_client.post("timeseries/data/latest", &latest_datapoint_query)?;
-    Ok(datapoints_response.items.pop().unwrap()) // TODO handle unwrap
+    if let Some(datapoint) = datapoints_response.items.pop() {
+      return Ok(datapoint);
+    }
+    Err(Error::new(Kind::NotFound("Datapoint not found".to_owned())))
   }
 
   pub fn delete(&self, time_serie_id : u64, inclusive_begin : u128, exclusive_end : u128) -> Result<()> {

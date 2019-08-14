@@ -1,5 +1,5 @@
 use crate::api::ApiClient;
-use crate::error::{Result};
+use crate::error::{Result, Error, Kind};
 use crate::dto::core::event::*;
 use crate::dto::items::Items;
 
@@ -29,8 +29,10 @@ impl Events {
 
   pub fn retrieve_single(&self, event_id : u64) -> Result<Event> {
     let mut events_response : EventListResponse = self.api_client.get(&format!("events/{}", event_id))?;
-    let event = events_response.items.pop().unwrap(); // TODO handle unwrap
-    Ok(event)
+    if let Some(event) = events_response.items.pop() {
+      return Ok(event);
+    }
+    Err(Error::new(Kind::NotFound("Event not found".to_owned())))
   }
 
   pub fn retrieve(&self, event_ids : &[u64]) -> Result<Vec<Event>> {
