@@ -6,8 +6,7 @@ Under development..
 Rust SDK to ensure excellent user experience for developers and data scientists working with the Cognite Data Fusion.
 
 ## Documentation
-* [API Documentation](https://doc.cognitedata.com/)
-* [API Guide](https://doc.cognitedata.com/guides/api-guide.html)
+* [API Documentation](https://docs.cognite.com/api/v1/)
 
 ## Prerequisites
  Install rust. See [instructions here](https://rustup.rs/).
