@@ -31,7 +31,7 @@ $ export COGNITE_API_KEY=<your API key>
 	- list()
   - filter_all()
   - search()
-	- retrieve()
+  - retrieve()
   - update()
 - Event
 	- create()
@@ -40,7 +40,7 @@ $ export COGNITE_API_KEY=<your API key>
 	- retrieve()
   - update()
   - search()
-	- delete()
+  - delete()
 - Files
   - filter_all()
   - retrieve_metadata()
@@ -51,13 +51,13 @@ $ export COGNITE_API_KEY=<your API key>
 	- list()
 	- create()
   - search()
-	- retrieve()
+  - retrieve()
   - update()
-	- delete()
-	- insert_datapoints()
-	- retrieve_datapoints()
-	- retrieve_latest_datapoint()
-	- delete_datapoints()
+  - delete()
+  - insert_datapoints()
+  - retrieve_datapoints()
+  - retrieve_latest_datapoint()
+  - delete_datapoints()
 ### IAM
 - ApiKeys
   - list_all()
