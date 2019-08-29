@@ -15,6 +15,7 @@ pub struct ApiErrorMessage {
     pub message: String,
 }
 
+#[derive(Debug)]
 pub struct Error {
     kind: Kind,
 }
@@ -35,12 +36,6 @@ impl Error {
 /// A `Result` alias where the `Err` case is `cognite::Error`.
 pub type Result<T> = ::std::result::Result<T, Error>;
 
-impl fmt::Debug for Error {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        f.debug_struct("Error").field("kind", &self.kind).finish()
-    }
-}
-
 impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match &self.kind {
@@ -60,29 +55,7 @@ impl fmt::Display for Error {
     }
 }
 
-impl StdError for Error {
-    fn description(&self) -> &str {
-        match &self.kind {
-            Kind::ExternalLib(e) => match e {
-                ExternalKind::Reqwest(exk, _) => exk.description(),
-                ExternalKind::SerdeJson(exk, _) => exk.description(),
-            },
-            Kind::BadRequest(e) => e,
-            Kind::Unauthorized(e) => e,
-            Kind::Forbidden(e) => e,
-            Kind::NotFound(e) => e,
-            Kind::Conflict(e) => e,
-            Kind::UnprocessableEntity(e) => e,
-            Kind::Http(e) => e,
-            Kind::EnvironmentVariableMissing(e) => e,
-        }
-    }
-
-    #[allow(deprecated)]
-    fn cause(&self) -> Option<&dyn StdError> {
-        None
-    }
-}
+impl StdError for Error { }
 
 #[derive(Debug)]
 pub enum Kind {
