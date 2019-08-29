@@ -18,6 +18,68 @@ $ export COGNITE_BASE_URL="https://api.cognitedata.com"
 $ export COGNITE_API_KEY=<your API key>
 ```
 
+
+## Supported features for API v1
+
+**Features might not be stable**
+
+
+### Core
+- Asset
+	- create()
+	- delete()
+	- list()
+  - filter_all()
+  - search()
+	- retrieve()
+  - update()
+- Event
+	- create()
+	- filter()
+	- retrieve_single()
+	- retrieve()
+  - update()
+  - search()
+	- delete()
+- Files
+  - filter_all()
+  - retrieve_metadata()
+  - search()
+  - delete()
+  - download_link()
+- TimeSerie
+	- list()
+	- create()
+  - search()
+	- retrieve()
+  - update()
+	- delete()
+	- insert_datapoints()
+	- retrieve_datapoints()
+	- retrieve_latest_datapoint()
+	- delete_datapoints()
+### IAM
+- ApiKeys
+  - list_all()
+  - create()
+  - delete()
+- Groups
+  - list_all()
+  - create()
+  - delete()
+  - list_service_accounts()
+  - add_service_accounts()
+  - remove_service_accounts()
+- SecurityCategories
+  - list_all()
+  - create()
+  - delete()
+- ServiceAccount
+  - list_all()
+  - create()
+  - delete()
+
+
 ## Example
 
 Since this is not published on crates.io, then you'll have to clone the repo and reference it locally.

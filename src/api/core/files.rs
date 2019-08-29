@@ -44,7 +44,7 @@ impl Files {
     Ok(())
   }
   
-  pub fn download(&self, file_ids : Vec<u64>) -> Result<Vec<FileLink>> {
+  pub fn download_link(&self, file_ids : Vec<u64>) -> Result<Vec<FileLink>> {
     let id_list : Vec<FileId> = file_ids.iter().map(| a_id | FileId::from(*a_id)).collect();
     let id_items = Items::from(&id_list);
     let file_links_response : FileLinkListResponse = self.api_client.post("files/download", &id_items)?;
