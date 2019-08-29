@@ -2,7 +2,7 @@ use crate::dto::filter_types::EpochTimestampRange;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Default)]
 #[serde(rename_all = "camelCase")]
 pub struct FileFilter {
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -25,20 +25,11 @@ pub struct FileFilter {
 
 impl FileFilter {
     pub fn new() -> FileFilter {
-        FileFilter {
-            metadata: None,
-            asset_ids: None,
-            source: None,
-            created_time: None,
-            last_updated_time: None,
-            uploaded_time: None,
-            external_id_prefix: None,
-            uploaded: None,
-        }
+        FileFilter::default()
     }
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Default)]
 #[serde(rename_all = "camelCase")]
 pub struct FileSearch {
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -47,7 +38,7 @@ pub struct FileSearch {
 
 impl FileSearch {
     pub fn new() -> FileSearch {
-        FileSearch { name: None }
+        FileSearch::default()
     }
 }
 

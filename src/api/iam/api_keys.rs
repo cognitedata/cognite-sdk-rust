@@ -10,9 +10,7 @@ pub struct ApiKeys {
 
 impl ApiKeys {
     pub fn new(api_client: ApiClient) -> ApiKeys {
-        ApiKeys {
-            api_client,
-        }
+        ApiKeys { api_client }
     }
 
     pub fn list_all(&self, params: Option<Vec<Params>>) -> Result<Vec<ApiKey>> {

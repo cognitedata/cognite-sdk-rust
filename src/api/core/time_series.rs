@@ -11,9 +11,7 @@ pub struct TimeSeries {
 
 impl TimeSeries {
     pub fn new(api_client: ApiClient) -> TimeSeries {
-        TimeSeries {
-            api_client,
-        }
+        TimeSeries { api_client }
     }
 
     pub fn list_all(&self, params: Option<Vec<Params>>) -> Result<Vec<TimeSerie>> {
@@ -23,10 +21,8 @@ impl TimeSeries {
     }
 
     pub fn create(&self, time_series: &[TimeSerie]) -> Result<Vec<TimeSerie>> {
-        let add_time_series: Vec<AddTimeSerie> = time_series
-            .iter()
-            .map(|ts| AddTimeSerie::from(ts))
-            .collect();
+        let add_time_series: Vec<AddTimeSerie> =
+            time_series.iter().map(AddTimeSerie::from).collect();
         let add_time_series_items = Items::from(&add_time_series);
         let time_series_response: TimeSerieListResponse =
             self.api_client.post("timeseries", &add_time_series_items)?;
@@ -56,10 +52,8 @@ impl TimeSeries {
     }
 
     pub fn update(&self, time_series: &[TimeSerie]) -> Result<Vec<TimeSerie>> {
-        let patch_time_series: Vec<PatchTimeSerie> = time_series
-            .iter()
-            .map(|a| PatchTimeSerie::from(a))
-            .collect();
+        let patch_time_series: Vec<PatchTimeSerie> =
+            time_series.iter().map(PatchTimeSerie::from).collect();
         let patch_time_series_items = Items::from(&patch_time_series);
         let time_series_response: TimeSerieListResponse = self
             .api_client

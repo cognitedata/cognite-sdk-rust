@@ -10,9 +10,7 @@ pub struct ServiceAccounts {
 
 impl ServiceAccounts {
     pub fn new(api_client: ApiClient) -> ServiceAccounts {
-        ServiceAccounts {
-            api_client,
-        }
+        ServiceAccounts { api_client }
     }
 
     pub fn list_all(&self, params: Option<Vec<Params>>) -> Result<Vec<ServiceAccount>> {

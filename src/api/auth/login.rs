@@ -8,9 +8,7 @@ pub struct Login {
 
 impl Login {
     pub fn new(api_client: ApiClient) -> Login {
-        Login {
-            api_client,
-        }
+        Login { api_client }
     }
 
     pub fn status(&self) -> Result<LoginStatus> {

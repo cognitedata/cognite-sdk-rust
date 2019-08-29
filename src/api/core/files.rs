@@ -9,9 +9,7 @@ pub struct Files {
 
 impl Files {
     pub fn new(api_client: ApiClient) -> Files {
-        Files {
-            api_client,
-        }
+        Files { api_client }
     }
 
     pub fn filter_all(&self, file_filter: FileFilter) -> Result<Vec<FileMetadata>> {

@@ -2,7 +2,7 @@ use crate::dto::filter_types::EpochTimestampRange;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Default)]
 #[serde(rename_all = "camelCase")]
 pub struct EventFilter {
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -27,17 +27,7 @@ pub struct EventFilter {
 
 impl EventFilter {
     pub fn new() -> EventFilter {
-        EventFilter {
-            start_time: None,
-            end_time: None,
-            metadata: None,
-            asset_ids: None,
-            asset_subtrees: None,
-            source: None,
-            created_time: None,
-            last_updated_time: None,
-            external_id_prefix: None,
-        }
+        EventFilter::default()
     }
 }
 
@@ -61,7 +51,7 @@ impl Filter {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Default)]
 #[serde(rename_all = "camelCase")]
 pub struct EventSearch {
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -70,7 +60,7 @@ pub struct EventSearch {
 
 impl EventSearch {
     pub fn new() -> EventSearch {
-        EventSearch { description: None }
+        EventSearch::default()
     }
 }
 

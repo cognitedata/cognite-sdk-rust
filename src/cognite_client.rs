@@ -18,8 +18,8 @@ pub struct CogniteClient {
     pub groups: Groups,
 }
 
-static COGNITE_API_KEY: &'static str = "COGNITE_API_KEY";
-static COGNITE_BASE_URL: &'static str = "COGNITE_BASE_URL";
+static COGNITE_API_KEY: &str = "COGNITE_API_KEY";
+static COGNITE_BASE_URL: &str = "COGNITE_BASE_URL";
 
 impl CogniteClient {
     pub fn new() -> Result<Self> {
@@ -50,7 +50,8 @@ impl CogniteClient {
                 return Err(Error::new(Kind::EnvironmentVariableMissing(error_message)));
             }
         };
-        return CogniteClient::new_from(&api_key, &api_base_url);
+
+        CogniteClient::new_from(&api_key, &api_base_url)
     }
 
     pub fn new_from(api_key: &str, api_base_url: &str) -> Result<Self> {

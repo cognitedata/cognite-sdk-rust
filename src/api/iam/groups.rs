@@ -11,9 +11,7 @@ pub struct Groups {
 
 impl Groups {
     pub fn new(api_client: ApiClient) -> Groups {
-        Groups {
-            api_client,
-        }
+        Groups { api_client }
     }
 
     pub fn list_all(&self, params: Option<Vec<Params>>) -> Result<Vec<Group>> {

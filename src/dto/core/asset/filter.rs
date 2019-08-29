@@ -2,7 +2,7 @@ use crate::dto::filter_types::{EpochTimestampRange, IntegerRange};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Default)]
 #[serde(rename_all = "camelCase")]
 pub struct AssetFilter {
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -27,21 +27,11 @@ pub struct AssetFilter {
 
 impl AssetFilter {
     pub fn new() -> AssetFilter {
-        AssetFilter {
-            name: None,
-            parent_ids: None,
-            metadata: None,
-            source: None,
-            created_time: None,
-            last_updated_time: None,
-            asset_subtrees: None,
-            depth: None,
-            external_id_prefix: None,
-        }
+        AssetFilter::default()
     }
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Default)]
 #[serde(rename_all = "camelCase")]
 pub struct AssetSearch {
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -52,10 +42,7 @@ pub struct AssetSearch {
 
 impl AssetSearch {
     pub fn new() -> AssetSearch {
-        AssetSearch {
-            name: None,
-            description: None,
-        }
+        AssetSearch::default()
     }
 }
 

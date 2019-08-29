@@ -9,13 +9,11 @@ pub struct Events {
 
 impl Events {
     pub fn new(api_client: ApiClient) -> Events {
-        Events {
-            api_client,
-        }
+        Events { api_client }
     }
 
     pub fn create(&self, events: &[Event]) -> Result<Vec<Event>> {
-        let add_events: Vec<AddEvent> = events.iter().map(|e| AddEvent::from(e)).collect();
+        let add_events: Vec<AddEvent> = events.iter().map(AddEvent::from).collect();
         let event_items = Items::from(&add_events);
         let events_response: EventListResponse = self.api_client.post("events", &event_items)?;
         Ok(events_response.items)
@@ -45,7 +43,7 @@ impl Events {
     }
 
     pub fn update(&self, events: &[Event]) -> Result<Vec<Event>> {
-        let patch_events: Vec<PatchEvent> = events.iter().map(|e| PatchEvent::from(e)).collect();
+        let patch_events: Vec<PatchEvent> = events.iter().map(PatchEvent::from).collect();
         let event_items = Items::from(&patch_events);
         let events_response: EventListResponse =
             self.api_client.post("events/update", &event_items)?;

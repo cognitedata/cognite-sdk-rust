@@ -2,7 +2,7 @@ use crate::dto::filter_types::EpochTimestampRange;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Default)]
 #[serde(rename_all = "camelCase")]
 pub struct TimeSerieFilter {
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -25,20 +25,11 @@ pub struct TimeSerieFilter {
 
 impl TimeSerieFilter {
     pub fn new() -> TimeSerieFilter {
-        TimeSerieFilter {
-            unit: None,
-            is_string: None,
-            is_step: None,
-            metadata: None,
-            asset_ids: None,
-            asset_subtrees: None,
-            created_time: None,
-            last_updated_time: None,
-        }
+        TimeSerieFilter::default()
     }
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Default)]
 #[serde(rename_all = "camelCase")]
 pub struct TimeSerieSearch {
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -51,11 +42,7 @@ pub struct TimeSerieSearch {
 
 impl TimeSerieSearch {
     pub fn new() -> TimeSerieSearch {
-        TimeSerieSearch {
-            name: None,
-            description: None,
-            query: None,
-        }
+        TimeSerieSearch::default()
     }
 }
 

@@ -74,8 +74,8 @@ impl From<&Event> for AddEvent {
     fn from(event: &Event) -> AddEvent {
         AddEvent {
             external_id: event.external_id.clone(),
-            start_time: event.start_time.clone(),
-            end_time: event.end_time.clone(),
+            start_time: event.start_time,
+            end_time: event.end_time,
             r#type: event.r#type.clone(),
             subtype: event.subtype.clone(),
             description: event.description.clone(),

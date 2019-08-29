@@ -10,9 +10,7 @@ pub struct SecurityCategories {
 
 impl SecurityCategories {
     pub fn new(api_client: ApiClient) -> SecurityCategories {
-        SecurityCategories {
-            api_client,
-        }
+        SecurityCategories { api_client }
     }
 
     pub fn list_all(&self, params: Option<Vec<Params>>) -> Result<Vec<SecurityCategory>> {

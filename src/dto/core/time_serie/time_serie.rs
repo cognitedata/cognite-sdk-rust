@@ -76,11 +76,11 @@ impl From<&TimeSerie> for AddTimeSerie {
         AddTimeSerie {
             name: time_serie.name.clone(),
             external_id: time_serie.external_id.clone(),
-            is_string: time_serie.is_string.clone(),
+            is_string: time_serie.is_string,
             metadata: time_serie.metadata.clone(),
             unit: time_serie.unit.clone(),
-            asset_id: time_serie.asset_id.clone(),
-            is_step: time_serie.is_step.clone(),
+            asset_id: time_serie.asset_id,
+            is_step: time_serie.is_step,
             description: time_serie.description.clone(),
             security_categories: time_serie.security_categories.clone(),
         }

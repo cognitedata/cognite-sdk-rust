@@ -10,9 +10,7 @@ pub struct Assets {
 
 impl Assets {
     pub fn new(api_client: ApiClient) -> Assets {
-        Assets {
-            api_client,
-        }
+        Assets { api_client }
     }
 
     pub fn list(&self, params: Option<Vec<Params>>) -> Result<Vec<Asset>> {
@@ -45,7 +43,7 @@ impl Assets {
     }
 
     pub fn create(&self, assets: &[Asset]) -> Result<Vec<Asset>> {
-        let add_assets: Vec<AddAsset> = assets.iter().map(|a| AddAsset::from(a)).collect();
+        let add_assets: Vec<AddAsset> = assets.iter().map(AddAsset::from).collect();
         let add_assets_items = Items::from(&add_assets);
         let assets_response: AssetListResponse =
             self.api_client.post("assets", &add_assets_items)?;
@@ -53,7 +51,7 @@ impl Assets {
     }
 
     pub fn update(&self, assets: &[Asset]) -> Result<Vec<Asset>> {
-        let patch_assets: Vec<PatchAsset> = assets.iter().map(|a| PatchAsset::from(a)).collect();
+        let patch_assets: Vec<PatchAsset> = assets.iter().map(PatchAsset::from).collect();
         let patch_assets_items = Items::from(&patch_assets);
         let assets_response: AssetListResponse =
             self.api_client.post("assets/update", &patch_assets_items)?;
