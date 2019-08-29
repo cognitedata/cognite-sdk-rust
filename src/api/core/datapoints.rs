@@ -34,7 +34,7 @@ impl Datapoints {
     Err(Error::new(Kind::NotFound("Datapoint not found".to_owned())))
   }
 
-  pub fn delete(&self, time_serie_id : u64, inclusive_begin : u128, exclusive_end : u128) -> Result<()> {
+  pub fn delete(&self, time_serie_id : u64, inclusive_begin : i64, exclusive_end : i64) -> Result<()> {
     let delete_datapoint_query : DeleteDatapointsQuery = DeleteDatapointsQuery::new(time_serie_id, inclusive_begin, exclusive_end);
     self.api_client.post::<::serde_json::Value, DeleteDatapointsQuery>("timeseries/data/delete", &delete_datapoint_query)?;
     Ok(())

@@ -1,5 +1,4 @@
 use serde::{Deserialize, Serialize};
-use serde_json::value::Value;
 
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
@@ -23,7 +22,7 @@ pub struct DatapointsResponse {
 #[serde(rename_all = "camelCase")]
 pub struct Datapoint {
   pub timestamp : u64,
-  pub value : Value,
+  pub value : f64,
 }
 
 #[derive(Serialize, Deserialize, Debug)]

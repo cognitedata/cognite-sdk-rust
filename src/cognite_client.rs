@@ -56,10 +56,15 @@ impl CogniteClient {
         return Err(Error::new(Kind::EnvironmentVariableMissing(error_message)))
       }
     };
-    let api_client = ApiClient::new(&api_base_url, &api_key);
+    return CogniteClient::new_from(&api_key, &api_base_url);
+  }
+
+  pub fn new_from(api_key : &str, api_base_url : &str) -> Result<Self> {
+    
+    let api_client = ApiClient::new(api_base_url, api_key);
 
     // Get project name associated to API KEY
-    let login_api_client = ApiClient::new(&api_base_url, &api_key);
+    let login_api_client = ApiClient::new(api_base_url, api_key);
     let login = Login::new(login_api_client);
     let login_status = match login.status() {
       Ok(status) => status,

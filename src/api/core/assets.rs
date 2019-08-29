@@ -1,6 +1,7 @@
 use crate::api::ApiClient;
 use crate::error::{Result};
 use crate::dto::core::asset::*;
+use crate::dto::params::{Params};
 use crate::dto::items::Items;
 
 pub struct Assets {
@@ -12,6 +13,11 @@ impl Assets {
     Assets {
       api_client : api_client
     }
+  }
+
+  pub fn list(&self, params : Option<Vec<Params>>) -> Result<Vec<Asset>> {
+    let assets_response : AssetListResponse = self.api_client.get_with_params("assets", params)?;
+    Ok(assets_response.items)
   }
 
   pub fn filter_all(&self, asset_filter : AssetFilter) -> Result<Vec<Asset>> {
