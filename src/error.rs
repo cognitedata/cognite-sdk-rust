@@ -87,7 +87,7 @@ impl StdError for Error {
   }
 
   #[allow(deprecated)]
-  fn cause(&self) -> Option<&StdError> {
+  fn cause(&self) -> Option<&dyn StdError> {
     None
   }
 }
