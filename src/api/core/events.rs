@@ -35,7 +35,7 @@ impl Events {
     }
 
     pub fn retrieve(&self, event_ids: &[u64]) -> Result<Vec<Event>> {
-        let id_list: Vec<EventId> = event_ids.iter().map(|e_id| EventId::from(*e_id)).collect();
+        let id_list: Vec<EventId> = event_ids.iter().copied().map(EventId::from).collect();
         let event_items = Items::from(&id_list);
         let events_response: EventListResponse =
             self.api_client.post("events/byids", &event_items)?;
@@ -63,7 +63,7 @@ impl Events {
     }
 
     pub fn delete(&self, event_ids: &[u64]) -> Result<()> {
-        let id_list: Vec<EventId> = event_ids.iter().map(|e_id| EventId::from(*e_id)).collect();
+        let id_list: Vec<EventId> = event_ids.iter().copied().map(EventId::from).collect();
         let event_items = Items::from(&id_list);
         self.api_client
             .post::<::serde_json::Value, Items>("events/delete", &event_items)?;

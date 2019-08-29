@@ -26,7 +26,7 @@ impl Assets {
     }
 
     pub fn retrieve(&self, asset_ids: &[u64]) -> Result<Vec<Asset>> {
-        let id_list: Vec<AssetId> = asset_ids.iter().map(|a_id| AssetId::from(*a_id)).collect();
+        let id_list: Vec<AssetId> = asset_ids.iter().copied().map(AssetId::from).collect();
         let id_items = Items::from(&id_list);
         let assets_response: AssetListResponse = self.api_client.post("assets/byids", &id_items)?;
         Ok(assets_response.items)
@@ -59,7 +59,7 @@ impl Assets {
     }
 
     pub fn delete(&self, asset_ids: &[u64]) -> Result<()> {
-        let id_list: Vec<AssetId> = asset_ids.iter().map(|a_id| AssetId::from(*a_id)).collect();
+        let id_list: Vec<AssetId> = asset_ids.iter().copied().map(AssetId::from).collect();
         let id_items = Items::from(&id_list);
         self.api_client
             .post::<::serde_json::Value, Items>("assets/delete", &id_items)?;

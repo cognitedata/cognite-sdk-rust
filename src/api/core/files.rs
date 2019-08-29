@@ -23,7 +23,7 @@ impl Files {
     }
 
     pub fn retrieve_metadata(&self, file_ids: &[u64]) -> Result<Vec<FileMetadata>> {
-        let id_list: Vec<FileId> = file_ids.iter().map(|f_id| FileId::from(*f_id)).collect();
+        let id_list: Vec<FileId> = file_ids.iter().copied().map(FileId::from).collect();
         let id_items = Items::from(&id_list);
         let files_response: FileListResponse = self.api_client.post("files/byids", &id_items)?;
         Ok(files_response.items)
@@ -40,7 +40,7 @@ impl Files {
     }
 
     pub fn delete(&self, file_ids: Vec<u64>) -> Result<()> {
-        let id_list: Vec<FileId> = file_ids.iter().map(|a_id| FileId::from(*a_id)).collect();
+        let id_list: Vec<FileId> = file_ids.iter().copied().map(FileId::from).collect();
         let id_items = Items::from(&id_list);
         self.api_client
             .post::<::serde_json::Value, Items>("files/delete", &id_items)?;
@@ -48,7 +48,7 @@ impl Files {
     }
 
     pub fn download_link(&self, file_ids: Vec<u64>) -> Result<Vec<FileLink>> {
-        let id_list: Vec<FileId> = file_ids.iter().map(|a_id| FileId::from(*a_id)).collect();
+        let id_list: Vec<FileId> = file_ids.iter().copied().map(FileId::from).collect();
         let id_items = Items::from(&id_list);
         let file_links_response: FileLinkListResponse =
             self.api_client.post("files/download", &id_items)?;

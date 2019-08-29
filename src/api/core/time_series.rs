@@ -43,7 +43,8 @@ impl TimeSeries {
     pub fn retrieve(&self, time_serie_ids: &[u64]) -> Result<Vec<TimeSerie>> {
         let id_list: Vec<TimeSerieId> = time_serie_ids
             .iter()
-            .map(|ts_id| TimeSerieId::from(*ts_id))
+            .copied()
+            .map(TimeSerieId::from)
             .collect();
         let id_items = Items::from(&id_list);
         let time_series_response: TimeSerieListResponse =
@@ -64,7 +65,8 @@ impl TimeSeries {
     pub fn delete(&self, time_serie_ids: &[u64]) -> Result<()> {
         let id_list: Vec<TimeSerieId> = time_serie_ids
             .iter()
-            .map(|ts_id| TimeSerieId::from(*ts_id))
+            .copied()
+            .map(TimeSerieId::from)
             .collect();
         let id_items = Items::from(&id_list);
         self.api_client
