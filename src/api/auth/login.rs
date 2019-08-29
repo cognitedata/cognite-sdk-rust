@@ -9,7 +9,7 @@ pub struct Login {
 impl Login {
     pub fn new(api_client: ApiClient) -> Login {
         Login {
-            api_client: api_client,
+            api_client,
         }
     }
 

@@ -54,9 +54,9 @@ pub struct Filter {
 impl Filter {
     pub fn new(filter: EventFilter, cursor: Option<String>, limit: Option<u32>) -> Filter {
         Filter {
-            filter: filter,
-            cursor: cursor,
-            limit: limit,
+            filter,
+            cursor,
+            limit,
         }
     }
 }
@@ -86,9 +86,9 @@ pub struct Search {
 impl Search {
     pub fn new(filter: EventFilter, search: EventSearch, limit: Option<u32>) -> Search {
         Search {
-            filter: filter,
-            search: search,
-            limit: limit,
+            filter,
+            search,
+            limit,
         }
     }
 }

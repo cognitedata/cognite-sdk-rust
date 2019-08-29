@@ -9,7 +9,7 @@ pub struct EpochTimestampRange {
 
 impl EpochTimestampRange {
     pub fn new(min: u128, max: u128) -> EpochTimestampRange {
-        EpochTimestampRange { min: min, max: max }
+        EpochTimestampRange { min, max }
     }
 }
 
@@ -22,6 +22,6 @@ pub struct IntegerRange {
 
 impl IntegerRange {
     pub fn new(min: u64, max: u64) -> IntegerRange {
-        IntegerRange { min: min, max: max }
+        IntegerRange { min, max }
     }
 }

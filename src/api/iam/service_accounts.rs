@@ -11,7 +11,7 @@ pub struct ServiceAccounts {
 impl ServiceAccounts {
     pub fn new(api_client: ApiClient) -> ServiceAccounts {
         ServiceAccounts {
-            api_client: api_client,
+            api_client,
         }
     }
 

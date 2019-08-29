@@ -63,9 +63,9 @@ pub struct Search {
 impl Search {
     pub fn new(filter: FileFilter, search: FileSearch, limit: Option<u32>) -> Search {
         Search {
-            filter: filter,
-            search: search,
-            limit: limit,
+            filter,
+            search,
+            limit,
         }
     }
 }
@@ -83,9 +83,9 @@ pub struct Filter {
 impl Filter {
     pub fn new(filter: FileFilter, cursor: Option<String>, limit: Option<u32>) -> Filter {
         Filter {
-            filter: filter,
-            cursor: cursor,
-            limit: limit,
+            filter,
+            cursor,
+            limit,
         }
     }
 }

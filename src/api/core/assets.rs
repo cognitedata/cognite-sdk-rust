@@ -11,7 +11,7 @@ pub struct Assets {
 impl Assets {
     pub fn new(api_client: ApiClient) -> Assets {
         Assets {
-            api_client: api_client,
+            api_client,
         }
     }
 

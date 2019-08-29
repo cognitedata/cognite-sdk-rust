@@ -12,7 +12,7 @@ pub struct Groups {
 impl Groups {
     pub fn new(api_client: ApiClient) -> Groups {
         Groups {
-            api_client: api_client,
+            api_client,
         }
     }
 

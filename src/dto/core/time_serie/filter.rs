@@ -71,9 +71,9 @@ pub struct Search {
 impl Search {
     pub fn new(filter: TimeSerieFilter, search: TimeSerieSearch, limit: Option<u32>) -> Search {
         Search {
-            filter: filter,
-            search: search,
-            limit: limit,
+            filter,
+            search,
+            limit,
         }
     }
 }

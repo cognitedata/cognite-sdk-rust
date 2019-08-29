@@ -11,7 +11,7 @@ pub struct ApiKeys {
 impl ApiKeys {
     pub fn new(api_client: ApiClient) -> ApiKeys {
         ApiKeys {
-            api_client: api_client,
+            api_client,
         }
     }
 

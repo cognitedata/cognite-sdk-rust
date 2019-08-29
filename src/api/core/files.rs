@@ -10,7 +10,7 @@ pub struct Files {
 impl Files {
     pub fn new(api_client: ApiClient) -> Files {
         Files {
-            api_client: api_client,
+            api_client,
         }
     }
 

@@ -36,7 +36,7 @@ pub struct LatestDatapointsQuery {
 impl LatestDatapointsQuery {
     pub fn new(time_serie_id: u64, before: &str) -> LatestDatapointsQuery {
         LatestDatapointsQuery {
-            time_serie_id: time_serie_id,
+            time_serie_id,
             before: String::from(before),
         }
     }
@@ -58,9 +58,9 @@ impl DeleteDatapointsQuery {
         exclusive_end: i64,
     ) -> DeleteDatapointsQuery {
         DeleteDatapointsQuery {
-            time_serie_id: time_serie_id,
-            inclusive_begin: inclusive_begin,
-            exclusive_end: exclusive_end,
+            time_serie_id,
+            inclusive_begin,
+            exclusive_end,
         }
     }
 }

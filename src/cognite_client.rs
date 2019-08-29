@@ -78,7 +78,7 @@ impl CogniteClient {
         let time_series_api_client = ApiClient::new(&api_base_path, &api_key);
 
         Ok(CogniteClient {
-            api_client: api_client,
+            api_client,
 
             assets: Assets::new(assets_api_client),
             api_keys: ApiKeys::new(api_keys_api_client),

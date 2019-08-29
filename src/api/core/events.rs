@@ -10,7 +10,7 @@ pub struct Events {
 impl Events {
     pub fn new(api_client: ApiClient) -> Events {
         Events {
-            api_client: api_client,
+            api_client,
         }
     }
 

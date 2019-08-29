@@ -12,7 +12,7 @@ pub struct TimeSeries {
 impl TimeSeries {
     pub fn new(api_client: ApiClient) -> TimeSeries {
         TimeSeries {
-            api_client: api_client,
+            api_client,
         }
     }
 

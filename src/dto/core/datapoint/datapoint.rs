@@ -35,8 +35,8 @@ pub struct AddDatapoints {
 impl AddDatapoints {
     pub fn new(time_serie_id: u64, datapoints: Vec<Datapoint>) -> AddDatapoints {
         AddDatapoints {
-            time_serie_id: time_serie_id,
-            datapoints: datapoints,
+            time_serie_id,
+            datapoints,
         }
     }
 }

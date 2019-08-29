@@ -11,7 +11,7 @@ pub struct SecurityCategories {
 impl SecurityCategories {
     pub fn new(api_client: ApiClient) -> SecurityCategories {
         SecurityCategories {
-            api_client: api_client,
+            api_client,
         }
     }
 

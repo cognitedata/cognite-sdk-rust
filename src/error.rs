@@ -21,7 +21,7 @@ pub struct Error {
 
 impl Error {
     pub fn new(kind: Kind) -> Error {
-        Error { kind: kind }
+        Error { kind }
     }
 
     pub fn new_reqwest_error_with_kind(external: ::reqwest::Error, kind: Kind) -> Error {
