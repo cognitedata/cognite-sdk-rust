@@ -2,6 +2,7 @@
 name = "cognite"
 version = "0.1.0"
 authors = ["Haakon Garseg Mørk <haakon.mork@cognite.com>"]
+publish = false
 edition = "2018"
 
 [dependencies]
