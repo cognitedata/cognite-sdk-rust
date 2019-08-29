@@ -11,7 +11,6 @@ pub use self::{
     api_client::*,
     core::{
       assets::*,
-      datapoints::*,
       events::*,
       files::*,
       time_series::*,

@@ -9,8 +9,10 @@ mod event_tests {
     let since_the_epoch = start.duration_since(UNIX_EPOCH).unwrap();
 
     let cognite_client = CogniteClient::new().unwrap();
-    let new_event : Event = Event::new(Some(since_the_epoch.as_millis() as u64),
-                                        Some((since_the_epoch.as_millis()+1) as u64), 
+    let new_event : Event = Event::new(Some(since_the_epoch.as_millis() as i64),
+                                        Some((since_the_epoch.as_millis()+1) as i64), 
+                                        None, 
+                                        None,
                                         None,
                                         Some("description".to_owned()),
                                         None,

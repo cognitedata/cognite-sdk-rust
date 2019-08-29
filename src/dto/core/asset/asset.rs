@@ -18,10 +18,10 @@ pub struct Asset {
   pub external_id: Option<String>,
   pub parent_id : Option<u64>,
   pub description : Option<String>,
-  pub depth: Option<u64>,
   pub metadata: Option<HashMap<String, String>>,
   pub source : Option<String>,
-  pub last_updated_time : u128,
+  pub created_time : i64,
+  pub last_updated_time : i64,
   pub root_id : Option<u64>
 }
 
@@ -38,9 +38,9 @@ impl Asset {
       external_id : external_id,
       parent_id : parent_id,
       description : Some(String::from(description)),
-      depth : Some(0),
       metadata : metadata,
       source : source,
+      created_time : 0,
       last_updated_time : 0,
       root_id : None,
     }

@@ -50,6 +50,8 @@ pub enum Params {
   EventsFilter_MaxEndTime(u64),
   #[serde(rename = "assetIds")]
   EventsFilter_AssetIds(String),
+  #[serde(rename = "rootIds")]
+  EventsFilter_RootIds(String),
   #[serde(rename = "source")]
   EventsFilter_Source(String),
   #[serde(rename = "type")]

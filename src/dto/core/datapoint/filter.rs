@@ -4,8 +4,8 @@ use serde::{Deserialize, Serialize};
 #[serde(rename_all = "camelCase")]
 pub struct DatapointsFilter {
   pub items : Vec<DatapointsQuery>,
-  pub start : Option<String>,
-  pub end : Option<String>, 
+  pub start : Option<i64>,
+  pub end : Option<i64>, 
   pub limit : Option<u32>,
   pub aggregates : Option<Vec<String>>,
   pub granularity : Option<String>,
@@ -17,8 +17,8 @@ pub struct DatapointsFilter {
 pub struct DatapointsQuery {
   #[serde(rename = "id")]
   pub time_serie_id : u64,
-  pub start : Option<String>,
-  pub end : Option<String>, 
+  pub start : Option<i64>,
+  pub end : Option<i64>, 
   pub limit : Option<u32>,
   pub aggregates : Option<Vec<String>>,
   pub granularity : Option<String>,
@@ -45,14 +45,14 @@ impl LatestDatapointsQuery {
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct DeleteDatapointsQuery {
-  pub inclusive_begin : u128,
-  pub exclusive_end : u128,
+  pub inclusive_begin : i64,
+  pub exclusive_end : i64,
   #[serde(rename = "id")]
   pub time_serie_id : u64
 }
 
 impl DeleteDatapointsQuery {
-  pub fn new(time_serie_id : u64, inclusive_begin : u128, exclusive_end : u128) -> DeleteDatapointsQuery {
+  pub fn new(time_serie_id : u64, inclusive_begin : i64, exclusive_end : i64) -> DeleteDatapointsQuery {
     DeleteDatapointsQuery {
       time_serie_id : time_serie_id,
       inclusive_begin : inclusive_begin,
