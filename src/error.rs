@@ -25,7 +25,7 @@ impl Error {
     }
 
     pub fn new_reqwest_error_with_kind(external: ::reqwest::Error, kind: Kind) -> Error {
-        let external_kind = ExternalKind::Reqwest(external, Box::new(Some(kind)));
+        let external_kind = ExternalKind::Reqwest(external, Some(Box::new(kind)));
         Error {
             kind: Kind::ExternalLib(external_kind),
         }
@@ -99,13 +99,13 @@ pub enum Kind {
 
 #[derive(Debug)]
 pub enum ExternalKind {
-    Reqwest(::reqwest::Error, Box<Option<Kind>>),
-    SerdeJson(::serde_json::Error, Box<Option<Kind>>),
+    Reqwest(::reqwest::Error, Option<Box<Kind>>),
+    SerdeJson(::serde_json::Error, Option<Box<Kind>>),
 }
 
 impl From<::reqwest::Error> for Kind {
     fn from(err: ::reqwest::Error) -> Kind {
-        Kind::ExternalLib(ExternalKind::Reqwest(err, Box::new(None)))
+        Kind::ExternalLib(ExternalKind::Reqwest(err, None))
     }
 }
 impl From<::reqwest::Error> for Error {
@@ -116,7 +116,7 @@ impl From<::reqwest::Error> for Error {
 
 impl From<::serde_json::Error> for Kind {
     fn from(err: ::serde_json::Error) -> Kind {
-        Kind::ExternalLib(ExternalKind::SerdeJson(err, Box::new(None)))
+        Kind::ExternalLib(ExternalKind::SerdeJson(err, None))
     }
 }
 impl From<::serde_json::Error> for Error {
