@@ -43,38 +43,38 @@ impl fmt::Debug for Error {
 
 impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        match self.kind {
-            Kind::ExternalLib(ref e) => match e {
-                ExternalKind::Reqwest(ref exk, ref _k) => fmt::Display::fmt(exk, f),
-                ExternalKind::SerdeJson(ref exk, ref _k) => fmt::Display::fmt(exk, f),
+        match &self.kind {
+            Kind::ExternalLib(e) => match e {
+                ExternalKind::Reqwest(exk, _k) => fmt::Display::fmt(exk, f),
+                ExternalKind::SerdeJson(exk, _k) => fmt::Display::fmt(exk, f),
             },
-            Kind::BadRequest(ref e) => f.write_str(e),
-            Kind::Unauthorized(ref e) => f.write_str(e),
-            Kind::Forbidden(ref e) => f.write_str(e),
-            Kind::NotFound(ref e) => f.write_str(e),
-            Kind::Conflict(ref e) => f.write_str(e),
-            Kind::UnprocessableEntity(ref e) => f.write_str(e),
-            Kind::Http(ref e) => f.write_str(e),
-            Kind::EnvironmentVariableMissing(ref e) => f.write_str(e),
+            Kind::BadRequest(e) => f.write_str(e),
+            Kind::Unauthorized(e) => f.write_str(e),
+            Kind::Forbidden(e) => f.write_str(e),
+            Kind::NotFound(e) => f.write_str(e),
+            Kind::Conflict(e) => f.write_str(e),
+            Kind::UnprocessableEntity(e) => f.write_str(e),
+            Kind::Http(e) => f.write_str(e),
+            Kind::EnvironmentVariableMissing(e) => f.write_str(e),
         }
     }
 }
 
 impl StdError for Error {
     fn description(&self) -> &str {
-        match self.kind {
-            Kind::ExternalLib(ref e) => match e {
-                ExternalKind::Reqwest(ref exk, ref _k) => exk.description(),
-                ExternalKind::SerdeJson(ref exk, ref _k) => exk.description(),
+        match &self.kind {
+            Kind::ExternalLib(e) => match e {
+                ExternalKind::Reqwest(exk, _) => exk.description(),
+                ExternalKind::SerdeJson(exk, _) => exk.description(),
             },
-            Kind::BadRequest(ref e) => e,
-            Kind::Unauthorized(ref e) => e,
-            Kind::Forbidden(ref e) => e,
-            Kind::NotFound(ref e) => e,
-            Kind::Conflict(ref e) => e,
-            Kind::UnprocessableEntity(ref e) => e,
-            Kind::Http(ref e) => e,
-            Kind::EnvironmentVariableMissing(ref e) => e,
+            Kind::BadRequest(e) => e,
+            Kind::Unauthorized(e) => e,
+            Kind::Forbidden(e) => e,
+            Kind::NotFound(e) => e,
+            Kind::Conflict(e) => e,
+            Kind::UnprocessableEntity(e) => e,
+            Kind::Http(e) => e,
+            Kind::EnvironmentVariableMissing(e) => e,
         }
     }
 
