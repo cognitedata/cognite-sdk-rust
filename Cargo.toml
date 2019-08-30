@@ -2,10 +2,11 @@
 name = "cognite"
 version = "0.1.0"
 authors = ["Haakon Garseg Mørk <haakon.mork@cognite.com>"]
+publish = false
 edition = "2018"
 
 [dependencies]
-reqwest = "0.9.14"
-serde = { version = "1.0", features = ["derive"] }
-serde_json = "1.0"
+reqwest = "0.9.20"
+serde = { version = "1.0.99", features = ["derive"] }
+serde_json = "1.0.40"
 uuid = "0.7.4"

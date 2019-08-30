@@ -5,41 +5,18 @@ mod dto;
 mod error;
 
 pub use self::{
-  cognite_client::*,
-  error::*,
-  api::{
-    api_client::*,
-    core::{
-      assets::*,
-      events::*,
-      files::*,
-      time_series::*,
+    api::{
+        api_client::*,
+        auth::login::*,
+        core::{assets::*, events::*, files::*, time_series::*},
+        iam::{api_keys::*, groups::*, security_categories::*, service_accounts::*},
     },
-    auth::{
-      login::*,
+    cognite_client::*,
+    dto::{
+        core::{asset::*, datapoint::*, event::*, files::*, time_serie::*},
+        filter_types::*,
+        iam::{api_key::*, group::*, security_category::*, service_account::*},
+        params::*,
     },
-    iam::{
-      api_keys::*,
-      groups::*,
-      security_categories::*,
-      service_accounts::*,
-    },
-  },
-  dto::{
-    core::{
-      asset::*,
-      datapoint::*,
-      event::*,
-      time_serie::*,
-      files::*,
-    },
-    iam::{
-      api_key::*,
-      group::*,
-      security_category::*,
-      service_account::*,
-    },
-    filter_types::*,
-    params::*,
-  },
+    error::*,
 };
