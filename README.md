@@ -89,13 +89,15 @@ Cargo.toml:
 ```TOML
 [dependencies]
 cognite = { path = "../cognite-sdk-rust" }
+tokio = { version = "0.2", features = ["full"] }
 ```
 
 ```Rust
 use cognite::{Asset, AssetFilter, AssetSearch, CogniteClient};
 
+#[tokio::main]
 fn main() {
-    let cognite_client = CogniteClient::new().unwrap();
+    let cognite_client = CogniteClient::new("TestApp").unwrap();
 
     // Filter all assets
 
@@ -105,10 +107,10 @@ fn main() {
 
     // ...
 
-    let assets: Vec<Asset> = cognite_client.assets.filter_all(filter).unwrap();
+    let assets: Vec<Asset> = cognite_client.assets.filter_all(filter).await.unwrap();
 
     // Retrieve asset
-    match cognite_client.assets.retrieve(&vec![6687602007296940_u64]) {
+    match cognite_client.assets.retrieve(&vec![6687602007296940_u64]).await {
         Ok(asset) => println!("{:?}", asset),
         Err(e) => println!("{:?}", e),
     }
@@ -128,6 +130,7 @@ fn main() {
     let assets_search_result: Vec<Asset> = cognite_client
         .assets
         .search(asset_filter, asset_search)
+        .await
         .unwrap();
 }
 ```
