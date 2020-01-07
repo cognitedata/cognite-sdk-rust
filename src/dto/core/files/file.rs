@@ -17,13 +17,13 @@ pub struct FileMetadata {
     pub mime_type: Option<String>,
     pub metadata: HashMap<String, String>,
     pub asset_ids: Option<Vec<u64>>,
-    pub source_created_time: u128,
-    pub source_modified_time: u128,
+    pub source_created_time: i64,
+    pub source_modified_time: i64,
     pub id: u64,
     pub uploaded: Option<bool>,
-    pub uploaded_time: Option<u64>,
-    pub created_time: u128,
-    pub last_updated_time: u128,
+    pub uploaded_time: Option<i64>,
+    pub created_time: i64,
+    pub last_updated_time: i64,
     pub uploaded_url: Option<String>,
 }
 

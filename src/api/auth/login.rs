@@ -11,10 +11,11 @@ impl Login {
         Login { api_client }
     }
 
-    pub fn status(&self) -> Result<LoginStatus> {
-        let login_status_response: LoginStatusResponseWrapper =
-            self.api_client
-                .get::<LoginStatusResponseWrapper>("login/status")?;
+    pub async fn status(&self) -> Result<LoginStatus> {
+        let login_status_response: LoginStatusResponseWrapper = self
+            .api_client
+            .get::<LoginStatusResponseWrapper>("login/status")
+            .await?;
         Ok(login_status_response.data)
     }
 }

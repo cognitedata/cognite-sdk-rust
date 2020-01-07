@@ -24,8 +24,8 @@ pub struct TimeSerie {
     pub is_step: bool,
     pub description: String,
     pub security_categories: Option<Vec<u64>>,
-    pub created_time: u128,
-    pub last_updated_time: u128,
+    pub created_time: i64,
+    pub last_updated_time: i64,
 }
 
 impl TimeSerie {
