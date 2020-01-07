@@ -1,22 +1,18 @@
-use futures::executor::block_on;
-
 use cognite::{
     Asset, AssetFilter, AssetSearch, CogniteClient, Event, EventFilter, EventSearch, FileFilter,
     FileMetadata, FileSearch, TimeSerie, TimeSerieFilter, TimeSerieSearch,
 };
 
-async fn run_tests() {
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let cognite_client = CogniteClient::new("TestApp").unwrap();
-
     // List all assets
-
     let mut filter: AssetFilter = AssetFilter::new();
     filter.name.replace("Aker".to_string());
     match cognite_client.assets.filter_all(filter).await {
         Ok(assets) => println!("{} assets retrieved.", assets.len()),
         Err(e) => println!("{:?}", e),
     }
-
     // Retrieve asset
     match cognite_client
         .assets
@@ -26,7 +22,6 @@ async fn run_tests() {
         Ok(asset) => println!("{:?}", asset),
         Err(e) => println!("{:?}", e),
     }
-
     // Search asset
     let mut asset_search: AssetSearch = AssetSearch::new();
     asset_search.description.replace("Aker".to_string());
@@ -37,7 +32,6 @@ async fn run_tests() {
         .await
         .unwrap();
     println!("Search found: {:?} assets", assets_search_result.len());
-
     // List all events
     let event_filter: EventFilter = EventFilter::new();
     let events: Vec<Event> = cognite_client
@@ -46,7 +40,6 @@ async fn run_tests() {
         .await
         .unwrap();
     println!("{} events retrieved.", events.len());
-
     // Search events
     let event_filter_2: EventFilter = EventFilter::new();
     let event_search: EventSearch = EventSearch::new();
@@ -56,11 +49,9 @@ async fn run_tests() {
         .await
         .unwrap();
     println!("Search found {:?} events", event_search_result.len());
-
     // List all events
     let time_series: Vec<TimeSerie> = cognite_client.time_series.list_all(None).await.unwrap();
     println!("{} time series retrieved.", time_series.len());
-
     // Search time serie
     let time_serie_search: TimeSerieSearch = TimeSerieSearch::new();
     let time_serie_filter: TimeSerieFilter = TimeSerieFilter::new();
@@ -73,12 +64,10 @@ async fn run_tests() {
         "Search found {:?} time series",
         time_series_search_result.len()
     );
-
     // List all files
     let file_filter: FileFilter = FileFilter::new();
     let files: Vec<FileMetadata> = cognite_client.files.filter_all(file_filter).await.unwrap();
     println!("{} files retrieved.", files.len());
-
     // Search files
     let file_search: FileSearch = FileSearch::new();
     let file_filter_2: FileFilter = FileFilter::new();
@@ -88,19 +77,16 @@ async fn run_tests() {
         .await
         .unwrap();
     println!("Search found {:?} files", files_search_result.len());
-
     // List all service accounts
     match cognite_client.service_accounts.list_all(None).await {
         Ok(service_accounts) => println!("{} service accounts retrieved.", service_accounts.len()),
         Err(e) => println!("{:?}", e),
     }
-
     // List all api keys
     match cognite_client.api_keys.list_all(None).await {
         Ok(api_keys) => println!("{} api keys retrieved.", api_keys.len()),
         Err(e) => println!("{:?}", e),
     }
-
     // List all groups
     match cognite_client.groups.list_all(None).await {
         Ok(mut groups) => {
@@ -119,8 +105,5 @@ async fn run_tests() {
         }
         Err(e) => println!("{:?}", e),
     }
-}
-
-fn main() {
-    block_on(run_tests());
+    Ok(())
 }

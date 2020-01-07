@@ -1,7 +1,7 @@
 #[cfg(test)]
 mod files_tests {
-    #[test]
-    fn create_update_and_delete_files() {
+    #[tokio::test]
+    async fn create_update_and_delete_files() {
         assert!(true);
     }
 }
