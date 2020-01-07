@@ -10,14 +10,18 @@ use crate::error::{ApiErrorWrapper, Error, Kind, Result};
 pub struct ApiClient {
     api_base_url: String,
     api_key: String,
+    app_name: String,
     client: Client,
 }
 
+const SDK_VERSION: &str = concat!("rust-sdk-v", env!("CARGO_PKG_VERSION"));
+
 impl ApiClient {
-    pub fn new(api_base_url: &str, api_key: &str) -> ApiClient {
+    pub fn new(api_base_url: &str, api_key: &str, app_name: &str) -> ApiClient {
         ApiClient {
             api_base_url: String::from(api_base_url),
             api_key: String::from(api_key),
+            app_name: String::from(app_name),
             client: Client::new(),
         }
     }
@@ -27,29 +31,32 @@ impl ApiClient {
         let api_key_header_value =
             HeaderValue::from_str(&self.api_key).expect("failed to set api key");
         headers.insert("api-key", api_key_header_value);
+        headers.insert("x-cdp-sdk", HeaderValue::from_str(SDK_VERSION).expect(""));
         headers.insert(
-            "x-cdp-sdk",
-            HeaderValue::from_str("rust-sdk-v0.1").expect("x-cdp-sdk"),
+            "x-cdp-app",
+            HeaderValue::from_str(&self.app_name).expect(""),
         );
-        headers.insert("x-cdp-app", HeaderValue::from_str("").expect("x-cdp-app"));
         headers.insert(USER_AGENT, HeaderValue::from_static("user-agent-goes-here"));
         headers.insert(CONTENT_TYPE, HeaderValue::from_static("application/json"));
         headers.insert(ACCEPT, HeaderValue::from_static("application/json"));
         headers
     }
 
-    fn send_request<T: DeserializeOwned>(&self, request_builder: RequestBuilder) -> Result<T> {
-        match request_builder.send() {
-            Ok(mut response) => match response.status() {
-                StatusCode::OK => match response.json::<T>() {
+    async fn send_request<T: DeserializeOwned>(
+        &self,
+        request_builder: RequestBuilder,
+    ) -> Result<T> {
+        match request_builder.send().await {
+            Ok(response) => match response.status() {
+                StatusCode::OK => match response.json::<T>().await {
                     Ok(json) => Ok(json),
                     Err(e) => Err(Error::from(e)),
                 },
-                StatusCode::CREATED => match response.json::<T>() {
+                StatusCode::CREATED => match response.json::<T>().await {
                     Ok(json) => Ok(json),
                     Err(e) => Err(Error::from(e)),
                 },
-                StatusCode::BAD_REQUEST => match response.json::<ApiErrorWrapper>() {
+                StatusCode::BAD_REQUEST => match response.json::<ApiErrorWrapper>().await {
                     Ok(error_message) => {
                         Err(Error::new(Kind::BadRequest(error_message.error.message)))
                     }
@@ -58,7 +65,7 @@ impl ApiClient {
                         Kind::BadRequest("400".to_owned()),
                     )),
                 },
-                StatusCode::UNAUTHORIZED => match response.json::<ApiErrorWrapper>() {
+                StatusCode::UNAUTHORIZED => match response.json::<ApiErrorWrapper>().await {
                     Ok(error_message) => {
                         Err(Error::new(Kind::Unauthorized(error_message.error.message)))
                     }
@@ -67,7 +74,7 @@ impl ApiClient {
                         Kind::Unauthorized("401".to_owned()),
                     )),
                 },
-                StatusCode::FORBIDDEN => match response.json::<ApiErrorWrapper>() {
+                StatusCode::FORBIDDEN => match response.json::<ApiErrorWrapper>().await {
                     Ok(error_message) => {
                         Err(Error::new(Kind::Forbidden(error_message.error.message)))
                     }
@@ -76,7 +83,7 @@ impl ApiClient {
                         Kind::Forbidden("403".to_owned()),
                     )),
                 },
-                StatusCode::NOT_FOUND => match response.json::<ApiErrorWrapper>() {
+                StatusCode::NOT_FOUND => match response.json::<ApiErrorWrapper>().await {
                     Ok(error_message) => {
                         Err(Error::new(Kind::NotFound(error_message.error.message)))
                     }
@@ -85,7 +92,7 @@ impl ApiClient {
                         Kind::NotFound("404".to_owned()),
                     )),
                 },
-                StatusCode::CONFLICT => match response.json::<ApiErrorWrapper>() {
+                StatusCode::CONFLICT => match response.json::<ApiErrorWrapper>().await {
                     Ok(error_message) => {
                         Err(Error::new(Kind::Conflict(error_message.error.message)))
                     }
@@ -94,20 +101,22 @@ impl ApiClient {
                         Kind::Conflict("409".to_owned()),
                     )),
                 },
-                StatusCode::UNPROCESSABLE_ENTITY => match response.json::<ApiErrorWrapper>() {
-                    Ok(error_message) => Err(Error::new(Kind::UnprocessableEntity(
-                        error_message.error.message,
-                    ))),
-                    Err(e) => Err(Error::new_reqwest_error_with_kind(
-                        e,
-                        Kind::UnprocessableEntity("422".to_owned()),
-                    )),
-                },
+                StatusCode::UNPROCESSABLE_ENTITY => {
+                    match response.json::<ApiErrorWrapper>().await {
+                        Ok(error_message) => Err(Error::new(Kind::UnprocessableEntity(
+                            error_message.error.message,
+                        ))),
+                        Err(e) => Err(Error::new_reqwest_error_with_kind(
+                            e,
+                            Kind::UnprocessableEntity("422".to_owned()),
+                        )),
+                    }
+                }
                 s => {
                     let error_message = format!(
                         "Received API response {} with result: {:?}",
                         s,
-                        response.text()
+                        response.text().await
                     );
                     Err(Error::new(Kind::Http(error_message)))
                 }
@@ -141,11 +150,11 @@ impl ApiClient {
         http_params
     }
 
-    pub fn get<T: DeserializeOwned>(&self, path: &str) -> Result<T> {
-        self.get_with_params::<T>(path, None)
+    pub async fn get<T: DeserializeOwned>(&self, path: &str) -> Result<T> {
+        self.get_with_params::<T>(path, None).await
     }
 
-    pub fn get_with_params<T: DeserializeOwned>(
+    pub async fn get_with_params<T: DeserializeOwned>(
         &self,
         path: &str,
         params: Option<Vec<Params>>,
@@ -155,10 +164,10 @@ impl ApiClient {
         let url = format!("{}/{}", self.api_base_url, path);
         let headers: HeaderMap = self.get_headers();
         let request_builder = self.client.get(&url).headers(headers).query(&http_params);
-        self.send_request(request_builder)
+        self.send_request(request_builder).await
     }
 
-    pub fn post<D, S>(&self, path: &str, object: &S) -> Result<D>
+    pub async fn post<D, S>(&self, path: &str, object: &S) -> Result<D>
     where
         D: DeserializeOwned,
         S: Serialize,
@@ -167,10 +176,10 @@ impl ApiClient {
             Ok(json) => json,
             Err(e) => return Err(Error::from(e)),
         };
-        self.post_json(path, &json)
+        self.post_json(path, &json).await
     }
 
-    pub fn post_json<T: DeserializeOwned>(&self, path: &str, body: &str) -> Result<T> {
+    pub async fn post_json<T: DeserializeOwned>(&self, path: &str, body: &str) -> Result<T> {
         let url = format!("{}/{}", self.api_base_url, path);
         let headers: HeaderMap = self.get_headers();
         let request_builder = self
@@ -178,10 +187,10 @@ impl ApiClient {
             .post(&url)
             .headers(headers)
             .body(String::from(body));
-        self.send_request(request_builder)
+        self.send_request(request_builder).await
     }
 
-    pub fn put<D, S>(&self, path: &str, object: &S) -> Result<D>
+    pub async fn put<D, S>(&self, path: &str, object: &S) -> Result<D>
     where
         D: DeserializeOwned,
         S: Serialize,
@@ -190,10 +199,10 @@ impl ApiClient {
             Ok(json) => json,
             Err(e) => return Err(Error::from(e)),
         };
-        self.put_json(path, &json)
+        self.put_json(path, &json).await
     }
 
-    pub fn put_json<T: DeserializeOwned>(&self, path: &str, body: &str) -> Result<T> {
+    pub async fn put_json<T: DeserializeOwned>(&self, path: &str, body: &str) -> Result<T> {
         let url = format!("{}/{}", self.api_base_url, path);
         let headers: HeaderMap = self.get_headers();
         let request_builder = self
@@ -201,14 +210,14 @@ impl ApiClient {
             .put(&url)
             .headers(headers)
             .body(String::from(body));
-        self.send_request(request_builder)
+        self.send_request(request_builder).await
     }
 
-    pub fn delete<T: DeserializeOwned>(&self, path: &str) -> Result<T> {
-        self.delete_with_params::<T>(path, None)
+    pub async fn delete<T: DeserializeOwned>(&self, path: &str) -> Result<T> {
+        self.delete_with_params::<T>(path, None).await
     }
 
-    pub fn delete_with_params<T: DeserializeOwned>(
+    pub async fn delete_with_params<T: DeserializeOwned>(
         &self,
         path: &str,
         params: Option<Vec<Params>>,
@@ -221,6 +230,6 @@ impl ApiClient {
             .delete(&url)
             .headers(headers)
             .query(&http_params);
-        self.send_request::<T>(request_builder)
+        self.send_request::<T>(request_builder).await
     }
 }

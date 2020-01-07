@@ -14,51 +14,62 @@ impl Groups {
         Groups { api_client }
     }
 
-    pub fn list_all(&self, params: Option<Vec<Params>>) -> Result<Vec<Group>> {
+    pub async fn list_all(&self, params: Option<Vec<Params>>) -> Result<Vec<Group>> {
         let groups_response: GroupListResponse =
-            self.api_client.get_with_params("groups", params)?;
+            self.api_client.get_with_params("groups", params).await?;
         Ok(groups_response.items)
     }
 
-    pub fn create(&self, groups: &[Group]) -> Result<Vec<Group>> {
+    pub async fn create(&self, groups: &[Group]) -> Result<Vec<Group>> {
         let groups_items = Items::from(groups);
-        let groups_response: GroupListResponse = self.api_client.post("groups", &groups_items)?;
+        let groups_response: GroupListResponse =
+            self.api_client.post("groups", &groups_items).await?;
         Ok(groups_response.items)
     }
 
-    pub fn delete(&self, groups_ids: &[u64]) -> Result<()> {
+    pub async fn delete(&self, groups_ids: &[u64]) -> Result<()> {
         let groups_id_items = Items::from(groups_ids);
         self.api_client
-            .post::<::serde_json::Value, Items>("groups/delete", &groups_id_items)?;
+            .post::<::serde_json::Value, Items>("groups/delete", &groups_id_items)
+            .await?;
         Ok(())
     }
 
-    pub fn list_service_accounts(&self, group_id: u64) -> Result<Vec<ServiceAccount>> {
+    pub async fn list_service_accounts(&self, group_id: u64) -> Result<Vec<ServiceAccount>> {
         let service_accounts_response: ServiceAccountListResponse = self
             .api_client
-            .get(&format!("groups/{}/serviceaccounts", group_id))?;
+            .get(&format!("groups/{}/serviceaccounts", group_id))
+            .await?;
         Ok(service_accounts_response.items)
     }
 
-    pub fn add_service_accounts(&self, group_id: u64, service_account_ids: &[u64]) -> Result<()> {
-        let id_items = Items::from(service_account_ids);
-        self.api_client.post::<::serde_json::Value, Items>(
-            &format!("groups/{}/serviceaccounts", group_id),
-            &id_items,
-        )?;
-        Ok(())
-    }
-
-    pub fn remove_service_accounts(
+    pub async fn add_service_accounts(
         &self,
         group_id: u64,
         service_account_ids: &[u64],
     ) -> Result<()> {
         let id_items = Items::from(service_account_ids);
-        self.api_client.post::<::serde_json::Value, Items>(
-            &format!("groups/{}/serviceaccounts/remove", group_id),
-            &id_items,
-        )?;
+        self.api_client
+            .post::<::serde_json::Value, Items>(
+                &format!("groups/{}/serviceaccounts", group_id),
+                &id_items,
+            )
+            .await?;
+        Ok(())
+    }
+
+    pub async fn remove_service_accounts(
+        &self,
+        group_id: u64,
+        service_account_ids: &[u64],
+    ) -> Result<()> {
+        let id_items = Items::from(service_account_ids);
+        self.api_client
+            .post::<::serde_json::Value, Items>(
+                &format!("groups/{}/serviceaccounts/remove", group_id),
+                &id_items,
+            )
+            .await?;
         Ok(())
     }
 }

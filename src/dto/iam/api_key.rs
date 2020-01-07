@@ -13,7 +13,7 @@ pub struct ApiKeyListResponse {
 pub struct ApiKey {
     pub id: u64,
     pub service_account_id: u64,
-    pub created_time: u64,
+    pub created_time: i64,
     pub status: String,
     pub value: Option<String>,
 }
