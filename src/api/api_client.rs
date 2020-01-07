@@ -14,6 +14,8 @@ pub struct ApiClient {
     client: Client,
 }
 
+const SDK_VERSION: &str = concat!("rust-sdk-v", env!("CARGO_PKG_VERSION"));
+
 impl ApiClient {
     pub fn new(api_base_url: &str, api_key: &str, app_name: &str) -> ApiClient {
         ApiClient {
@@ -29,10 +31,7 @@ impl ApiClient {
         let api_key_header_value =
             HeaderValue::from_str(&self.api_key).expect("failed to set api key");
         headers.insert("api-key", api_key_header_value);
-        headers.insert(
-            "x-cdp-sdk",
-            HeaderValue::from_str("rust-sdk-v0.1").expect(""),
-        );
+        headers.insert("x-cdp-sdk", HeaderValue::from_str(SDK_VERSION).expect(""));
         headers.insert(
             "x-cdp-app",
             HeaderValue::from_str(&self.app_name).expect(""),

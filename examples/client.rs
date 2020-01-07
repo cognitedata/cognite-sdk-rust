@@ -4,7 +4,7 @@ use cognite::{
 };
 
 #[tokio::main]
-async fn main() -> Result<(), Box<dyn std::error::Error>> {
+async fn main() {
     let cognite_client = CogniteClient::new("TestApp").unwrap();
     // List all assets
     let mut filter: AssetFilter = AssetFilter::new();
@@ -105,5 +105,4 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
         Err(e) => println!("{:?}", e),
     }
-    Ok(())
 }
