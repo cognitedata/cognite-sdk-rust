@@ -33,17 +33,32 @@ impl EventFilter {
 
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
-pub struct AggregatedEventCountFilter {
-    pub aggregate: String,
+pub struct AggregatedEventsCountFilter {
     pub filter: EventFilter,
 }
 
-
-impl AggregatedEventCountFilter {
-    pub fn new(filter: EventFilter) -> AggregatedEventCountFilter {
-        AggregatedEventCountFilter {
-            aggregate: "count".to_string(),
+impl AggregatedEventsCountFilter {
+    pub fn new(filter: EventFilter) -> AggregatedEventsCountFilter {
+        AggregatedEventsCountFilter {
             filter
+        }
+    }
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct AggregatedEventsListFilter {
+    pub filter: EventFilter,
+    pub fields: Vec<String>,
+    pub aggregate: String,
+}
+
+impl AggregatedEventsListFilter {
+    pub fn new(filter: EventFilter, fields: Vec<String>, aggregate: String) -> AggregatedEventsListFilter {
+        AggregatedEventsListFilter {
+            filter,
+            fields,
+            aggregate
         }
     }
 }
