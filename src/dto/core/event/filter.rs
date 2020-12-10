@@ -33,6 +33,23 @@ impl EventFilter {
 
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
+pub struct AggregatedEventCountFilter {
+    pub aggregate: String,
+    pub filter: EventFilter,
+}
+
+
+impl AggregatedEventCountFilter {
+    pub fn new(filter: EventFilter) -> AggregatedEventCountFilter {
+        AggregatedEventCountFilter {
+            aggregate: "count".to_string(),
+            filter
+        }
+    }
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+#[serde(rename_all = "camelCase")]
 pub struct Filter {
     pub filter: EventFilter,
     #[serde(skip_serializing_if = "Option::is_none")]

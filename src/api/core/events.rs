@@ -27,6 +27,13 @@ impl Events {
         Ok(events_response.items)
     }
 
+    pub async fn aggregated_count(&self, event_filter: EventFilter) -> Result<u64> {
+        let filter: AggregatedEventCountFilter = AggregatedEventCountFilter::new(event_filter);
+        let events_response: AggregatedEventCountResponse =
+            self.api_client.post("events/aggregate", &filter).await?;
+        Ok(events_response.items.get(0).map(|e| e.count).or_else(|| Some(0)).unwrap())
+    }
+
     pub async fn retrieve_single(&self, event_id: u64) -> Result<Event> {
         let mut events_response: EventListResponse =
             self.api_client.get(&format!("events/{}", event_id)).await?;
