@@ -31,7 +31,7 @@ impl Events {
         let filter: AggregatedEventsCountFilter = AggregatedEventsCountFilter::new(event_filter);
         let events_response: AggregatedEventCountResponse =
             self.api_client.post("events/aggregate", &filter).await?;
-        Ok(events_response.items.get(0).map(|e| e.count).or_else(|| Some(0)).unwrap())
+        Ok(events_response.items.get(0).map(|e| e.count).unwrap_or(0))
     }
 
     pub async fn aggregated_filter(&self, event_filter: EventFilter, fields: Vec<String>) -> Result<Vec<Event>> {
