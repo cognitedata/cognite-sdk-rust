@@ -16,6 +16,7 @@ Set environment variables:
 ```bash
 $ export COGNITE_BASE_URL="https://api.cognitedata.com"
 $ export COGNITE_API_KEY=<your API key>
+$ export COGNITE_PROJECT_NAME=<your project name>
 ```
 
 
