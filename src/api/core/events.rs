@@ -34,9 +34,9 @@ impl Events {
         Ok(events_response.items.get(0).map(|e| e.count).unwrap_or(0))
     }
 
-    pub async fn aggregated_filter(&self, event_filter: EventFilter, fields: Vec<String>) -> Result<Vec<Event>> {
+    pub async fn aggregated_filter(&self, event_filter: EventFilter, fields: Vec<String>) -> Result<Vec<AggregatedCount>> {
         let filter: AggregatedEventsListFilter = AggregatedEventsListFilter::new(event_filter, fields, "uniqueValues".to_string());
-        let events_response: EventListResponse =
+        let events_response: AggregatedEventFilterResponse =
             self.api_client.post("events/aggregate", &filter).await?;
         Ok(events_response.items)
     }
