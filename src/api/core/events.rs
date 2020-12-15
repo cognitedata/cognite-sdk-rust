@@ -27,6 +27,20 @@ impl Events {
         Ok(events_response.items)
     }
 
+    pub async fn aggregated_count(&self, event_filter: EventFilter) -> Result<u64> {
+        let filter: AggregatedEventsCountFilter = AggregatedEventsCountFilter::new(event_filter);
+        let events_response: AggregatedEventCountResponse =
+            self.api_client.post("events/aggregate", &filter).await?;
+        Ok(events_response.items.get(0).map(|e| e.count).unwrap_or(0))
+    }
+
+    pub async fn aggregated_filter(&self, event_filter: EventFilter, fields: Vec<String>) -> Result<Vec<AggregatedCount>> {
+        let filter: AggregatedEventsListFilter = AggregatedEventsListFilter::new(event_filter, fields, "uniqueValues".to_string());
+        let events_response: AggregatedEventFilterResponse =
+            self.api_client.post("events/aggregate", &filter).await?;
+        Ok(events_response.items)
+    }
+
     pub async fn retrieve_single(&self, event_id: u64) -> Result<Event> {
         let mut events_response: EventListResponse =
             self.api_client.get(&format!("events/{}", event_id)).await?;

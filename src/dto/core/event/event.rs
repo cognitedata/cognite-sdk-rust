@@ -12,6 +12,41 @@ pub struct EventListResponse {
 
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
+pub struct AggregatedCount {
+    pub count: u64,
+    pub value: String
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct AggregatedEventFilterResponse {
+    pub items: Vec<AggregatedCount>,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct AggregatedEventCountResponse {
+    pub items: Vec<EventCount>,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct EventCount {
+    pub count: u64,
+}
+
+impl EventCount {
+    pub fn new(
+        count: u64,
+    ) -> EventCount {
+        EventCount {
+            count
+        }
+    }
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+#[serde(rename_all = "camelCase")]
 pub struct Event {
     pub id: u64,
     pub external_id: Option<String>,

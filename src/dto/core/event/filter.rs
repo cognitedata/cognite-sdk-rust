@@ -2,6 +2,22 @@ use crate::dto::filter_types::EpochTimestampRange;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
+#[derive(Serialize, Deserialize, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct DataSetInternalId {
+    pub id: u64
+}
+
+impl DataSetInternalId {
+    pub fn new(
+        id: u64,
+    ) -> DataSetInternalId {
+        DataSetInternalId {
+            id
+        }
+    }
+}
+
 #[derive(Serialize, Deserialize, Debug, Default)]
 #[serde(rename_all = "camelCase")]
 pub struct EventFilter {
@@ -23,11 +39,49 @@ pub struct EventFilter {
     pub last_updated_time: Option<EpochTimestampRange>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub external_id_prefix: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none", rename = "type")]
+    pub type_: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub subtype: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub data_set_ids: Option<Vec<DataSetInternalId>>,
 }
 
 impl EventFilter {
     pub fn new() -> EventFilter {
         EventFilter::default()
+    }
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct AggregatedEventsCountFilter {
+    pub filter: EventFilter,
+}
+
+impl AggregatedEventsCountFilter {
+    pub fn new(filter: EventFilter) -> AggregatedEventsCountFilter {
+        AggregatedEventsCountFilter {
+            filter
+        }
+    }
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct AggregatedEventsListFilter {
+    pub filter: EventFilter,
+    pub fields: Vec<String>,
+    pub aggregate: String,
+}
+
+impl AggregatedEventsListFilter {
+    pub fn new(filter: EventFilter, fields: Vec<String>, aggregate: String) -> AggregatedEventsListFilter {
+        AggregatedEventsListFilter {
+            filter,
+            fields,
+            aggregate
+        }
     }
 }
 
