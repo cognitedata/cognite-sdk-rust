@@ -25,7 +25,7 @@ async fn create_test_ts(is_string: bool, idx: i32) -> TimeSerie {
 async fn delete_test_ts(id: i64) {
     COGNITE_CLIENT
         .time_series
-        .delete(&vec![Identity::Id { id }], true)
+        .delete(&[Identity::Id { id }], true)
         .await
         .unwrap();
 }
@@ -80,7 +80,7 @@ async fn create_retrieve_delete_double_datapoints() {
     // Delete half
     COGNITE_CLIENT
         .time_series
-        .delete_datapoints(&vec![DeleteDatapointsQuery {
+        .delete_datapoints(&[DeleteDatapointsQuery {
             inclusive_begin: start,
             exclusive_end: start + 50000,
             id: Identity::Id { id: ts.id },
@@ -161,7 +161,7 @@ async fn create_retrieve_delete_string_datapoints() {
     // Delete half
     COGNITE_CLIENT
         .time_series
-        .delete_datapoints(&vec![DeleteDatapointsQuery {
+        .delete_datapoints(&[DeleteDatapointsQuery {
             inclusive_begin: start,
             exclusive_end: start + 50000,
             id: Identity::Id { id: ts.id },
@@ -222,7 +222,7 @@ async fn retrieve_latest() {
     let latest = COGNITE_CLIENT
         .time_series
         .retrieve_latest_datapoints(
-            &vec![LatestDatapointsQuery {
+            &[LatestDatapointsQuery {
                 before: format!("{}", start + 200_000),
                 id: Identity::Id { id: ts.id },
             }],

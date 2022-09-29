@@ -234,9 +234,9 @@ impl WithPartition for FilterRelationshipsQuery {
     fn with_partition(&self, partition: Partition) -> Self {
         Self {
             filter: self.filter.clone(),
-            limit: self.limit.clone(),
+            limit: self.limit,
             cursor: None,
-            fetch_resources: self.fetch_resources.clone(),
+            fetch_resources: self.fetch_resources,
             partition: Some(partition),
         }
     }

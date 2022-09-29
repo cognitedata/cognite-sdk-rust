@@ -73,10 +73,10 @@ impl From<&Sequence> for AddSequence {
             external_id: sequence.external_id.clone(),
             name: sequence.name.clone(),
             description: sequence.description.clone(),
-            asset_id: sequence.asset_id.clone(),
+            asset_id: sequence.asset_id,
             metadata: sequence.metadata.clone(),
             columns: sequence.columns.clone(),
-            data_set_id: sequence.data_set_id.clone(),
+            data_set_id: sequence.data_set_id,
         }
     }
 }
@@ -150,10 +150,10 @@ impl From<&Sequence> for Patch<PatchSequence> {
             update: PatchSequence {
                 name: Some(sequence.name.clone().into()),
                 description: Some(sequence.description.clone().into()),
-                asset_id: Some(sequence.asset_id.clone().into()),
+                asset_id: Some(sequence.asset_id.into()),
                 external_id: Some(sequence.external_id.clone().into()),
                 metadata: Some(sequence.metadata.clone().into()),
-                data_set_id: Some(sequence.data_set_id.clone().into()),
+                data_set_id: Some(sequence.data_set_id.into()),
                 columns: None,
             },
         }
@@ -165,10 +165,10 @@ impl From<&AddSequence> for PatchSequence {
         PatchSequence {
             name: Some(sequence.name.clone().into()),
             description: Some(sequence.description.clone().into()),
-            asset_id: Some(sequence.asset_id.clone().into()),
+            asset_id: Some(sequence.asset_id.into()),
             external_id: Some(sequence.external_id.clone().into()),
             metadata: Some(sequence.metadata.clone().into()),
-            data_set_id: Some(sequence.data_set_id.clone().into()),
+            data_set_id: Some(sequence.data_set_id.into()),
             columns: None,
         }
     }

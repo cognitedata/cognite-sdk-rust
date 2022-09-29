@@ -129,7 +129,7 @@ impl WithPartition for AssetQuery {
             include_metadata: self.include_metadata,
             name: self.name.clone(),
             source: self.source.clone(),
-            root: self.root.clone(),
+            root: self.root,
             min_created_time: self.min_created_time,
             max_created_time: self.max_created_time,
             min_last_updated_time: self.min_last_updated_time,
