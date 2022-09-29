@@ -1,4 +1,6 @@
-use crate::dto::filter_types::{EpochTimestampRange, IntegerRange};
+use crate::{
+    to_query, AsParams, Identity, LabelsFilter, Partition, Range, SetCursor, WithPartition,
+};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
@@ -8,21 +10,29 @@ pub struct AssetFilter {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub name: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub parent_ids: Option<Vec<u32>>,
+    pub parent_ids: Option<Vec<i64>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub parent_external_ids: Option<Vec<String>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub root_ids: Option<Vec<Identity>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub asset_subtree_ids: Option<Vec<Identity>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub data_set_ids: Option<Vec<Identity>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub metadata: Option<HashMap<String, String>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub source: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub created_time: Option<EpochTimestampRange>,
+    pub created_time: Option<Range<i64>>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub last_updated_time: Option<EpochTimestampRange>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub asset_subtrees: Option<Vec<u64>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub depth: Option<IntegerRange>,
+    pub last_updated_time: Option<Range<i64>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub external_id_prefix: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub root: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub labels: Option<LabelsFilter>,
 }
 
 impl AssetFilter {
@@ -38,6 +48,8 @@ pub struct AssetSearch {
     pub name: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub description: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub query: Option<String>,
 }
 
 impl AssetSearch {
@@ -46,41 +58,84 @@ impl AssetSearch {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Default)]
 #[serde(rename_all = "camelCase")]
-pub struct Search {
+pub struct FilterAssetsRequest {
     pub filter: AssetFilter,
-    pub search: AssetSearch,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub limit: Option<u32>,
-}
-
-impl Search {
-    pub fn new(filter: AssetFilter, search: AssetSearch, limit: Option<u32>) -> Search {
-        Search {
-            filter,
-            search,
-            limit,
-        }
-    }
-}
-
-#[derive(Serialize, Deserialize, Debug)]
-#[serde(rename_all = "camelCase")]
-pub struct Filter {
-    pub filter: AssetFilter,
+    pub limit: Option<i32>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub cursor: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub limit: Option<u32>,
+    pub aggregated_properties: Option<Vec<String>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub partition: Option<String>,
 }
 
-impl Filter {
-    pub fn new(filter: AssetFilter, cursor: Option<String>, limit: Option<u32>) -> Filter {
-        Filter {
-            filter,
-            cursor,
-            limit,
+#[derive(Debug, Default)]
+pub struct AssetQuery {
+    pub limit: Option<i32>,
+    pub cursor: Option<String>,
+    pub include_metadata: Option<bool>,
+    pub name: Option<String>,
+    pub source: Option<String>,
+    pub root: Option<bool>,
+    pub min_created_time: Option<i64>,
+    pub max_created_time: Option<i64>,
+    pub min_last_updated_time: Option<i64>,
+    pub max_last_updated_time: Option<i64>,
+    pub external_id_prefix: Option<String>,
+    pub partition: Option<Partition>,
+}
+
+impl AsParams for AssetQuery {
+    fn to_tuples(self) -> Vec<(String, String)> {
+        let mut params = Vec::<(String, String)>::new();
+        to_query("limit", &self.limit, &mut params);
+        to_query("cursor", &self.cursor, &mut params);
+        to_query("includeMetadata", &self.include_metadata, &mut params);
+        to_query("name", &self.name, &mut params);
+        to_query("source", &self.source, &mut params);
+        to_query("root", &self.root, &mut params);
+        to_query("minCreatedTime", &self.min_created_time, &mut params);
+        to_query("maxCreatedTime", &self.max_created_time, &mut params);
+        to_query(
+            "minLastUpdatedTime",
+            &self.min_last_updated_time,
+            &mut params,
+        );
+        to_query(
+            "maxLastUpdatedTime",
+            &self.max_last_updated_time,
+            &mut params,
+        );
+        to_query("externalIdPrefix", &self.external_id_prefix, &mut params);
+        to_query("partition", &self.partition, &mut params);
+        params
+    }
+}
+
+impl SetCursor for AssetQuery {
+    fn set_cursor(&mut self, cursor: Option<String>) {
+        self.cursor = cursor;
+    }
+}
+
+impl WithPartition for AssetQuery {
+    fn with_partition(&self, partition: Partition) -> Self {
+        Self {
+            limit: self.limit.clone(),
+            cursor: self.cursor.clone(),
+            include_metadata: self.include_metadata.clone(),
+            name: self.name.clone(),
+            source: self.source.clone(),
+            root: self.root.clone(),
+            min_created_time: self.min_created_time.clone(),
+            max_created_time: self.max_created_time.clone(),
+            min_last_updated_time: self.min_last_updated_time.clone(),
+            max_last_updated_time: self.max_last_updated_time.clone(),
+            external_id_prefix: self.external_id_prefix.clone(),
+            partition: Some(partition),
         }
     }
 }

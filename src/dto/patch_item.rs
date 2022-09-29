@@ -1,79 +1,142 @@
-use serde::{Deserialize, Serialize};
-use serde_json::json;
+use std::collections::HashMap;
 
-#[derive(Serialize, Deserialize, Debug)]
+use serde::{Deserialize, Serialize};
+
+use crate::Identity;
+
+#[derive(Serialize, Deserialize, Debug, Default)]
 #[serde(rename_all = "camelCase")]
-pub struct PatchItem {
-    #[serde(skip_serializing_if = "::serde_json::Value::is_null")]
-    pub set: ::serde_json::Value,
+pub struct UpdateSetNull<T> {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub set: Option<T>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub set_null: Option<bool>,
 }
 
-impl PatchItem {
-    pub fn convert_option<T: Serialize>(item: &Option<T>) -> Option<PatchItem> {
-        match item {
-            Some(i) => Some(PatchItem::from(i)),
-            None => None,
-        }
-    }
-
-    pub fn convert<T: Serialize>(item: &T) -> Option<PatchItem> {
-        Some(PatchItem::from(item))
-    }
-}
-
-impl<T: Serialize> From<&T> for PatchItem {
-    fn from(item: &T) -> PatchItem {
-        PatchItem {
-            set: json!(item),
-            set_null: None,
+impl<T> From<Option<T>> for UpdateSetNull<T> {
+    fn from(el: Option<T>) -> Self {
+        match el {
+            Some(x) => UpdateSetNull {
+                set: Some(x),
+                set_null: None,
+            },
+            None => UpdateSetNull {
+                set: None,
+                set_null: Some(true),
+            },
         }
     }
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Default)]
 #[serde(rename_all = "camelCase")]
-pub struct PatchList {
+pub struct UpdateSet<T> {
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub add: Option<Vec<u64>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub remove: Option<Vec<u64>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub set: Option<Vec<u64>>,
+    pub set: Option<T>,
 }
 
-impl PatchList {
-    pub fn convert(list: &Option<Vec<u64>>) -> Option<PatchList> {
-        match list {
-            Some(l) => {
-                if l.is_empty() {
-                    None
-                } else {
-                    Some(PatchList::from(l))
-                }
-            }
-            None => None,
+impl<T> From<T> for UpdateSet<T> {
+    fn from(el: T) -> Self {
+        UpdateSet { set: Some(el) }
+    }
+}
+
+#[derive(Serialize, Deserialize, Debug, Default)]
+#[serde(rename_all = "camelCase")]
+pub struct UpdateList<TAdd, TRemove> {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub add: Option<Vec<TAdd>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub remove: Option<Vec<TRemove>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub set: Option<Vec<TAdd>>,
+}
+
+impl<TAdd, TRemove> From<Vec<TAdd>> for UpdateList<TAdd, TRemove> {
+    fn from(el: Vec<TAdd>) -> Self {
+        UpdateList::<TAdd, TRemove> {
+            set: Some(el),
+            remove: None,
+            add: None,
         }
     }
 }
 
-impl From<&[u64]> for PatchList {
-    fn from(items: &[u64]) -> PatchList {
-        PatchList {
-            add: None,
-            remove: None,
-            set: Some(items.to_vec()),
+impl<TAdd, TRemove> From<Option<Vec<TAdd>>> for UpdateList<TAdd, TRemove> {
+    fn from(el: Option<Vec<TAdd>>) -> Self {
+        match el {
+            Some(x) => x.into(),
+            None => UpdateList::<TAdd, TRemove> {
+                set: Some(Vec::<TAdd>::new()),
+                remove: None,
+                add: None,
+            },
         }
     }
 }
 
-impl From<&Vec<u64>> for PatchList {
-    fn from(items: &Vec<u64>) -> PatchList {
-        PatchList {
-            add: None,
+#[derive(Serialize, Deserialize, Debug, Default)]
+#[serde(rename_all = "camelCase")]
+pub struct UpdateMap<TKey, TValue>
+where
+    TKey: std::hash::Hash + std::cmp::Eq,
+{
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub set: Option<HashMap<TKey, TValue>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub remove: Option<Vec<TKey>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub add: Option<HashMap<TKey, TValue>>,
+}
+
+impl<TKey, TValue> From<HashMap<TKey, TValue>> for UpdateMap<TKey, TValue>
+where
+    TKey: std::hash::Hash + std::cmp::Eq,
+{
+    fn from(el: HashMap<TKey, TValue>) -> Self {
+        UpdateMap {
+            set: Some(el),
             remove: None,
-            set: Some(items.clone()),
+            add: None,
+        }
+    }
+}
+
+impl<TKey, TValue> From<Option<HashMap<TKey, TValue>>> for UpdateMap<TKey, TValue>
+where
+    TKey: std::hash::Hash + std::cmp::Eq,
+{
+    fn from(el: Option<HashMap<TKey, TValue>>) -> Self {
+        match el {
+            Some(x) => x.into(),
+            None => UpdateMap {
+                set: Some(HashMap::new()),
+                remove: None,
+                add: None,
+            },
+        }
+    }
+}
+
+#[derive(Serialize, Deserialize, Debug, Default)]
+#[serde(rename_all = "camelCase")]
+pub struct Patch<T>
+where
+    T: Default,
+{
+    #[serde(flatten)]
+    pub id: Identity,
+    pub update: T,
+}
+
+impl<T> Patch<T>
+where
+    T: Default,
+{
+    pub fn new(id: Identity) -> Self {
+        Patch::<T> {
+            id,
+            update: T::default(),
         }
     }
 }

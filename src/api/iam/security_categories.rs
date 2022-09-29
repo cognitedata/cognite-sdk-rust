@@ -1,19 +1,15 @@
-use crate::api::ApiClient;
+use crate::api::resource::Resource;
 use crate::dto::iam::security_category::*;
 use crate::dto::items::Items;
-use crate::dto::params::Params;
 use crate::error::Result;
 
-pub struct SecurityCategories {
-    api_client: ApiClient,
-}
+pub type SecurityCategories = Resource<SecurityCategory>;
 
 impl SecurityCategories {
-    pub fn new(api_client: ApiClient) -> SecurityCategories {
-        SecurityCategories { api_client }
-    }
-
-    pub async fn list_all(&self, params: Option<Vec<Params>>) -> Result<Vec<SecurityCategory>> {
+    pub async fn list_all(
+        &self,
+        params: Option<SecurityCategoryQuery>,
+    ) -> Result<Vec<SecurityCategory>> {
         let security_categories_response: SecurityCategoryListResponse = self
             .api_client
             .get_with_params("securitycategories", params)

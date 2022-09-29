@@ -1,24 +1,18 @@
-use crate::api::ApiClient;
+use crate::api::resource::Resource;
 use crate::dto::iam::api_key::*;
 use crate::dto::items::Items;
-use crate::dto::params::Params;
 use crate::error::Result;
+use crate::{List, WithBasePath};
 
-pub struct ApiKeys {
-    api_client: ApiClient,
+pub type ApiKeys = Resource<ApiKey>;
+
+impl WithBasePath for ApiKeys {
+    const BASE_PATH: &'static str = "apikeys";
 }
 
+impl List<ApiKeyQuery, ApiKey> for ApiKeys {}
+
 impl ApiKeys {
-    pub fn new(api_client: ApiClient) -> ApiKeys {
-        ApiKeys { api_client }
-    }
-
-    pub async fn list_all(&self, params: Option<Vec<Params>>) -> Result<Vec<ApiKey>> {
-        let api_keys_response: ApiKeyListResponse =
-            self.api_client.get_with_params("apikeys", params).await?;
-        Ok(api_keys_response.items)
-    }
-
     pub async fn create(&self, service_account_ids: &[u64]) -> Result<Vec<ApiKey>> {
         let service_account_id_items = Items::from(service_account_ids);
         let api_keys_response: ApiKeyListResponse = self

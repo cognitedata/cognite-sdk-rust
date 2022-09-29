@@ -1,5 +1,7 @@
 use serde::{Deserialize, Serialize};
 
+use crate::{to_query, AsParams};
+
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct GroupListResponse {
@@ -17,4 +19,17 @@ pub struct Group {
     pub capabilities: ::serde_json::Value,
     pub is_deleted: Option<bool>,
     pub deleted_time: Option<i64>,
+}
+
+#[derive(Debug, Default)]
+pub struct GroupQuery {
+    pub all: Option<bool>,
+}
+
+impl AsParams for GroupQuery {
+    fn to_tuples(self) -> Vec<(String, String)> {
+        let mut params = Vec::<(String, String)>::new();
+        to_query("all", &self.all, &mut params);
+        params
+    }
 }

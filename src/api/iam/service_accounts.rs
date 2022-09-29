@@ -1,23 +1,14 @@
-use crate::api::ApiClient;
+use crate::api::resource::Resource;
 use crate::dto::iam::service_account::*;
 use crate::dto::items::Items;
-use crate::dto::params::Params;
 use crate::error::Result;
 
-pub struct ServiceAccounts {
-    api_client: ApiClient,
-}
+pub type ServiceAccounts = Resource<ServiceAccount>;
 
 impl ServiceAccounts {
-    pub fn new(api_client: ApiClient) -> ServiceAccounts {
-        ServiceAccounts { api_client }
-    }
-
-    pub async fn list_all(&self, params: Option<Vec<Params>>) -> Result<Vec<ServiceAccount>> {
-        let service_accounts_response: ServiceAccountListResponse = self
-            .api_client
-            .get_with_params("serviceaccounts", params)
-            .await?;
+    pub async fn list_all(&self) -> Result<Vec<ServiceAccount>> {
+        let service_accounts_response: ServiceAccountListResponse =
+            self.api_client.get("serviceaccounts").await?;
         Ok(service_accounts_response.items)
     }
 
