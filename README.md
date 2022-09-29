@@ -1,8 +1,6 @@
 Cognite Rust SDK
 ==========================
 
-Under development.. 
-
 Rust SDK to ensure excellent user experience for developers and data scientists working with the Cognite Data Fusion.
 
 ## Documentation
@@ -15,122 +13,72 @@ Set environment variables:
 
 ```bash
 $ export COGNITE_BASE_URL="https://api.cognitedata.com"
-$ export COGNITE_API_KEY=<your API key>
-$ export COGNITE_PROJECT_NAME=<your project name>
+$ export COGNITE_CLIENT_ID=<your client id>
+$ export COGNITE_CLIENT_SECRET=<your client secret>
+$ export COGNITE_TOKEN_URL=<your token url>
+$ export COGNITE_SCOPES=<space separated list of scopes>
+$ export COGNITE_PROJECT=<your project name>
 ```
-
 
 ## Supported features for API v1
 
-**Features might not be stable**
-
-
 ### Core
-- Asset
-	- create()
-	- delete()
-	- list()
-  - filter_all()
-  - search()
-  - retrieve()
-  - update()
-- Event
-	- create()
-	- filter()
-	- retrieve_single()
-	- retrieve()
-  - update()
-  - search()
-  - delete()
+- Assets
+- Events
 - Files
-  - filter_all()
-  - retrieve_metadata()
-  - search()
-  - delete()
-  - download_link()
-- TimeSerie
-	- list()
-	- create()
-  - search()
-  - retrieve()
-  - update()
-  - delete()
-  - insert_datapoints()
-  - retrieve_datapoints()
-  - retrieve_latest_datapoint()
-  - delete_datapoints()
+  - Without upload/download
+- TimeSeries
+  - With protobuf support
+- Sequences
 ### IAM
 - ApiKeys
-  - list_all()
-  - create()
-  - delete()
 - Groups
-  - list_all()
-  - create()
-  - delete()
-  - list_service_accounts()
-  - add_service_accounts()
-  - remove_service_accounts()
 - SecurityCategories
-  - list_all()
-  - create()
-  - delete()
-- ServiceAccount
-  - list_all()
-  - create()
-  - delete()
-
+- ServiceAccounts
+### Data Ingestion
+- Extraction pipelines
+- Raw
+### Data Organization
+- Datasets
+- Labels
+- Relationships
 
 ## Example
 
-Since this is not published on crates.io, then you'll have to clone the repo and reference it locally.
+Since this is not published on crates.io, you'll have to reference the git repository
 
 Cargo.toml:
 
 ```TOML
 [dependencies]
-cognite = { path = "../cognite-sdk-rust" }
+cognite = { git = "https://github.com/cognitedata/cognite-sdk-rust" }
 tokio = { version = "0.2", features = ["full"] }
 ```
 
 ```Rust
+use cognite::prelude::*;
 use cognite::{Asset, AssetFilter, AssetSearch, CogniteClient};
 
 #[tokio::main]
 fn main() {
     let cognite_client = CogniteClient::new("TestApp").unwrap();
 
-    // Filter all assets
-
+    // List all assets
     let mut filter: AssetFilter = AssetFilter::new();
-    filter.name.replace("aker".to_string());
-    filter.asset_subtrees.replace(vec![ /* ... */ ]);
-
-    // ...
-
-    let assets: Vec<Asset> = cognite_client.assets.filter_all(filter).await.unwrap();
+    filter.name.replace("Aker".to_string());
+    let assets = cognite_client
+        .assets
+        .filter(FilterAssetsRequest {
+            filter,
+            ..Default::default()
+        })
+        .await
+        .unwrap();
 
     // Retrieve asset
-    match cognite_client.assets.retrieve(&vec![6687602007296940_u64]).await {
-        Ok(asset) => println!("{:?}", asset),
-        Err(e) => println!("{:?}", e),
-    }
-
-    // Search asset
-    let mut asset_search: AssetSearch = AssetSearch::new();
-    asset_search.description.replace("aker".to_string());
-    asset_search.name.replace("...".to_string());
-
-    // ...
-
-    let mut asset_filter: AssetFilter = AssetFilter::new();
-    asset_filter.source.replace("...".to_string());
-
-    // ...
-
-    let assets_search_result: Vec<Asset> = cognite_client
+    match cognite_client
         .assets
-        .search(asset_filter, asset_search)
+        .retrieve(&vec![Identity::from(6687602007296940)], false, None)
         .await
         .unwrap();
 }
