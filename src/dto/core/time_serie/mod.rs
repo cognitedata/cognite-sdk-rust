@@ -7,7 +7,7 @@ use crate::{EqIdentity, Identity, Patch, UpdateList, UpdateMap, UpdateSet, Updat
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Default)]
 #[serde(rename_all = "camelCase")]
 pub struct TimeSerie {
     pub id: i64,

@@ -34,7 +34,7 @@ pub struct SequenceColumn {
     pub last_updated_time: Option<i64>,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Default)]
 #[serde(rename_all = "camelCase")]
 pub struct Sequence {
     pub id: i64,

@@ -52,7 +52,7 @@ impl EventCount {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Default)]
 #[serde(rename_all = "camelCase")]
 pub struct Event {
     pub id: i64,

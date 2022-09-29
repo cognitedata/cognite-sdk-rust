@@ -17,7 +17,7 @@ pub struct AssetAggregate {
     pub path: Option<Vec<CogniteId>>,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Default)]
 #[serde(rename_all = "camelCase")]
 pub struct Asset {
     pub id: i64,
