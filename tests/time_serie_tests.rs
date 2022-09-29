@@ -1,40 +1,46 @@
-#[cfg(test)]
-mod time_serie_tests {
-    use cognite::*;
+mod common;
+use common::*;
 
-    #[tokio::test]
-    async fn create_and_delete_time_series() {
-        let cognite_client = CogniteClient::new("TestApp").unwrap();
-        let time_serie = TimeSerie::new(
-            "name",
-            None,
-            false,
-            None,
-            None,
-            None,
-            true,
-            "description",
-            None,
-        );
-        match cognite_client.time_series.create(&vec![time_serie]).await {
-            Ok(mut time_series) => {
-                assert_eq!(time_series.len(), 1);
-                for time_serie in time_series.iter_mut() {
-                    time_serie.description = String::from("changed");
-                }
+use cognite::time_series::*;
+use cognite::*;
 
-                time_series = match cognite_client.time_series.update(&time_series).await {
-                    Ok(updated_time_series) => updated_time_series,
-                    Err(e) => panic!("{:?}", e),
-                };
-
-                let id_list: Vec<u64> = time_series.iter().map(|ts| ts.id).collect();
-                match cognite_client.time_series.delete(&id_list).await {
-                    Ok(_) => assert!(true),
-                    Err(e) => panic!("{:?}", e),
-                };
-            }
-            Err(e) => panic!("{:?}", e),
-        }
+#[tokio::test]
+async fn create_and_delete_time_series() {
+    let id = format!("{}-ts1", PREFIX.as_str());
+    let time_serie = TimeSerie::new(
+        "name",
+        Some(id),
+        false,
+        None,
+        None,
+        None,
+        true,
+        "description",
+        None,
+    );
+    let mut time_series = COGNITE_CLIENT
+        .time_series
+        .create_from(&vec![time_serie])
+        .await
+        .unwrap();
+    assert_eq!(time_series.len(), 1);
+    for time_serie in time_series.iter_mut() {
+        time_serie.description = Some(String::from("changed"));
     }
+
+    let time_series = COGNITE_CLIENT
+        .time_series
+        .update_from(&time_series)
+        .await
+        .unwrap();
+
+    let id_list: Vec<Identity> = time_series
+        .iter()
+        .map(|ts| Identity::Id { id: ts.id })
+        .collect();
+    COGNITE_CLIENT
+        .time_series
+        .delete(&id_list, true)
+        .await
+        .unwrap();
 }

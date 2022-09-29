@@ -1,4 +1,4 @@
-use crate::dto::filter_types::EpochTimestampRange;
+use crate::Range;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
@@ -12,11 +12,11 @@ pub struct FileFilter {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub source: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub created_time: Option<EpochTimestampRange>,
+    pub created_time: Option<Range<i64>>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub last_updated_time: Option<EpochTimestampRange>,
+    pub last_updated_time: Option<Range<i64>>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub uploaded_time: Option<EpochTimestampRange>,
+    pub uploaded_time: Option<Range<i64>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub external_id_prefix: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -39,44 +39,5 @@ pub struct FileSearch {
 impl FileSearch {
     pub fn new() -> FileSearch {
         FileSearch::default()
-    }
-}
-
-#[derive(Serialize, Deserialize, Debug)]
-#[serde(rename_all = "camelCase")]
-pub struct Search {
-    pub filter: FileFilter,
-    pub search: FileSearch,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub limit: Option<u32>,
-}
-
-impl Search {
-    pub fn new(filter: FileFilter, search: FileSearch, limit: Option<u32>) -> Search {
-        Search {
-            filter,
-            search,
-            limit,
-        }
-    }
-}
-
-#[derive(Serialize, Deserialize, Debug)]
-#[serde(rename_all = "camelCase")]
-pub struct Filter {
-    pub filter: FileFilter,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub cursor: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub limit: Option<u32>,
-}
-
-impl Filter {
-    pub fn new(filter: FileFilter, cursor: Option<String>, limit: Option<u32>) -> Filter {
-        Filter {
-            filter,
-            cursor,
-            limit,
-        }
     }
 }

@@ -1,6 +1,8 @@
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
+use crate::CogniteId;
+
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct FileListResponse {
@@ -16,10 +18,10 @@ pub struct FileMetadata {
     pub source: Option<String>,
     pub mime_type: Option<String>,
     pub metadata: HashMap<String, String>,
-    pub asset_ids: Option<Vec<u64>>,
+    pub asset_ids: Option<Vec<i64>>,
     pub source_created_time: Option<i64>,
     pub source_modified_time: Option<i64>,
-    pub id: u64,
+    pub id: i64,
     pub uploaded: bool,
     pub uploaded_time: Option<i64>,
     pub created_time: i64,
@@ -43,19 +45,11 @@ pub struct FileLink {
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct FileId {
-    id: u64,
+    id: i64,
 }
 
-impl From<&FileMetadata> for FileId {
-    fn from(file_metadata: &FileMetadata) -> FileId {
-        FileId {
-            id: file_metadata.id,
-        }
-    }
-}
-
-impl From<u64> for FileId {
-    fn from(file_id: u64) -> FileId {
-        FileId { id: file_id }
+impl From<&FileMetadata> for CogniteId {
+    fn from(file_metadata: &FileMetadata) -> CogniteId {
+        CogniteId::from(file_metadata.id)
     }
 }

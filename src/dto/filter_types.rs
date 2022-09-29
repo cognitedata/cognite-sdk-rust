@@ -1,27 +1,158 @@
+use std::fmt::Display;
+
 use serde::{Deserialize, Serialize};
 
-#[derive(Serialize, Deserialize, Debug)]
+use crate::CogniteExternalId;
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
-pub struct EpochTimestampRange {
-    max: i64,
-    min: i64,
+pub struct Range<T> {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub max: Option<T>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub min: Option<T>,
 }
 
-impl EpochTimestampRange {
-    pub fn new(min: i64, max: i64) -> EpochTimestampRange {
-        EpochTimestampRange { min, max }
+impl<T> Range<T> {
+    pub fn new(min: Option<T>, max: Option<T>) -> Range<T> {
+        Range::<T> { min, max }
     }
 }
 
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
-pub struct IntegerRange {
-    max: i64,
-    min: i64,
+pub struct Filter<T> {
+    pub filter: T,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub cursor: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub limit: Option<u32>,
 }
 
-impl IntegerRange {
-    pub fn new(min: i64, max: i64) -> IntegerRange {
-        IntegerRange { min, max }
+impl<T> Filter<T> {
+    pub fn new(filter: T, cursor: Option<String>, limit: Option<u32>) -> Filter<T> {
+        Filter {
+            filter,
+            cursor,
+            limit,
+        }
+    }
+}
+
+impl<T> SetCursor for Filter<T> {
+    fn set_cursor(&mut self, cursor: Option<String>) {
+        self.cursor = cursor;
+    }
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct Search<TFilter, TSearch> {
+    pub filter: TFilter,
+    pub search: TSearch,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub limit: Option<u32>,
+}
+
+impl<TFilter, TSearch> Search<TFilter, TSearch> {
+    pub fn new(filter: TFilter, search: TSearch, limit: Option<u32>) -> Search<TFilter, TSearch> {
+        Search {
+            filter,
+            search,
+            limit,
+        }
+    }
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
+pub enum LabelsFilter {
+    ContainsAny(Vec<CogniteExternalId>),
+    ContainsAll(Vec<CogniteExternalId>),
+}
+
+#[derive(Debug)]
+pub struct Partition {
+    pub num_partitions: u32,
+    pub partition_number: u32,
+}
+
+impl Partition {
+    pub fn new(partition_number: u32, num_partitions: u32) -> Self {
+        Self {
+            partition_number,
+            num_partitions,
+        }
+    }
+}
+
+impl Display for Partition {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}/{}", self.partition_number, self.num_partitions)
+    }
+}
+
+impl Serialize for Partition {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        serializer.serialize_str(&self.to_string())
+    }
+}
+
+#[derive(Serialize, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct PartitionedFilter<T> {
+    pub filter: T,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub cursor: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub limit: Option<u32>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub partition: Option<Partition>,
+}
+
+impl<T> PartitionedFilter<T> {
+    pub fn new(
+        filter: T,
+        cursor: Option<String>,
+        limit: Option<u32>,
+        partition: Option<Partition>,
+    ) -> PartitionedFilter<T> {
+        PartitionedFilter {
+            filter,
+            cursor,
+            limit,
+            partition,
+        }
+    }
+}
+
+pub trait SetCursor {
+    fn set_cursor(&mut self, cursor: Option<String>);
+}
+
+impl<T> SetCursor for PartitionedFilter<T> {
+    fn set_cursor(&mut self, cursor: Option<String>) {
+        self.cursor = cursor;
+    }
+}
+
+pub trait WithPartition {
+    fn with_partition(&self, partition: Partition) -> Self;
+}
+
+impl<T> WithPartition for PartitionedFilter<T>
+where
+    T: Clone,
+{
+    fn with_partition(&self, partition: Partition) -> Self {
+        Self {
+            filter: self.filter.clone(),
+            cursor: None,
+            limit: self.limit.clone(),
+            partition: Some(partition),
+        }
     }
 }

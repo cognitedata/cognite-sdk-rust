@@ -1,4 +1,4 @@
-use crate::dto::patch_item::{PatchItem, PatchList};
+use crate::{EqIdentity, Identity, Patch, UpdateList, UpdateMap, UpdateSetNull};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
@@ -11,10 +11,17 @@ pub struct EventListResponse {
 }
 
 #[derive(Serialize, Deserialize, Debug)]
+#[serde(rename_all = "camelCase", untagged)]
+pub enum IntegerOrString {
+    Integer(i64),
+    String(String),
+}
+
+#[derive(Serialize, Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct AggregatedCount {
-    pub count: u64,
-    pub value: String
+    pub count: i64,
+    pub value: IntegerOrString,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -32,31 +39,28 @@ pub struct AggregatedEventCountResponse {
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct EventCount {
-    pub count: u64,
+    pub count: i64,
 }
 
 impl EventCount {
-    pub fn new(
-        count: u64,
-    ) -> EventCount {
-        EventCount {
-            count
-        }
+    pub fn new(count: i64) -> EventCount {
+        EventCount { count }
     }
 }
 
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct Event {
-    pub id: u64,
+    pub id: i64,
     pub external_id: Option<String>,
+    pub data_set_id: Option<i64>,
     pub start_time: Option<i64>,
     pub end_time: Option<i64>,
     pub r#type: Option<String>,
     pub subtype: Option<String>,
     pub description: Option<String>,
     pub metadata: Option<HashMap<String, String>>,
-    pub asset_ids: Option<Vec<u64>>,
+    pub asset_ids: Option<Vec<i64>>,
     pub source: Option<String>,
     pub created_time: Option<i64>,
     pub last_updated_time: Option<i64>,
@@ -64,6 +68,7 @@ pub struct Event {
 
 impl Event {
     pub fn new(
+        data_set_id: Option<i64>,
         start_time: Option<i64>,
         end_time: Option<i64>,
         r#type: Option<String>,
@@ -71,12 +76,13 @@ impl Event {
         external_id: Option<String>,
         description: Option<String>,
         metadata: Option<HashMap<String, String>>,
-        asset_ids: Option<Vec<u64>>,
+        asset_ids: Option<Vec<i64>>,
         source: Option<String>,
     ) -> Event {
         Event {
             id: 0,
             external_id,
+            data_set_id,
             start_time,
             end_time,
             r#type,
@@ -91,24 +97,26 @@ impl Event {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Default)]
 #[serde(rename_all = "camelCase")]
 pub struct AddEvent {
-    external_id: Option<String>,
-    start_time: Option<i64>,
-    end_time: Option<i64>,
-    r#type: Option<String>,
-    subtype: Option<String>,
-    description: Option<String>,
-    metadata: Option<HashMap<String, String>>,
-    asset_ids: Option<Vec<u64>>,
-    source: Option<String>,
+    pub external_id: Option<String>,
+    pub data_set_id: Option<i64>,
+    pub start_time: Option<i64>,
+    pub end_time: Option<i64>,
+    pub r#type: Option<String>,
+    pub subtype: Option<String>,
+    pub description: Option<String>,
+    pub metadata: Option<HashMap<String, String>>,
+    pub asset_ids: Option<Vec<i64>>,
+    pub source: Option<String>,
 }
 
 impl From<&Event> for AddEvent {
     fn from(event: &Event) -> AddEvent {
         AddEvent {
             external_id: event.external_id.clone(),
+            data_set_id: event.data_set_id,
             start_time: event.start_time,
             end_time: event.end_time,
             r#type: event.r#type.clone(),
@@ -121,63 +129,73 @@ impl From<&Event> for AddEvent {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug)]
-#[serde(rename_all = "camelCase")]
-pub struct EventId {
-    id: u64,
-}
-
-impl From<&Event> for EventId {
-    fn from(event: &Event) -> EventId {
-        EventId { id: event.id }
+impl EqIdentity for AddEvent {
+    fn eq(&self, id: &Identity) -> bool {
+        match id {
+            Identity::Id { id: _ } => false,
+            Identity::ExternalId { external_id } => self.external_id.as_ref() == Some(external_id),
+        }
     }
 }
 
-impl From<u64> for EventId {
-    fn from(event_id: u64) -> EventId {
-        EventId { id: event_id }
-    }
-}
-
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Default)]
 #[serde(rename_all = "camelCase")]
 pub struct PatchEvent {
-    id: u64,
-    update: PatchEventFields,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub external_id: Option<UpdateSetNull<String>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub data_set_id: Option<UpdateSetNull<i64>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub start_time: Option<UpdateSetNull<i64>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub end_time: Option<UpdateSetNull<i64>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub description: Option<UpdateSetNull<String>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub metadata: Option<UpdateMap<String, String>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub asset_ids: Option<UpdateList<i64, i64>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub source: Option<UpdateSetNull<String>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub r#type: Option<UpdateSetNull<String>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub subtype: Option<UpdateSetNull<String>>,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
-#[serde(rename_all = "camelCase")]
-struct PatchEventFields {
-    #[serde(skip_serializing_if = "Option::is_none")]
-    external_id: Option<PatchItem>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    start_time: Option<PatchItem>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    end_time: Option<PatchItem>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    description: Option<PatchItem>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    metadata: Option<PatchItem>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    asset_ids: Option<PatchList>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    source: Option<PatchItem>,
-}
-
-impl From<&Event> for PatchEvent {
-    fn from(event: &Event) -> PatchEvent {
-        PatchEvent {
-            id: event.id,
-            update: PatchEventFields {
-                external_id: PatchItem::convert_option(&event.external_id),
-                start_time: PatchItem::convert_option(&event.start_time),
-                end_time: PatchItem::convert_option(&event.end_time),
-                description: PatchItem::convert_option(&event.description),
-                metadata: PatchItem::convert_option(&event.metadata),
-                asset_ids: PatchList::convert(&event.asset_ids),
-                source: PatchItem::convert_option(&event.source),
+impl From<&Event> for Patch<PatchEvent> {
+    fn from(event: &Event) -> Patch<PatchEvent> {
+        Patch::<PatchEvent> {
+            id: Identity::Id { id: event.id },
+            update: PatchEvent {
+                external_id: Some(event.external_id.clone().into()),
+                data_set_id: Some(event.data_set_id.into()),
+                start_time: Some(event.start_time.into()),
+                end_time: Some(event.end_time.into()),
+                description: Some(event.description.clone().into()),
+                metadata: Some(event.metadata.clone().into()),
+                asset_ids: Some(event.asset_ids.clone().into()),
+                source: Some(event.source.clone().into()),
+                r#type: Some(event.r#type.clone().into()),
+                subtype: Some(event.subtype.clone().into()),
             },
+        }
+    }
+}
+
+impl From<&AddEvent> for PatchEvent {
+    fn from(event: &AddEvent) -> Self {
+        PatchEvent {
+            external_id: Some(event.external_id.clone().into()),
+            data_set_id: Some(event.data_set_id.into()),
+            start_time: Some(event.start_time.into()),
+            end_time: Some(event.end_time.into()),
+            description: Some(event.description.clone().into()),
+            metadata: Some(event.metadata.clone().into()),
+            asset_ids: Some(event.asset_ids.clone().into()),
+            source: Some(event.source.clone().into()),
+            r#type: Some(event.r#type.clone().into()),
+            subtype: Some(event.subtype.clone().into()),
         }
     }
 }

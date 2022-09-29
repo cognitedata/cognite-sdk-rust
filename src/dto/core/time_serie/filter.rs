@@ -1,10 +1,13 @@
-use crate::dto::filter_types::EpochTimestampRange;
+use crate::{to_query, Identity, Partition, SetCursor, WithPartition};
+use crate::{AsParams, Range};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
 #[derive(Serialize, Deserialize, Debug, Default)]
 #[serde(rename_all = "camelCase")]
 pub struct TimeSerieFilter {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub name: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub unit: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -14,13 +17,21 @@ pub struct TimeSerieFilter {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub metadata: Option<HashMap<String, String>>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub asset_ids: Option<Vec<u64>>,
+    pub asset_ids: Option<Vec<i64>>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub asset_subtrees: Option<Vec<u64>>,
+    pub asset_external_ids: Option<Vec<String>>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub created_time: Option<EpochTimestampRange>,
+    pub root_asset_ids: Option<Vec<String>>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub last_updated_time: Option<EpochTimestampRange>,
+    pub asset_subtree_ids: Option<Vec<Identity>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub data_set_ids: Option<Vec<Identity>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub external_id_prefix: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub created_time: Option<Range<i64>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub last_updated_time: Option<Range<i64>>,
 }
 
 impl TimeSerieFilter {
@@ -46,21 +57,41 @@ impl TimeSerieSearch {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug)]
-#[serde(rename_all = "camelCase")]
-pub struct Search {
-    pub filter: TimeSerieFilter,
-    pub search: TimeSerieSearch,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub limit: Option<u32>,
+#[derive(Debug, Default)]
+pub struct TimeSerieQuery {
+    pub limit: Option<i32>,
+    pub include_metadata: Option<bool>,
+    pub cursor: Option<String>,
+    pub partition: Option<Partition>,
+    pub external_id_prefix: Option<String>,
 }
 
-impl Search {
-    pub fn new(filter: TimeSerieFilter, search: TimeSerieSearch, limit: Option<u32>) -> Search {
-        Search {
-            filter,
-            search,
-            limit,
+impl AsParams for TimeSerieQuery {
+    fn to_tuples(self) -> Vec<(String, String)> {
+        let mut params = Vec::<(String, String)>::new();
+        to_query("limit", &self.limit, &mut params);
+        to_query("includeMetadata", &self.include_metadata, &mut params);
+        to_query("cursor", &self.cursor, &mut params);
+        to_query("externalIdPrefix", &self.external_id_prefix, &mut params);
+        to_query("partition", &self.partition, &mut params);
+        params
+    }
+}
+
+impl SetCursor for TimeSerieQuery {
+    fn set_cursor(&mut self, cursor: Option<String>) {
+        self.cursor = cursor;
+    }
+}
+
+impl WithPartition for TimeSerieQuery {
+    fn with_partition(&self, partition: crate::Partition) -> Self {
+        Self {
+            limit: self.limit.clone(),
+            include_metadata: self.include_metadata.clone(),
+            cursor: None,
+            partition: Some(partition),
+            external_id_prefix: self.external_id_prefix.clone(),
         }
     }
 }

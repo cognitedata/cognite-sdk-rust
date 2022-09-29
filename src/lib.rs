@@ -4,19 +4,80 @@ mod api;
 mod dto;
 mod error;
 
+pub mod login {
+    pub use super::api::auth::login::*;
+    pub use super::dto::auth::login::*;
+}
+
+pub mod assets {
+    pub use super::api::core::assets::*;
+    pub use super::dto::core::asset::*;
+}
+
+pub mod time_series {
+    pub use super::api::core::time_series::*;
+    pub use super::dto::core::{datapoint::*, time_serie::*};
+}
+
+pub mod events {
+    pub use super::api::core::events::*;
+    pub use super::dto::core::event::*;
+}
+
+pub mod files {
+    pub use super::api::core::files::*;
+    pub use super::dto::core::files::*;
+}
+
+pub mod raw {
+    pub use super::api::data_ingestion::raw::*;
+    pub use super::dto::data_ingestion::raw::*;
+}
+
+pub mod extpipes {
+    pub use super::api::data_ingestion::extpipes::*;
+    pub use super::dto::data_ingestion::extpipes::*;
+}
+
+pub mod datasets {
+    pub use super::api::data_organization::datasets::*;
+    pub use super::dto::data_organization::datasets::*;
+}
+
+pub mod labels {
+    pub use super::api::data_organization::labels::*;
+    pub use super::dto::data_organization::labels::*;
+}
+
+pub mod relationships {
+    pub use super::api::data_organization::relationships::*;
+    pub use super::dto::data_organization::relationships::*;
+}
+
+pub mod sequences {
+    pub use super::api::core::sequences::*;
+    pub use super::dto::core::sequences::*;
+}
+
+pub mod iam {
+    pub use super::api::iam::{
+        api_keys::*, groups::*, security_categories::*, service_accounts::*,
+    };
+    pub use super::dto::iam::{api_key::*, group::*, security_category::*, service_account::*};
+}
+
 pub use self::{
-    api::{
-        api_client::*,
-        auth::login::*,
-        core::{assets::*, events::*, files::*, time_series::*},
-        iam::{api_keys::*, groups::*, security_categories::*, service_accounts::*},
-    },
+    api::{api_client::*, authenticator::*, resource::*},
     cognite_client::*,
-    dto::{
-        core::{asset::*, datapoint::*, event::*, files::*, time_serie::*},
-        filter_types::*,
-        iam::{api_key::*, group::*, security_category::*, service_account::*},
-        params::*,
-    },
+    dto::{filter_types::*, identity::*, items::*, params::*, patch_item::*},
     error::*,
 };
+
+pub mod prelude {
+    pub use super::api::resource::*;
+    pub use super::cognite_client::*;
+    pub use super::dto::filter_types::*;
+    pub use super::dto::identity::*;
+    pub use super::dto::items::*;
+    pub use super::dto::patch_item::*;
+}

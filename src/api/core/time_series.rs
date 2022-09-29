@@ -1,89 +1,42 @@
-use crate::api::ApiClient;
+use crate::api::resource::*;
 use crate::dto::core::datapoint::*;
 use crate::dto::core::time_serie::*;
-use crate::dto::items::Items;
-use crate::dto::params::Params;
-use crate::error::{Error, Kind, Result};
+use crate::error::Result;
+use crate::Identity;
+use crate::Items;
+use crate::ItemsWithIgnoreUnknownIds;
+use crate::Patch;
 
-pub struct TimeSeries {
-    api_client: ApiClient,
+pub type TimeSeries = Resource<TimeSerie>;
+
+impl WithBasePath for TimeSeries {
+    const BASE_PATH: &'static str = "timeseries";
 }
 
+impl List<TimeSerieQuery, TimeSerie> for TimeSeries {}
+impl Create<AddTimeSerie, TimeSerie> for TimeSeries {}
+impl FilterItems<TimeSerieFilter, TimeSerie> for TimeSeries {}
+impl<'a> SearchItems<'a, TimeSerieFilter, TimeSerieSearch, TimeSerie> for TimeSeries {}
+impl RetrieveWithIgnoreUnknownIds<Identity, TimeSerie> for TimeSeries {}
+impl Update<Patch<PatchTimeSerie>, TimeSerie> for TimeSeries {}
+impl DeleteWithIgnoreUnknownIds<Identity> for TimeSeries {}
+
 impl TimeSeries {
-    pub fn new(api_client: ApiClient) -> TimeSeries {
-        TimeSeries { api_client }
-    }
-
-    pub async fn list_all(&self, params: Option<Vec<Params>>) -> Result<Vec<TimeSerie>> {
-        let time_series_response: TimeSerieListResponse = self
-            .api_client
-            .get_with_params("timeseries", params)
-            .await?;
-        Ok(time_series_response.items)
-    }
-
-    pub async fn create(&self, time_series: &[TimeSerie]) -> Result<Vec<TimeSerie>> {
-        let add_time_series: Vec<AddTimeSerie> =
-            time_series.iter().map(AddTimeSerie::from).collect();
-        let add_time_series_items = Items::from(&add_time_series);
-        let time_series_response: TimeSerieListResponse = self
-            .api_client
-            .post("timeseries", &add_time_series_items)
-            .await?;
-        Ok(time_series_response.items)
-    }
-
-    pub async fn search(
-        &self,
-        time_serie_filter: TimeSerieFilter,
-        time_serie_search: TimeSerieSearch,
-    ) -> Result<Vec<TimeSerie>> {
-        let filter: Search = Search::new(time_serie_filter, time_serie_search, None);
-        let time_series_response: TimeSerieListResponse =
-            self.api_client.post("timeseries/search", &filter).await?;
-        Ok(time_series_response.items)
-    }
-
-    pub async fn retrieve(&self, time_serie_ids: &[u64]) -> Result<Vec<TimeSerie>> {
-        let id_list: Vec<TimeSerieId> = time_serie_ids
-            .iter()
-            .copied()
-            .map(TimeSerieId::from)
-            .collect();
-        let id_items = Items::from(&id_list);
-        let time_series_response: TimeSerieListResponse =
-            self.api_client.post("timeseries/byids", &id_items).await?;
-        Ok(time_series_response.items)
-    }
-
-    pub async fn update(&self, time_series: &[TimeSerie]) -> Result<Vec<TimeSerie>> {
-        let patch_time_series: Vec<PatchTimeSerie> =
-            time_series.iter().map(PatchTimeSerie::from).collect();
-        let patch_time_series_items = Items::from(&patch_time_series);
-        let time_series_response: TimeSerieListResponse = self
-            .api_client
-            .post("timeseries/update", &patch_time_series_items)
-            .await?;
-        Ok(time_series_response.items)
-    }
-
-    pub async fn delete(&self, time_serie_ids: &[u64]) -> Result<()> {
-        let id_list: Vec<TimeSerieId> = time_serie_ids
-            .iter()
-            .copied()
-            .map(TimeSerieId::from)
-            .collect();
-        let id_items = Items::from(&id_list);
-        self.api_client
-            .post::<::serde_json::Value, Items>("timeseries/delete", &id_items)
-            .await?;
+    pub async fn insert_datapoints(&self, add_datapoints: Vec<AddDatapoints>) -> Result<()> {
+        let request = DataPointInsertionRequest::from(add_datapoints);
+        self.insert_datapoints_proto(&request).await?;
         Ok(())
     }
 
-    pub async fn insert_datapoints(&self, add_datapoints: &[AddDatapoints]) -> Result<()> {
-        let add_datapoints_items = Items::from(add_datapoints);
+    pub async fn insert_datapoints_proto(
+        &self,
+        add_datapoints: &DataPointInsertionRequest,
+    ) -> Result<()> {
         self.api_client
-            .post::<::serde_json::Value, Items>("timeseries/data", &add_datapoints_items)
+            .post_protobuf::<::serde_json::Value, DataPointInsertionRequest>(
+                "timeseries/data",
+                add_datapoints,
+            )
             .await?;
         Ok(())
     }
@@ -92,43 +45,38 @@ impl TimeSeries {
         &self,
         datapoints_filter: DatapointsFilter,
     ) -> Result<Vec<DatapointsResponse>> {
-        let datapoints_response: DatapointsListResponse = self
+        let datapoints_response = self.retrieve_datapoints_proto(datapoints_filter).await?;
+        Ok(DatapointsListResponse::from(datapoints_response).items)
+    }
+
+    pub async fn retrieve_datapoints_proto(
+        &self,
+        datapoints_filter: DatapointsFilter,
+    ) -> Result<DataPointListResponse> {
+        let datapoints_response: DataPointListResponse = self
             .api_client
-            .post("timeseries/data/list", &datapoints_filter)
+            .post_expect_protobuf("timeseries/data/list", &datapoints_filter)
             .await?;
-        Ok(datapoints_response.items)
+        Ok(datapoints_response)
     }
 
     pub async fn retrieve_latest_datapoints(
         &self,
-        time_serie_id: u64,
-        before: &str,
-    ) -> Result<DatapointsResponse> {
-        let latest_datapoint_query: LatestDatapointsQuery =
-            LatestDatapointsQuery::new(time_serie_id, before);
-        let mut datapoints_response: DatapointsListResponse = self
+        items: &[LatestDatapointsQuery],
+        ignore_unknown_ids: bool,
+    ) -> Result<Vec<DatapointsResponse>> {
+        let query = ItemsWithIgnoreUnknownIds::new(items, ignore_unknown_ids);
+        let datapoints_response: DatapointsListResponse = self
             .api_client
-            .post("timeseries/data/latest", &latest_datapoint_query)
+            .post("timeseries/data/latest", &query)
             .await?;
-        if let Some(datapoint) = datapoints_response.items.pop() {
-            return Ok(datapoint);
-        }
-        Err(Error::new(Kind::NotFound("Datapoint not found".to_owned())))
+        Ok(datapoints_response.items)
     }
 
-    pub async fn delete_datapoints(
-        &self,
-        time_serie_id: u64,
-        inclusive_begin: i64,
-        exclusive_end: i64,
-    ) -> Result<()> {
-        let delete_datapoint_query: DeleteDatapointsQuery =
-            DeleteDatapointsQuery::new(time_serie_id, inclusive_begin, exclusive_end);
+    pub async fn delete_datapoints(&self, query: &[DeleteDatapointsQuery]) -> Result<()> {
+        let items = Items::from(query);
         self.api_client
-            .post::<::serde_json::Value, DeleteDatapointsQuery>(
-                "timeseries/data/delete",
-                &delete_datapoint_query,
-            )
+            .post::<::serde_json::Value, Items>("timeseries/data/delete", &items)
             .await?;
         Ok(())
     }
