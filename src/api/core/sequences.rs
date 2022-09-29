@@ -30,27 +30,24 @@ impl Sequences {
         &self,
         query: RetrieveSequenceRows,
     ) -> Result<RetrieveSequenceRowsResponse> {
-        Ok(self
-            .api_client
+        self.api_client
             .post(&format!("{}/{}", Self::BASE_PATH, "data/list"), &query)
-            .await?)
+            .await
     }
 
     pub async fn retrieve_latest_row(
         &self,
         query: RetrieveLatestSequenceRow,
     ) -> Result<RetrieveSequenceRowsResponse> {
-        Ok(self
-            .api_client
+        self.api_client
             .post(&format!("{}/{}", Self::BASE_PATH, "data/latest"), &query)
-            .await?)
+            .await
     }
 
     pub async fn delete_rows(&self, query: &[DeleteSequenceRows]) -> Result<()> {
         let items = Items::from(query);
-        Ok(self
-            .api_client
+        self.api_client
             .post(&format!("{}/{}", Self::BASE_PATH, "data/delete"), &items)
-            .await?)
+            .await
     }
 }

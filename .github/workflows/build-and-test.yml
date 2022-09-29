@@ -13,8 +13,6 @@ jobs:
         with:
           toolchain: stable
           components: rustfmt, clippy
-      - name: Build release
-        run: cargo build --release --all-features
       - name: Run clippy
         run: cargo clippy
       - name: Run cargo format

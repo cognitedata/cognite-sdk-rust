@@ -42,22 +42,18 @@ fn get_duplicates<T>(res: &Result<T>) -> Option<Vec<Identity>> {
     match res {
         Ok(_) => None,
         Err(e) => match &e.kind {
-            Kind::Conflict(c) => match &c.duplicated {
-                Some(dup) => Some(
-                    dup.iter()
-                        .filter_map(|m| {
-                            m.get("externalId")
-                                .map(|ext_id| Identity::from(ext_id.clone()))
-                                .or_else(|| {
-                                    m.get("id").and_then(|id| {
-                                        id.parse::<i64>().ok().map(|id| Identity::from(id))
-                                    })
-                                })
-                        })
-                        .collect(),
-                ),
-                None => None,
-            },
+            Kind::Conflict(c) => c.duplicated.as_ref().map(|dup| {
+                dup.iter()
+                    .filter_map(|m| {
+                        m.get("externalId")
+                            .map(|ext_id| Identity::from(ext_id.clone()))
+                            .or_else(|| {
+                                m.get("id")
+                                    .and_then(|id| id.parse::<i64>().ok().map(Identity::from))
+                            })
+                    })
+                    .collect()
+            }),
             _ => None,
         },
     }

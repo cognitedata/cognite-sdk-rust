@@ -124,16 +124,16 @@ impl SetCursor for AssetQuery {
 impl WithPartition for AssetQuery {
     fn with_partition(&self, partition: Partition) -> Self {
         Self {
-            limit: self.limit.clone(),
+            limit: self.limit,
             cursor: self.cursor.clone(),
-            include_metadata: self.include_metadata.clone(),
+            include_metadata: self.include_metadata,
             name: self.name.clone(),
             source: self.source.clone(),
             root: self.root.clone(),
-            min_created_time: self.min_created_time.clone(),
-            max_created_time: self.max_created_time.clone(),
-            min_last_updated_time: self.min_last_updated_time.clone(),
-            max_last_updated_time: self.max_last_updated_time.clone(),
+            min_created_time: self.min_created_time,
+            max_created_time: self.max_created_time,
+            min_last_updated_time: self.min_last_updated_time,
+            max_last_updated_time: self.max_last_updated_time,
             external_id_prefix: self.external_id_prefix.clone(),
             partition: Some(partition),
         }
