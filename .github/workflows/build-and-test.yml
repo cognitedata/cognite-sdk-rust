@@ -16,7 +16,7 @@ jobs:
       - name: Run clippy
         run: cargo clippy -- -D warnings
       - name: Run cargo format
-        run: cargo fmt
+        run: cargo fmt --check
       - name: Test
         run: cargo test
         env:
