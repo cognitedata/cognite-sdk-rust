@@ -1,5 +1,6 @@
 use crate::api::authenticator::Authenticator;
 use crate::AsParams;
+use futures::Stream;
 use prost::Message;
 use reqwest::header::{HeaderMap, HeaderValue, ACCEPT, CONTENT_TYPE, USER_AGENT};
 use reqwest::{Body, Client, RequestBuilder, Response, StatusCode};
@@ -151,6 +152,23 @@ impl ApiClient {
         self.send_request(request_builder).await
     }
 
+    pub async fn get_stream(
+        &self,
+        url: &str,
+    ) -> Result<impl Stream<Item = std::result::Result<bytes::Bytes, reqwest::Error>>> {
+        let headers: HeaderMap = self.get_headers().await?;
+        let request_builder = self.client.get(url).headers(headers);
+        match request_builder.send().await {
+            Ok(response) => match response.status() {
+                StatusCode::OK | StatusCode::ACCEPTED | StatusCode::CREATED => {
+                    Ok(response.bytes_stream())
+                }
+                _ => Err(self.handle_error(response).await),
+            },
+            Err(e) => Err(Error::from(e)),
+        }
+    }
+
     pub async fn post<D, S>(&self, path: &str, object: &S) -> Result<D>
     where
         D: DeserializeOwned,
@@ -231,22 +249,23 @@ impl ApiClient {
         self.send_request_proto(request_builder).await
     }
 
-    pub async fn put_stream<S>(&self, path: &str, mime_type: &str, stream: S) -> Result<()>
+    pub async fn put_stream<S>(&self, url: &str, mime_type: &str, stream: S) -> Result<()>
     where
         S: futures::TryStream + Send + Sync + 'static,
         S::Error: Into<Box<dyn std::error::Error + Send + Sync>>,
         bytes::Bytes: From<S::Ok>,
     {
-        let url = format!("{}/{}", self.api_base_url, path);
         let mut headers: HeaderMap = self.get_headers().await?;
         headers.insert(CONTENT_TYPE, HeaderValue::from_str(mime_type)?);
         headers.insert("X-Upload-Content-Type", HeaderValue::from_str(mime_type)?);
         let request_builder = self
             .client
-            .put(&url)
+            .put(url)
             .headers(headers)
             .body(Body::wrap_stream(stream));
-        self.send_request(request_builder).await
+        self.send_request::<serde_json::Value>(request_builder)
+            .await?;
+        Ok(())
     }
 
     pub async fn put<D, S>(&self, path: &str, object: &S) -> Result<D>

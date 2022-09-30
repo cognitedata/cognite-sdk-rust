@@ -1,3 +1,5 @@
+use futures::Stream;
+
 use crate::api::resource::*;
 use crate::dto::core::files::*;
 use crate::dto::items::Items;
@@ -19,10 +21,10 @@ impl Update<Patch<PatchFile>, FileMetadata> for Files {}
 impl Files {
     /// Upload a stream to an url, the url is received from `Files::upload`
     /// For example:
-    /// ```
+    /// ```ignore
     /// use tokio_util::codec::{BytesCodec, FramedRead};
     ///
-    /// let file = std:io::File::new("my-file");
+    /// let file = std::io::File::new("my-file");
     /// let stream = FramedRead::new(file, BytesCodec::new());
     /// cognite_client.upload_stream(&file.mime_type.unwrap(), &file.upload_url, stream).await?;
     /// ```
@@ -35,16 +37,33 @@ impl Files {
         self.api_client.put_stream(url, mime_type, stream).await
     }
 
-    pub async fn upload(&self, overwrite: bool, item: AddFile) -> Result<FileMetadata> {
+    pub async fn upload(&self, overwrite: bool, item: &AddFile) -> Result<FileMetadata> {
         self.api_client
-            .post_with_query("files", &item, Some(FileUploadQuery::new(overwrite)))
+            .post_with_query("files", item, Some(FileUploadQuery::new(overwrite)))
             .await
     }
 
     pub async fn download_link(&self, ids: &[Identity]) -> Result<Vec<FileDownloadUrl>> {
         let items = Items::from(ids);
         let file_links_response: ItemsWithoutCursor<FileDownloadUrl> =
-            self.api_client.post("files/downloadLink", &items).await?;
+            self.api_client.post("files/downloadlink", &items).await?;
         Ok(file_links_response.items)
+    }
+
+    pub async fn download(
+        &self,
+        url: &str,
+    ) -> Result<impl Stream<Item = std::result::Result<bytes::Bytes, reqwest::Error>>> {
+        self.api_client.get_stream(url).await
+    }
+
+    pub async fn download_file(
+        &self,
+        id: Identity,
+    ) -> Result<impl Stream<Item = std::result::Result<bytes::Bytes, reqwest::Error>>> {
+        let items = vec![id];
+        let links = self.download_link(&items).await?;
+        let link = links.first().unwrap();
+        self.download(&link.download_url).await
     }
 }

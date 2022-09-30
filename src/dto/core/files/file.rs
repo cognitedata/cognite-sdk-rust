@@ -30,7 +30,7 @@ pub struct FileMetadata {
     pub uploaded_time: Option<i64>,
     pub created_time: i64,
     pub last_updated_time: i64,
-    pub upload_url: String,
+    pub upload_url: Option<String>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Default)]
