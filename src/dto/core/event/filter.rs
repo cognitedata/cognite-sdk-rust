@@ -84,14 +84,14 @@ impl SetCursor for EventQuery {
 impl WithPartition for EventQuery {
     fn with_partition(&self, partition: Partition) -> Self {
         Self {
-            limit: self.limit.clone(),
+            limit: self.limit,
             cursor: None,
-            min_start_time: self.min_start_time.clone(),
-            max_start_time: self.max_start_time.clone(),
-            min_end_time: self.min_end_time.clone(),
-            max_end_time: self.max_end_time.clone(),
-            min_active_time: self.min_active_time.clone(),
-            max_active_time: self.max_active_time.clone(),
+            min_start_time: self.min_start_time,
+            max_start_time: self.max_start_time,
+            min_end_time: self.min_end_time,
+            max_end_time: self.max_end_time,
+            min_active_time: self.min_active_time,
+            max_active_time: self.max_active_time,
             asset_ids: self.asset_ids.clone(),
             asset_external_ids: self.asset_external_ids.clone(),
             asset_subtree_ids: self.asset_subtree_ids.clone(),
@@ -99,13 +99,13 @@ impl WithPartition for EventQuery {
             source: self.source.clone(),
             r#type: self.r#type.clone(),
             subtype: self.subtype.clone(),
-            min_created_time: self.min_created_time.clone(),
-            max_created_time: self.max_created_time.clone(),
-            min_last_updated_time: self.min_last_updated_time.clone(),
-            max_last_updated_time: self.max_last_updated_time.clone(),
+            min_created_time: self.min_created_time,
+            max_created_time: self.max_created_time,
+            min_last_updated_time: self.min_last_updated_time,
+            max_last_updated_time: self.max_last_updated_time,
             external_id_prefix: self.external_id_prefix.clone(),
             partition: Some(partition),
-            include_metadata: self.include_metadata.clone(),
+            include_metadata: self.include_metadata,
             sort: self.sort.clone(),
         }
     }
@@ -169,7 +169,7 @@ impl WithPartition for EventFilterQuery {
     fn with_partition(&self, partition: Partition) -> Self {
         Self {
             filter: self.filter.clone(),
-            limit: self.limit.clone(),
+            limit: self.limit,
             sort: self.sort.clone(),
             cursor: None,
             partition: Some(partition),

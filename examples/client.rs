@@ -27,7 +27,7 @@ async fn main() {
     // Retrieve asset
     match cognite_client
         .assets
-        .retrieve(&vec![Identity::from(6687602007296940)], false, None)
+        .retrieve(&[Identity::from(6687602007296940)], false, None)
         .await
     {
         Ok(asset) => println!("{:?}", asset),
@@ -111,7 +111,7 @@ async fn main() {
     match cognite_client.groups.list(None).await {
         Ok(mut groups) => {
             println!("{} groups retrieved.", groups.items.len());
-            if groups.items.len() > 0 {
+            if !groups.items.is_empty() {
                 let group_id = groups.items.pop().unwrap().id;
                 match cognite_client.groups.list_service_accounts(group_id).await {
                     Ok(service_accounts) => println!(

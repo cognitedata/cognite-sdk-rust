@@ -7,17 +7,14 @@ use cognite::*;
 #[tokio::test]
 async fn create_and_delete_time_series() {
     let id = format!("{}-ts1", PREFIX.as_str());
-    let time_serie = TimeSerie::new(
-        "name",
-        Some(id),
-        false,
-        None,
-        None,
-        None,
-        true,
-        "description",
-        None,
-    );
+    let time_serie = TimeSerie {
+        name: Some("name".to_string()),
+        external_id: Some(id),
+        is_string: false,
+        is_step: true,
+        description: Some("description".to_string()),
+        ..Default::default()
+    };
     let mut time_series = COGNITE_CLIENT
         .time_series
         .create_from(&vec![time_serie])

@@ -87,8 +87,8 @@ impl SetCursor for TimeSerieQuery {
 impl WithPartition for TimeSerieQuery {
     fn with_partition(&self, partition: crate::Partition) -> Self {
         Self {
-            limit: self.limit.clone(),
-            include_metadata: self.include_metadata.clone(),
+            limit: self.limit,
+            include_metadata: self.include_metadata,
             cursor: None,
             partition: Some(partition),
             external_id_prefix: self.external_id_prefix.clone(),

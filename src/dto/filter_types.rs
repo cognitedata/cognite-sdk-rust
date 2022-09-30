@@ -151,7 +151,7 @@ where
         Self {
             filter: self.filter.clone(),
             cursor: None,
-            limit: self.limit.clone(),
+            limit: self.limit,
             partition: Some(partition),
         }
     }
