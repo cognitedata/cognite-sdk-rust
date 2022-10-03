@@ -12,6 +12,8 @@ async fn create_update_and_delete_events() {
     let since_the_epoch = start.duration_since(UNIX_EPOCH).unwrap();
     let id = format!("{}-event1", PREFIX.as_str());
 
+    let client = get_client();
+
     let new_event = Event {
         start_time: Some(since_the_epoch.as_millis() as i64),
         end_time: Some((since_the_epoch.as_millis() + 1) as i64),
@@ -20,21 +22,14 @@ async fn create_update_and_delete_events() {
         source: Some("source".to_string()),
         ..Default::default()
     };
-    let mut events = COGNITE_CLIENT
-        .events
-        .create_from(&vec![new_event])
-        .await
-        .unwrap();
+    let mut events = client.events.create_from(&vec![new_event]).await.unwrap();
+
     for event in events.iter_mut() {
         event.description = Some(String::from("changed"));
     }
 
-    COGNITE_CLIENT.events.update_from(&events).await.unwrap();
+    client.events.update_from(&events).await.unwrap();
 
     let event_ids: Vec<Identity> = events.iter().map(|e| Identity::Id { id: e.id }).collect();
-    COGNITE_CLIENT
-        .events
-        .delete(&event_ids, false)
-        .await
-        .unwrap();
+    client.events.delete(&event_ids, false).await.unwrap();
 }

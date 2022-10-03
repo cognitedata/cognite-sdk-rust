@@ -3,8 +3,9 @@ use once_cell::sync::Lazy;
 use rand::{distributions::Alphanumeric, Rng};
 
 #[cfg(test)]
-pub static COGNITE_CLIENT: Lazy<CogniteClient> =
-    Lazy::new(|| CogniteClient::new_oidc("rust_sdk_test").unwrap());
+pub fn get_client() -> CogniteClient {
+    CogniteClient::new_oidc("rust_sdk_test").unwrap()
+}
 
 #[cfg(test)]
 pub static PREFIX: Lazy<String> = Lazy::new(|| {

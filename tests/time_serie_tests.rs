@@ -15,7 +15,8 @@ async fn create_and_delete_time_series() {
         description: Some("description".to_string()),
         ..Default::default()
     };
-    let mut time_series = COGNITE_CLIENT
+    let client = get_client();
+    let mut time_series = client
         .time_series
         .create_from(&vec![time_serie])
         .await
@@ -25,19 +26,11 @@ async fn create_and_delete_time_series() {
         time_serie.description = Some(String::from("changed"));
     }
 
-    let time_series = COGNITE_CLIENT
-        .time_series
-        .update_from(&time_series)
-        .await
-        .unwrap();
+    let time_series = client.time_series.update_from(&time_series).await.unwrap();
 
     let id_list: Vec<Identity> = time_series
         .iter()
         .map(|ts| Identity::Id { id: ts.id })
         .collect();
-    COGNITE_CLIENT
-        .time_series
-        .delete(&id_list, true)
-        .await
-        .unwrap();
+    client.time_series.delete(&id_list, true).await.unwrap();
 }

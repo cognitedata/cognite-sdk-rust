@@ -1,3 +1,4 @@
+use reqwest::header::InvalidHeaderValue;
 use reqwest::StatusCode;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
@@ -129,6 +130,8 @@ impl fmt::Display for Error {
                 "Failed to set authorization bearer token {:?}: {:?}",
                 &e.error, &e.error_description
             ),
+            Kind::InvalidHeader(e) => write!(f, "{}", &e),
+            Kind::IOError(e) => write!(f, "{}", &e),
         }
     }
 }
@@ -157,6 +160,10 @@ pub enum Kind {
     ExternalLib(ExternalKind),
     #[error("Error from authenticator: {0}")]
     Authenticator(AuthenticatorError),
+    #[error("Invalid header value: {0}")]
+    InvalidHeader(InvalidHeaderValue),
+    #[error("Error accessing file: {0}")]
+    IOError(std::io::Error),
 }
 
 #[derive(Debug, Error)]
@@ -209,6 +216,30 @@ impl From<AuthenticatorError> for Kind {
 }
 impl From<AuthenticatorError> for Error {
     fn from(err: AuthenticatorError) -> Error {
+        Error::new(Kind::from(err))
+    }
+}
+
+impl From<InvalidHeaderValue> for Kind {
+    fn from(err: InvalidHeaderValue) -> Self {
+        Kind::InvalidHeader(err)
+    }
+}
+
+impl From<InvalidHeaderValue> for Error {
+    fn from(err: InvalidHeaderValue) -> Error {
+        Error::new(Kind::from(err))
+    }
+}
+
+impl From<std::io::Error> for Kind {
+    fn from(err: std::io::Error) -> Self {
+        Kind::IOError(err)
+    }
+}
+
+impl From<std::io::Error> for Error {
+    fn from(err: std::io::Error) -> Error {
         Error::new(Kind::from(err))
     }
 }

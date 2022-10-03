@@ -4,7 +4,7 @@ use cognite::*;
 mod common;
 use common::*;
 
-async fn create_test_ts(is_string: bool, idx: i32) -> TimeSerie {
+async fn create_test_ts(client: &CogniteClient, is_string: bool, idx: i32) -> TimeSerie {
     let ts = AddTimeSerie {
         external_id: Some(format!("{}-ts-{}", PREFIX.as_str(), idx)),
         is_string,
@@ -12,7 +12,7 @@ async fn create_test_ts(is_string: bool, idx: i32) -> TimeSerie {
         ..Default::default()
     };
 
-    COGNITE_CLIENT
+    client
         .time_series
         .create(&vec![ts])
         .await
@@ -22,8 +22,8 @@ async fn create_test_ts(is_string: bool, idx: i32) -> TimeSerie {
         .unwrap()
 }
 
-async fn delete_test_ts(id: i64) {
-    COGNITE_CLIENT
+async fn delete_test_ts(client: &CogniteClient, id: i64) {
+    client
         .time_series
         .delete(&[Identity::Id { id }], true)
         .await
@@ -38,10 +38,12 @@ async fn create_retrieve_delete_double_datapoints() {
     let since_the_epoch = start.duration_since(UNIX_EPOCH).unwrap();
     let start = since_the_epoch.as_millis() as i64;
 
-    let ts = create_test_ts(false, 1).await;
+    let client = get_client();
+
+    let ts = create_test_ts(&client, false, 1).await;
 
     // Create 100 dps
-    COGNITE_CLIENT
+    client
         .time_series
         .insert_datapoints(vec![AddDatapoints {
             id: Identity::Id { id: ts.id },
@@ -58,7 +60,7 @@ async fn create_retrieve_delete_double_datapoints() {
         .unwrap();
 
     // Retrieve 90 of them
-    let dps = COGNITE_CLIENT
+    let dps = client
         .time_series
         .retrieve_datapoints(DatapointsFilter {
             items: vec![DatapointsQuery {
@@ -78,7 +80,7 @@ async fn create_retrieve_delete_double_datapoints() {
     assert_eq!(90, resp.datapoints.numeric().unwrap().len());
 
     // Delete half
-    COGNITE_CLIENT
+    client
         .time_series
         .delete_datapoints(&[DeleteDatapointsQuery {
             inclusive_begin: start,
@@ -89,7 +91,7 @@ async fn create_retrieve_delete_double_datapoints() {
         .unwrap();
 
     // Retrieve the same range and expect us to get 45 less
-    let dps = COGNITE_CLIENT
+    let dps = client
         .time_series
         .retrieve_datapoints(DatapointsFilter {
             items: vec![DatapointsQuery {
@@ -108,7 +110,7 @@ async fn create_retrieve_delete_double_datapoints() {
     let resp = dps.into_iter().next().unwrap();
     assert_eq!(45, resp.datapoints.numeric().unwrap().len());
 
-    delete_test_ts(ts.id).await;
+    delete_test_ts(&client, ts.id).await;
 }
 
 #[tokio::test]
@@ -119,10 +121,12 @@ async fn create_retrieve_delete_string_datapoints() {
     let since_the_epoch = start.duration_since(UNIX_EPOCH).unwrap();
     let start = since_the_epoch.as_millis() as i64;
 
-    let ts = create_test_ts(true, 2).await;
+    let client = get_client();
+
+    let ts = create_test_ts(&client, true, 2).await;
 
     // Create 100 dps
-    COGNITE_CLIENT
+    client
         .time_series
         .insert_datapoints(vec![AddDatapoints {
             id: Identity::Id { id: ts.id },
@@ -139,7 +143,7 @@ async fn create_retrieve_delete_string_datapoints() {
         .unwrap();
 
     // Retrieve 90 of them
-    let dps = COGNITE_CLIENT
+    let dps = client
         .time_series
         .retrieve_datapoints(DatapointsFilter {
             items: vec![DatapointsQuery {
@@ -159,7 +163,7 @@ async fn create_retrieve_delete_string_datapoints() {
     assert_eq!(90, resp.datapoints.string().unwrap().len());
 
     // Delete half
-    COGNITE_CLIENT
+    client
         .time_series
         .delete_datapoints(&[DeleteDatapointsQuery {
             inclusive_begin: start,
@@ -170,7 +174,7 @@ async fn create_retrieve_delete_string_datapoints() {
         .unwrap();
 
     // Retrieve the same range and expect us to get 45 less
-    let dps = COGNITE_CLIENT
+    let dps = client
         .time_series
         .retrieve_datapoints(DatapointsFilter {
             items: vec![DatapointsQuery {
@@ -189,7 +193,7 @@ async fn create_retrieve_delete_string_datapoints() {
     let resp = dps.into_iter().next().unwrap();
     assert_eq!(45, resp.datapoints.string().unwrap().len());
 
-    delete_test_ts(ts.id).await;
+    delete_test_ts(&client, ts.id).await;
 }
 
 #[tokio::test]
@@ -200,10 +204,12 @@ async fn retrieve_latest() {
     let since_the_epoch = start.duration_since(UNIX_EPOCH).unwrap();
     let start = since_the_epoch.as_millis() as i64;
 
-    let ts = create_test_ts(false, 3).await;
+    let client = get_client();
+
+    let ts = create_test_ts(&client, false, 3).await;
 
     // Create 100 dps
-    COGNITE_CLIENT
+    client
         .time_series
         .insert_datapoints(vec![AddDatapoints {
             id: Identity::Id { id: ts.id },
@@ -219,7 +225,7 @@ async fn retrieve_latest() {
         .await
         .unwrap();
 
-    let latest = COGNITE_CLIENT
+    let latest = client
         .time_series
         .retrieve_latest_datapoints(
             &[LatestDatapointsQuery {
@@ -238,5 +244,5 @@ async fn retrieve_latest() {
         latest.datapoints.numeric().unwrap().first().unwrap().value
     );
 
-    delete_test_ts(ts.id).await;
+    delete_test_ts(&client, ts.id).await;
 }
