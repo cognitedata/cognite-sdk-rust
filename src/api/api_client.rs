@@ -7,7 +7,7 @@ use reqwest::{Body, Client, RequestBuilder, Response, StatusCode};
 use serde::de::DeserializeOwned;
 use serde::ser::Serialize;
 
-use crate::error::{ApiErrorWrapper, Error, Result};
+use crate::error::{Error, Result};
 
 pub struct ApiClient {
     api_base_url: String,
@@ -84,8 +84,15 @@ impl ApiClient {
 
         let status = response.status();
 
-        match response.json::<ApiErrorWrapper>().await {
-            Ok(error_message) => Error::new_from_cdf(status, error_message, request_id),
+        match &response.text().await {
+            Ok(s) => match serde_json::from_str(s) {
+                Ok(error_message) => Error::new_from_cdf(status, error_message, request_id),
+                Err(e) => Error::new_without_json(
+                    status,
+                    format!("{}. Raw: {}", e.to_string(), s),
+                    request_id,
+                ),
+            },
             Err(e) => Error::new_without_json(status, e.to_string(), request_id),
         }
     }
@@ -156,7 +163,13 @@ impl ApiClient {
         &self,
         url: &str,
     ) -> Result<impl Stream<Item = std::result::Result<bytes::Bytes, reqwest::Error>>> {
-        let headers: HeaderMap = self.get_headers().await?;
+        let mut headers = HeaderMap::new();
+        headers.insert("x-cdp-sdk", HeaderValue::from_str(SDK_VERSION).expect(""));
+        headers.insert(
+            "x-cdp-app",
+            HeaderValue::from_str(&self.app_name).expect(""),
+        );
+        headers.insert(ACCEPT, HeaderValue::from_static("*/*"));
         let request_builder = self.client.get(url).headers(headers);
         match request_builder.send().await {
             Ok(response) => match response.status() {
