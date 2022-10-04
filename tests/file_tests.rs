@@ -1,11 +1,8 @@
-use std::io::Read;
-
 use bytes::Bytes;
 use cognite::files::*;
 use cognite::prelude::*;
 mod common;
 use common::*;
-use futures::StreamExt;
 use futures::TryStreamExt;
 
 async fn ensure_test_file(client: &CogniteClient) {
