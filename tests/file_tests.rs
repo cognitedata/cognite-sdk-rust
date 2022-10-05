@@ -1,7 +1,36 @@
+use bytes::Bytes;
 use cognite::files::*;
 use cognite::prelude::*;
 mod common;
 use common::*;
+use futures::TryStreamExt;
+
+async fn ensure_test_file(client: &CogniteClient) {
+    let id = "rust-sdk-test-file".to_string();
+    let new_file = AddFile {
+        name: "Rust SDK test file".to_string(),
+        external_id: Some(id),
+        mime_type: Some("text/plain".to_string()),
+        ..Default::default()
+    };
+
+    let file = match client.files.upload(false, &new_file).await {
+        Err(cognite::Error { kind }) => match kind {
+            cognite::Kind::Conflict(_) => return,
+            e => panic!("{}", e),
+        },
+        Ok(f) => f,
+    };
+
+    let chunks: Vec<Result<_, ::std::io::Error>> = vec![Ok("test "), Ok("file "), Ok("contents")];
+    let stream = futures::stream::iter(chunks);
+
+    client
+        .files
+        .upload_stream("text/plain", &file.upload_url.unwrap(), stream)
+        .await
+        .unwrap();
+}
 
 #[tokio::test]
 async fn create_upload_delete_file() {
@@ -61,4 +90,27 @@ async fn create_update_delete_file() {
         .delete(&vec![Identity::ExternalId { external_id: id }])
         .await
         .unwrap();
+}
+
+#[tokio::test]
+async fn download_test_file() {
+    let client = get_client();
+
+    ensure_test_file(&client).await;
+
+    let data: Vec<Bytes> = client
+        .files
+        .download_file(Identity::ExternalId {
+            external_id: "rust-sdk-test-file".to_string(),
+        })
+        .await
+        .unwrap()
+        .try_collect()
+        .await
+        .unwrap();
+
+    let data: Vec<u8> = data.into_iter().flat_map(|b| b).collect();
+    let contents = String::from_utf8(data).unwrap();
+
+    assert_eq!("test file contents", contents.as_str())
 }

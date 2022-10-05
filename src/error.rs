@@ -110,29 +110,7 @@ pub type Result<T> = ::std::result::Result<T, Error>;
 
 impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        match &self.kind {
-            Kind::ExternalLib(e) => match e {
-                ExternalKind::Reqwest(exk, _k) => fmt::Display::fmt(exk, f),
-                ExternalKind::SerdeJson(exk, _k) => fmt::Display::fmt(exk, f),
-                ExternalKind::Prost(exk, _k) => fmt::Display::fmt(exk, f),
-            },
-            Kind::BadRequest(e) => write!(f, "{}", &e),
-            Kind::Unauthorized(e) => write!(f, "{}", &e),
-            Kind::Forbidden(e) => write!(f, "{}", &e),
-            Kind::NotFound(e) => write!(f, "{}", &e),
-            Kind::Conflict(e) => write!(f, "{}", &e),
-            Kind::OtherApiError(e) => write!(f, "{}", &e),
-            Kind::UnprocessableEntity(e) => write!(f, "{}", &e),
-            Kind::Http(e) => f.write_str(e),
-            Kind::EnvironmentVariableMissing(e) => f.write_str(e),
-            Kind::Authenticator(e) => write!(
-                f,
-                "Failed to set authorization bearer token {:?}: {:?}",
-                &e.error, &e.error_description
-            ),
-            Kind::InvalidHeader(e) => write!(f, "{}", &e),
-            Kind::IOError(e) => write!(f, "{}", &e),
-        }
+        self.kind.fmt(f)
     }
 }
 
