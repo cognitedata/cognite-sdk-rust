@@ -48,6 +48,10 @@ impl Files {
             .await
     }
 
+    pub async fn upload_blob(&self, mime_type: &str, url: &str, blob: Vec<u8>) -> Result<()> {
+        self.api_client.put_blob(url, mime_type, blob).await
+    }
+
     pub async fn upload(&self, overwrite: bool, item: &AddFile) -> Result<FileMetadata> {
         self.api_client
             .post_with_query("files", item, Some(FileUploadQuery::new(overwrite)))

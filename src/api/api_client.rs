@@ -268,6 +268,17 @@ impl ApiClient {
         self.send_request_proto(request_builder).await
     }
 
+    pub async fn put_blob(&self, url: &str, mime_type: &str, data: Vec<u8>) -> Result<()> {
+        let mut headers: HeaderMap = self.get_headers().await?;
+        headers.insert(CONTENT_TYPE, HeaderValue::from_str(mime_type)?);
+        headers.insert("X-Upload-Content-Type", HeaderValue::from_str(mime_type)?);
+        headers.insert(ACCEPT, HeaderValue::from_static("*/*"));
+
+        let request_builder = self.client.put(url).headers(headers).body(data);
+        self.send_request_no_response(request_builder).await?;
+        Ok(())
+    }
+
     pub async fn put_stream<S>(
         &self,
         url: &str,
@@ -280,12 +291,11 @@ impl ApiClient {
         S::Error: Into<Box<dyn std::error::Error + Send + Sync>>,
         bytes::Bytes: From<S::Ok>,
     {
-        let mut headers: HeaderMap = self.get_headers().await?;
-        headers.insert(CONTENT_TYPE, HeaderValue::from_str(mime_type)?);
-        headers.insert("X-Upload-Content-Type", HeaderValue::from_str(mime_type)?);
-        headers.insert(ACCEPT, HeaderValue::from_static("*/*"));
-
         if stream_chunked {
+            let mut headers: HeaderMap = self.get_headers().await?;
+            headers.insert(CONTENT_TYPE, HeaderValue::from_str(mime_type)?);
+            headers.insert("X-Upload-Content-Type", HeaderValue::from_str(mime_type)?);
+            headers.insert(ACCEPT, HeaderValue::from_static("*/*"));
             let request_builder = self
                 .client
                 .put(url)
@@ -301,8 +311,7 @@ impl ApiClient {
                 .into_iter()
                 .flat_map(Into::<bytes::Bytes>::into)
                 .collect();
-            let request_builder = self.client.put(url).headers(headers).body(body);
-            self.send_request_no_response(request_builder).await?;
+            self.put_blob(url, mime_type, body).await?;
         }
 
         Ok(())
