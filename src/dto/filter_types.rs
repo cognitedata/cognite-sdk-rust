@@ -19,7 +19,7 @@ impl<T> Range<T> {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct Filter<T> {
     pub filter: T,
@@ -45,7 +45,7 @@ impl<T> SetCursor for Filter<T> {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct Search<TFilter, TSearch> {
     pub filter: TFilter,
@@ -71,7 +71,7 @@ pub enum LabelsFilter {
     ContainsAll(Vec<CogniteExternalId>),
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Partition {
     pub num_partitions: u32,
     pub partition_number: u32,
@@ -101,7 +101,7 @@ impl Serialize for Partition {
     }
 }
 
-#[derive(Serialize, Debug)]
+#[derive(Serialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct PartitionedFilter<T> {
     pub filter: T,

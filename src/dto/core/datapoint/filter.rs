@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::Identity;
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 pub enum Aggregate {
     Average,
@@ -23,7 +23,7 @@ impl From<&str> for Aggregate {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug, Default)]
+#[derive(Serialize, Deserialize, Debug, Default, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct DatapointsFilter {
     pub items: Vec<DatapointsQuery>,
@@ -43,7 +43,7 @@ pub struct DatapointsFilter {
     pub ignore_unknown_ids: Option<bool>,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct DatapointsQuery {
     #[serde(flatten)]
@@ -76,7 +76,7 @@ impl Default for DatapointsQuery {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct LatestDatapointsQuery {
     pub before: String,
@@ -93,7 +93,7 @@ impl LatestDatapointsQuery {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct DeleteDatapointsQuery {
     pub inclusive_begin: i64,

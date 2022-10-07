@@ -3,7 +3,7 @@ use crate::{AsParams, Range};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
-#[derive(Serialize, Deserialize, Debug, Default)]
+#[derive(Serialize, Deserialize, Debug, Default, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct TimeSerieFilter {
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -40,7 +40,7 @@ impl TimeSerieFilter {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug, Default)]
+#[derive(Serialize, Deserialize, Debug, Default, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct TimeSerieSearch {
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -57,7 +57,7 @@ impl TimeSerieSearch {
     }
 }
 
-#[derive(Debug, Default)]
+#[derive(Debug, Default, Clone)]
 pub struct TimeSerieQuery {
     pub limit: Option<i32>,
     pub include_metadata: Option<bool>,

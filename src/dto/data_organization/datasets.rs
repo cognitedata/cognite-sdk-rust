@@ -39,7 +39,7 @@ impl From<&DataSet> for AddDataSet {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug, Default)]
+#[derive(Serialize, Deserialize, Debug, Default, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct DataSetFilter {
     pub metadata: Option<HashMap<String, String>>,
