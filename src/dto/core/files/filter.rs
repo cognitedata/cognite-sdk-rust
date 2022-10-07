@@ -1,7 +1,7 @@
 use crate::{AsParams, Identity, LabelsFilter, Range};
 use serde::{Deserialize, Serialize};
 
-#[derive(Serialize, Deserialize, Debug, Default)]
+#[derive(Serialize, Deserialize, Debug, Default, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct FileFilter {
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -46,7 +46,7 @@ impl FileFilter {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug, Default)]
+#[derive(Serialize, Deserialize, Debug, Default, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct FileSearch {
     #[serde(skip_serializing_if = "Option::is_none")]

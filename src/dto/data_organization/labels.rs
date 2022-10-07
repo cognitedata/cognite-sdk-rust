@@ -32,7 +32,7 @@ impl From<&Label> for AddLabel {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug, Default)]
+#[derive(Serialize, Deserialize, Debug, Default, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct LabelFilter {
     pub name: Option<String>,

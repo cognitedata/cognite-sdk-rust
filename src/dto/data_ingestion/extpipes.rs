@@ -146,7 +146,7 @@ impl From<&AddExtPipe> for PatchExtPipe {
     }
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
 pub enum ExtPipeRunStatus {
     Success,
@@ -160,7 +160,7 @@ impl Default for ExtPipeRunStatus {
     }
 }
 
-#[derive(Serialize, Deserialize, Default)]
+#[derive(Serialize, Deserialize, Default, Clone)]
 pub struct ExtPipeFilter {
     pub external_id_prefix: Option<String>,
     pub name: Option<String>,
@@ -198,13 +198,13 @@ pub struct AddExtPipeRun {
     pub external_id: String,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Default, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct ExtPipeStringFilter {
     pub substring: String,
 }
 
-#[derive(Serialize, Deserialize, Default)]
+#[derive(Serialize, Deserialize, Default, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct ExtPipeRunFilter {
     pub external_id: String,

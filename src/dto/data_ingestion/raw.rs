@@ -40,7 +40,7 @@ pub struct DeleteRow {
     pub key: String,
 }
 
-#[derive(Debug, Default)]
+#[derive(Debug, Default, Clone)]
 pub struct RetrieveCursorsQuery {
     pub min_last_updated_time: Option<i64>,
     pub max_last_updated_time: Option<i64>,
@@ -65,7 +65,7 @@ impl AsParams for RetrieveCursorsQuery {
     }
 }
 
-#[derive(Debug, Default, Serialize)]
+#[derive(Debug, Default, Serialize, Clone)]
 pub struct RetrieveRowsQuery {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub limit: Option<i32>,

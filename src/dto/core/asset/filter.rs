@@ -72,7 +72,7 @@ pub struct FilterAssetsRequest {
     pub partition: Option<String>,
 }
 
-#[derive(Debug, Default)]
+#[derive(Debug, Default, Clone)]
 pub struct AssetQuery {
     pub limit: Option<i32>,
     pub cursor: Option<String>,

@@ -5,7 +5,7 @@ use crate::{
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
-#[derive(Debug, Default)]
+#[derive(Debug, Default, Clone)]
 pub struct EventQuery {
     pub limit: Option<i32>,
     pub cursor: Option<String>,
@@ -150,7 +150,7 @@ impl EventFilter {
     }
 }
 
-#[derive(Serialize, Debug, Default)]
+#[derive(Serialize, Debug, Default, Clone)]
 pub struct EventFilterQuery {
     pub filter: EventFilter,
     pub limit: Option<i32>,
@@ -177,7 +177,7 @@ impl WithPartition for EventFilterQuery {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct AggregatedEventsCountFilter {
     pub filter: EventFilter,
@@ -189,7 +189,7 @@ impl AggregatedEventsCountFilter {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct AggregatedEventsListFilter {
     pub filter: EventFilter,
@@ -211,7 +211,7 @@ impl AggregatedEventsListFilter {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug, Default)]
+#[derive(Serialize, Deserialize, Debug, Default, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct EventSearch {
     #[serde(skip_serializing_if = "Option::is_none")]

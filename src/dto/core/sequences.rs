@@ -174,7 +174,7 @@ impl From<&AddSequence> for PatchSequence {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug, Default)]
+#[derive(Serialize, Deserialize, Debug, Default, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct SequenceFilter {
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -197,7 +197,7 @@ pub struct SequenceFilter {
     pub data_set_ids: Option<Vec<Identity>>,
 }
 
-#[derive(Serialize, Deserialize, Debug, Default)]
+#[derive(Serialize, Deserialize, Debug, Default, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct SequenceSearch {
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -259,7 +259,7 @@ pub struct InsertSequenceRows {
     pub id: Identity,
 }
 
-#[derive(Serialize, Deserialize, Debug, Default)]
+#[derive(Serialize, Deserialize, Debug, Default, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct RetrieveSequenceRows {
     #[serde(skip_serializing_if = "Option::is_none")]

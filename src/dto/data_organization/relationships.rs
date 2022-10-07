@@ -161,7 +161,7 @@ impl From<&AddRelationship> for PatchRelationship {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct RetrieveRelationshipsRequest {
     pub items: ::serde_json::Value,
@@ -214,7 +214,7 @@ pub struct RelationshipsFilter {
     pub labels: Option<LabelsFilter>,
 }
 
-#[derive(Serialize, Default)]
+#[derive(Serialize, Default, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct FilterRelationshipsQuery {
     pub filter: RelationshipsFilter,
