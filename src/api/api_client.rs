@@ -1,6 +1,6 @@
 use crate::api::authenticator::Authenticator;
 use crate::AsParams;
-use futures::Stream;
+use futures::{Stream, TryStreamExt};
 use prost::Message;
 use reqwest::header::{HeaderMap, HeaderValue, ACCEPT, CONTENT_TYPE, USER_AGENT};
 use reqwest::{Body, Client, RequestBuilder, Response, StatusCode};
@@ -105,6 +105,16 @@ impl ApiClient {
                         Err(e) => Err(Error::from(e)),
                     }
                 }
+                _ => Err(self.handle_error(response).await),
+            },
+            Err(e) => Err(Error::from(e)),
+        }
+    }
+
+    async fn send_request_no_response(&self, request_builder: RequestBuilder) -> Result<()> {
+        match request_builder.send().await {
+            Ok(response) => match response.status() {
+                StatusCode::OK | StatusCode::ACCEPTED | StatusCode::CREATED => Ok(()),
                 _ => Err(self.handle_error(response).await),
             },
             Err(e) => Err(Error::from(e)),
@@ -258,22 +268,52 @@ impl ApiClient {
         self.send_request_proto(request_builder).await
     }
 
-    pub async fn put_stream<S>(&self, url: &str, mime_type: &str, stream: S) -> Result<()>
+    pub async fn put_blob(&self, url: &str, mime_type: &str, data: Vec<u8>) -> Result<()> {
+        let mut headers: HeaderMap = self.get_headers().await?;
+        headers.insert(CONTENT_TYPE, HeaderValue::from_str(mime_type)?);
+        headers.insert("X-Upload-Content-Type", HeaderValue::from_str(mime_type)?);
+        headers.insert(ACCEPT, HeaderValue::from_static("*/*"));
+
+        let request_builder = self.client.put(url).headers(headers).body(data);
+        self.send_request_no_response(request_builder).await?;
+        Ok(())
+    }
+
+    pub async fn put_stream<S>(
+        &self,
+        url: &str,
+        mime_type: &str,
+        stream: S,
+        stream_chunked: bool,
+    ) -> Result<()>
     where
         S: futures::TryStream + Send + Sync + 'static,
         S::Error: Into<Box<dyn std::error::Error + Send + Sync>>,
         bytes::Bytes: From<S::Ok>,
     {
-        let mut headers: HeaderMap = self.get_headers().await?;
-        headers.insert(CONTENT_TYPE, HeaderValue::from_str(mime_type)?);
-        headers.insert("X-Upload-Content-Type", HeaderValue::from_str(mime_type)?);
-        let request_builder = self
-            .client
-            .put(url)
-            .headers(headers)
-            .body(Body::wrap_stream(stream));
-        self.send_request::<serde_json::Value>(request_builder)
-            .await?;
+        if stream_chunked {
+            let mut headers: HeaderMap = self.get_headers().await?;
+            headers.insert(CONTENT_TYPE, HeaderValue::from_str(mime_type)?);
+            headers.insert("X-Upload-Content-Type", HeaderValue::from_str(mime_type)?);
+            headers.insert(ACCEPT, HeaderValue::from_static("*/*"));
+            let request_builder = self
+                .client
+                .put(url)
+                .headers(headers)
+                .body(Body::wrap_stream(stream));
+            self.send_request_no_response(request_builder).await?;
+        } else {
+            let body: Vec<S::Ok> = stream
+                .try_collect()
+                .await
+                .map_err(|e| Error::new(crate::Kind::StreamError(e.into().to_string())))?;
+            let body: Vec<u8> = body
+                .into_iter()
+                .flat_map(Into::<bytes::Bytes>::into)
+                .collect();
+            self.put_blob(url, mime_type, body).await?;
+        }
+
         Ok(())
     }
 

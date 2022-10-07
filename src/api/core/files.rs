@@ -26,15 +26,30 @@ impl Files {
     ///
     /// let file = std::io::File::new("my-file");
     /// let stream = FramedRead::new(file, BytesCodec::new());
-    /// cognite_client.upload_stream(&file.mime_type.unwrap(), &file.upload_url, stream).await?;
+    /// cognite_client.upload_stream(&file.mime_type.unwrap(), &file.upload_url, stream, true).await?;
     /// ```
-    pub async fn upload_stream<S>(&self, mime_type: &str, url: &str, stream: S) -> Result<()>
+    ///
+    /// Note that `stream_chunked` being true is in general more efficient, but it is not supported
+    /// for the azure file backend. Setting it to false results in the entire stream being read into memory before uploading.
+    pub async fn upload_stream<S>(
+        &self,
+        mime_type: &str,
+        url: &str,
+        stream: S,
+        stream_chunked: bool,
+    ) -> Result<()>
     where
         S: futures::TryStream + Send + Sync + 'static,
         S::Error: Into<Box<dyn std::error::Error + Send + Sync>>,
         bytes::Bytes: From<S::Ok>,
     {
-        self.api_client.put_stream(url, mime_type, stream).await
+        self.api_client
+            .put_stream(url, mime_type, stream, stream_chunked)
+            .await
+    }
+
+    pub async fn upload_blob(&self, mime_type: &str, url: &str, blob: Vec<u8>) -> Result<()> {
+        self.api_client.put_blob(url, mime_type, blob).await
     }
 
     pub async fn upload(&self, overwrite: bool, item: &AddFile) -> Result<FileMetadata> {

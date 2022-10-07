@@ -142,6 +142,8 @@ pub enum Kind {
     InvalidHeader(InvalidHeaderValue),
     #[error("Error accessing file: {0}")]
     IOError(std::io::Error),
+    #[error("Error collecting stream: {0}")]
+    StreamError(String),
 }
 
 #[derive(Debug, Error)]

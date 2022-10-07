@@ -27,7 +27,7 @@ async fn ensure_test_file(client: &CogniteClient) {
 
     client
         .files
-        .upload_stream("text/plain", &file.upload_url.unwrap(), stream)
+        .upload_stream("text/plain", &file.upload_url.unwrap(), stream, false)
         .await
         .unwrap();
 }
@@ -52,7 +52,7 @@ async fn create_upload_delete_file() {
 
     client
         .files
-        .upload_stream("text/plain", &res.upload_url.unwrap(), stream)
+        .upload_stream("text/plain", &res.upload_url.unwrap(), stream, false)
         .await
         .unwrap();
 
