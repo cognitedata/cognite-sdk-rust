@@ -4,7 +4,7 @@ use crate::{
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
-#[derive(Serialize, Deserialize, Debug, Default)]
+#[derive(Serialize, Deserialize, Debug, Default, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct AssetFilter {
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -41,7 +41,7 @@ impl AssetFilter {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug, Default)]
+#[derive(Serialize, Deserialize, Debug, Default, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct AssetSearch {
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -58,7 +58,7 @@ impl AssetSearch {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug, Default)]
+#[derive(Serialize, Deserialize, Debug, Default, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct FilterAssetsRequest {
     pub filter: AssetFilter,
