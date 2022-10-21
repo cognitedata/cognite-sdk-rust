@@ -5,6 +5,7 @@ use std::sync::Arc;
 use super::{ApiClient, Error, Result};
 use crate::api::core::sequences::Sequences;
 use crate::error::Kind;
+use crate::AuthHeaderManager;
 use crate::{
     assets::Assets, datasets::DataSets, events::Events, extpipes::ExtPipeRuns, extpipes::ExtPipes,
     files::Files, iam::ApiKeys, iam::Groups, iam::ServiceAccounts, labels::Labels, login::Login,
@@ -95,6 +96,19 @@ impl CogniteClient {
         };
 
         CogniteClient::new_from_oidc(&api_base_url, config, &project_name, app_name)
+    }
+
+    pub fn new_custom_auth(
+        api_base_url: &str,
+        project_name: &str,
+        auth: AuthHeaderManager,
+        app_name: &str,
+    ) -> Result<Self> {
+        let client = Client::new();
+        let api_base_path = format!("{}/api/{}/projects/{}", api_base_url, "v1", project_name);
+        let api_client = ApiClient::new_custom(&api_base_path, auth, app_name, client);
+
+        Self::new_internal(api_client)
     }
 
     fn new_internal(api_client: ApiClient) -> Result<Self> {
