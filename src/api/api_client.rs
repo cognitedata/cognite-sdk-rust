@@ -1,5 +1,5 @@
 use crate::api::authenticator::Authenticator;
-use crate::AsParams;
+use crate::{AsParams, AuthHeaderManager};
 use futures::{Stream, TryStreamExt};
 use prost::Message;
 use reqwest::header::{HeaderMap, HeaderValue, ACCEPT, CONTENT_TYPE, USER_AGENT};
@@ -11,10 +11,9 @@ use crate::error::{Error, Result};
 
 pub struct ApiClient {
     api_base_url: String,
-    api_key: Option<String>,
     app_name: String,
     client: Client,
-    authenticator: Option<Authenticator>,
+    authenticator: AuthHeaderManager,
 }
 
 const SDK_VERSION: &str = concat!("rust-sdk-v", env!("CARGO_PKG_VERSION"));
@@ -23,10 +22,9 @@ impl ApiClient {
     pub fn new(api_base_url: &str, api_key: &str, app_name: &str, client: Client) -> ApiClient {
         ApiClient {
             api_base_url: String::from(api_base_url),
-            api_key: Some(String::from(api_key)),
             app_name: String::from(app_name),
             client,
-            authenticator: None,
+            authenticator: AuthHeaderManager::ApiKey(api_key.to_string()),
         }
     }
 
@@ -38,29 +36,32 @@ impl ApiClient {
     ) -> ApiClient {
         ApiClient {
             api_base_url: String::from(api_base_url),
-            api_key: None,
             app_name: String::from(app_name),
             client,
-            authenticator: Some(auth),
+            authenticator: AuthHeaderManager::OIDCToken(auth),
+        }
+    }
+
+    pub fn new_custom(
+        api_base_url: &str,
+        auth: AuthHeaderManager,
+        app_name: &str,
+        client: Client,
+    ) -> ApiClient {
+        ApiClient {
+            api_base_url: String::from(api_base_url),
+            app_name: String::from(app_name),
+            client,
+            authenticator: auth,
         }
     }
 
     async fn get_headers(&self) -> Result<HeaderMap> {
         let mut headers = HeaderMap::new();
 
-        if let Some(api_key) = &self.api_key {
-            let api_key_header_value =
-                HeaderValue::from_str(api_key).expect("failed to set api key");
-            headers.insert("api-key", api_key_header_value);
-        }
-
-        if let Some(authenticator) = &self.authenticator {
-            let token = authenticator.get_token(&self.client).await?;
-            let auth_header_value = HeaderValue::from_str(&format!("Bearer {}", token))
-                // Should not be possible
-                .expect("Failed to set authorization bearer token");
-            headers.insert("Authorization", auth_header_value);
-        }
+        self.authenticator
+            .set_headers(&mut headers, &self.client)
+            .await?;
 
         headers.insert("x-cdp-sdk", HeaderValue::from_str(SDK_VERSION).expect(""));
         headers.insert(

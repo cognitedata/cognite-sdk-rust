@@ -1,10 +1,63 @@
 use futures_locks::RwLock;
-use reqwest::{Client, StatusCode};
+use reqwest::{
+    header::{HeaderMap, HeaderValue},
+    Client, StatusCode,
+};
 use serde::{Deserialize, Serialize};
 use std::{
     fmt::Display,
     time::{SystemTime, UNIX_EPOCH},
 };
+
+type CustomAuthCallback = dyn Fn(&mut HeaderMap, &Client) + Send + Sync;
+
+pub enum AuthHeaderManager {
+    OIDCToken(Authenticator),
+    ApiKey(String),
+    FixedToken(String),
+    Custom(Box<CustomAuthCallback>),
+}
+
+impl AuthHeaderManager {
+    pub async fn set_headers(
+        &self,
+        headers: &mut HeaderMap,
+        client: &Client,
+    ) -> Result<(), AuthenticatorError> {
+        match self {
+            AuthHeaderManager::OIDCToken(a) => {
+                let token = a.get_token(client).await?;
+                let auth_header_value = HeaderValue::from_str(&format!("Bearer {}", token))
+                    .map_err(|e| AuthenticatorError {
+                        error: Some(format!("Failed to set authorization bearer token: {}", e)),
+                        error_description: None,
+                        error_uri: None,
+                    })?;
+                headers.insert("Authorization", auth_header_value);
+            }
+            AuthHeaderManager::ApiKey(a) => {
+                let api_key_header_value =
+                    HeaderValue::from_str(a).map_err(|e| AuthenticatorError {
+                        error: Some(format!("Failed to set api key: {}", e)),
+                        error_description: None,
+                        error_uri: None,
+                    })?;
+                headers.insert("api-key", api_key_header_value);
+            }
+            AuthHeaderManager::FixedToken(token) => {
+                let auth_header_value = HeaderValue::from_str(&format!("Bearer {}", token))
+                    .map_err(|e| AuthenticatorError {
+                        error: Some(format!("Failed to set authorization bearer token: {}", e)),
+                        error_description: None,
+                        error_uri: None,
+                    })?;
+                headers.insert("Authorization", auth_header_value);
+            }
+            AuthHeaderManager::Custom(c) => c(headers, client),
+        }
+        Ok(())
+    }
+}
 
 pub struct AuthenticatorConfig {
     pub client_id: String,
