@@ -15,6 +15,7 @@ pub enum AuthHeaderManager {
     OIDCToken(Authenticator),
     ApiKey(String),
     FixedToken(String),
+    AuthTicket(String),
     Custom(Box<CustomAuthCallback>),
 }
 
@@ -52,6 +53,15 @@ impl AuthHeaderManager {
                         error_uri: None,
                     })?;
                 headers.insert("Authorization", auth_header_value);
+            }
+            AuthHeaderManager::AuthTicket(t) => {
+                let auth_ticket_header_value =
+                    HeaderValue::from_str(t).map_err(|e| AuthenticatorError {
+                        error: Some(format!("Failed to set auth ticket: {}", e)),
+                        error_description: None,
+                        error_uri: None,
+                    })?;
+                headers.insert("auth-ticket", auth_ticket_header_value);
             }
             AuthHeaderManager::Custom(c) => c(headers, client),
         }
