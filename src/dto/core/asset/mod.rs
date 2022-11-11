@@ -141,7 +141,7 @@ pub struct PatchAsset {
 impl From<&Asset> for Patch<PatchAsset> {
     fn from(asset: &Asset) -> Patch<PatchAsset> {
         Patch::<PatchAsset> {
-            id: Identity::Id { id: asset.id },
+            id: to_idt!(asset),
             update: PatchAsset {
                 name: Some(asset.name.clone().into()),
                 external_id: Some(asset.external_id.clone().into()),

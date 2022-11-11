@@ -1,6 +1,7 @@
 pub mod filter_types;
 pub mod items;
 pub mod params;
+#[macro_use]
 pub mod patch_item;
 
 pub mod auth;

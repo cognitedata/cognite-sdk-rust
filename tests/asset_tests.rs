@@ -69,3 +69,55 @@ async fn create_update_and_delete_asset() {
         .await
         .unwrap();
 }
+
+#[tokio::test]
+async fn create_update_ignore_missing() {
+    let asset_id = format!("{}-asset4", PREFIX.as_str());
+    let new_asset: Asset = Asset::new(
+        "asset3",
+        "description 1",
+        Some(asset_id.clone()),
+        None,
+        None,
+        None,
+    );
+
+    let asset_id_2 = format!("{}-asset5", PREFIX.as_str());
+    let new_asset_2: Asset = Asset::new(
+        "asset3",
+        "description 2",
+        Some(asset_id_2.clone()),
+        None,
+        None,
+        None,
+    );
+
+    let client = get_client();
+
+    let mod_assets = vec![new_asset, new_asset_2];
+    client.assets.create_from(&mod_assets).await.unwrap();
+
+    client
+        .assets
+        .update_from_ignore_unknown_ids(&mod_assets)
+        .await
+        .unwrap();
+
+    let ids = vec![
+        Identity::ExternalId {
+            external_id: asset_id,
+        },
+        Identity::ExternalId {
+            external_id: asset_id_2,
+        },
+    ];
+    client
+        .assets
+        .delete(&DeleteAssetsRequest {
+            items: ids,
+            ignore_unknown_ids: true,
+            recursive: true,
+        })
+        .await
+        .unwrap();
+}

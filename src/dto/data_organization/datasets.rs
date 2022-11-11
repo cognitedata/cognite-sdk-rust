@@ -73,7 +73,7 @@ pub struct PatchDataSet {
 impl From<&DataSet> for Patch<PatchDataSet> {
     fn from(data_set: &DataSet) -> Patch<PatchDataSet> {
         Patch::<PatchDataSet> {
-            id: Identity::Id { id: data_set.id },
+            id: to_idt!(data_set),
             update: PatchDataSet {
                 external_id: Some(data_set.external_id.clone().into()),
                 name: Some(data_set.name.clone().into()),

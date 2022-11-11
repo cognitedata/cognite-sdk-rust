@@ -94,40 +94,45 @@ where
         TCreate: From<&'a T>,
     {
         let to_add: Vec<TCreate> = creates.iter().map(TCreate::from).collect();
-        Ok(self.create(&to_add).await?)
+        self.create(&to_add).await
     }
 
     async fn create_ignore_duplicates(&self, creates: &[TCreate]) -> Result<Vec<TResponse>>
     where
         TCreate: EqIdentity,
     {
-        let items = Items::from(creates);
-        let resp: Result<ItemsWithoutCursor<TResponse>> =
-            self.get_client().post(Self::BASE_PATH, &items).await;
+        let resp = self.create(creates).await;
 
         let duplicates: Option<Vec<Identity>> = get_duplicates(&resp);
 
         if let Some(duplicates) = duplicates {
-            let next: Vec<&TCreate> = creates
+            let mut next = creates
                 .iter()
-                .filter(|c| !duplicates.iter().any(|i| c.eq(i)))
-                .collect();
+                .filter(|c| !duplicates.iter().any(|i| c.eq(i)));
 
-            if next.is_empty() {
+            if next.next().is_none() {
                 if duplicates.len() == creates.len() {
                     return Ok(vec![]);
                 }
-                return resp.map(|i| i.items);
+                return resp;
             }
 
-            let response: ItemsWithoutCursor<TResponse> = self
-                .get_client()
-                .post(Self::BASE_PATH, &Items::from(next))
-                .await?;
-            Ok(response.items)
+            self.create(creates).await
         } else {
-            resp.map(|i| i.items)
+            resp
         }
+    }
+
+    async fn create_from_ignore_duplicates<T: 'a, 'a>(
+        &self,
+        creates: &'a [T],
+    ) -> Result<Vec<TResponse>>
+    where
+        T: std::marker::Sync,
+        TCreate: From<&'a T> + EqIdentity,
+    {
+        let to_add: Vec<TCreate> = creates.iter().map(TCreate::from).collect();
+        self.create_ignore_duplicates(&to_add).await
     }
 }
 
@@ -244,6 +249,27 @@ where
     }
 }
 
+fn get_missing<T>(res: &Result<T>) -> Option<Vec<Identity>> {
+    match res {
+        Ok(_) => None,
+        Err(e) => match &e.kind {
+            Kind::BadRequest(c) => c.missing.as_ref().map(|mis| {
+                mis.iter()
+                    .filter_map(|m| {
+                        m.get("externalId")
+                            .map(|ext_id| Identity::from(ext_id.clone()))
+                            .or_else(|| {
+                                m.get("id")
+                                    .and_then(|id| id.parse::<i64>().ok().map(Identity::from))
+                            })
+                    })
+                    .collect()
+            }),
+            _ => None,
+        },
+    }
+}
+
 #[async_trait]
 pub trait Update<TUpdate, TResponse>
 where
@@ -266,7 +292,44 @@ where
         TUpdate: From<&'a T>,
     {
         let to_update: Vec<TUpdate> = updates.iter().map(TUpdate::from).collect();
-        Ok(self.update(&to_update).await?)
+        self.update(&to_update).await
+    }
+
+    async fn update_ignore_unknown_ids(&self, updates: &[TUpdate]) -> Result<Vec<TResponse>>
+    where
+        TUpdate: EqIdentity,
+        TResponse: Send,
+    {
+        let response = self.update(updates).await;
+        let missing: Option<Vec<Identity>> = get_missing(&response);
+
+        if let Some(missing) = missing {
+            let mut next = updates.iter().filter(|c| !missing.iter().any(|i| c.eq(i)));
+
+            if next.next().is_none() {
+                if missing.len() == updates.len() {
+                    return Ok(vec![]);
+                }
+                return response;
+            }
+
+            self.update(updates).await
+        } else {
+            response
+        }
+    }
+
+    async fn update_from_ignore_unknown_ids<T: 'a, 'a>(
+        &self,
+        updates: &'a [T],
+    ) -> Result<Vec<TResponse>>
+    where
+        T: std::marker::Sync,
+        TUpdate: From<&'a T> + EqIdentity,
+        TResponse: Send,
+    {
+        let to_update: Vec<TUpdate> = updates.iter().map(TUpdate::from).collect();
+        self.update_ignore_unknown_ids(&to_update).await
     }
 }
 

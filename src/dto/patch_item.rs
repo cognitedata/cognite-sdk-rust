@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use serde::{Deserialize, Serialize};
 
-use crate::Identity;
+use crate::{EqIdentity, Identity};
 
 #[derive(Serialize, Deserialize, Debug, Default)]
 #[serde(rename_all = "camelCase")]
@@ -139,4 +139,28 @@ where
             update: T::default(),
         }
     }
+}
+
+impl<T> EqIdentity for Patch<T>
+where
+    T: Default,
+{
+    fn eq(&self, id: &Identity) -> bool {
+        &self.id == id
+    }
+}
+
+macro_rules! to_idt {
+    ($it:ident) => {
+        if $it.id > 0 {
+            Identity::Id { id: $it.id }
+        } else {
+            $it.external_id
+                .as_ref()
+                .map(|e| Identity::ExternalId {
+                    external_id: e.clone(),
+                })
+                .unwrap_or_else(|| Identity::Id { id: $it.id })
+        }
+    };
 }
