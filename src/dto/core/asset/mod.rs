@@ -95,7 +95,7 @@ impl From<&Asset> for AddAsset {
             description: asset.description.clone(),
             metadata: asset.metadata.clone(),
             source: asset.source.clone(),
-            parent_external_id: if asset.parent_id == None {
+            parent_external_id: if asset.parent_id.is_none() {
                 asset.parent_external_id.clone()
             } else {
                 None
