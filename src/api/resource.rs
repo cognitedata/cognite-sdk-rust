@@ -106,18 +106,22 @@ where
         let duplicates: Option<Vec<Identity>> = get_duplicates(&resp);
 
         if let Some(duplicates) = duplicates {
-            let mut next = creates
+            let next: Vec<&TCreate> = creates
                 .iter()
-                .filter(|c| !duplicates.iter().any(|i| c.eq(i)));
+                .filter(|c| !duplicates.iter().any(|i| c.eq(i)))
+                .collect();
 
-            if next.next().is_none() {
+            if next.is_empty() {
                 if duplicates.len() == creates.len() {
                     return Ok(vec![]);
                 }
                 return resp;
             }
 
-            self.create(creates).await
+            let items = Items::from(next);
+            let response: ItemsWithoutCursor<TResponse> =
+                self.get_client().post(Self::BASE_PATH, &items).await?;
+            Ok(response.items)
         } else {
             resp
         }
@@ -304,16 +308,24 @@ where
         let missing: Option<Vec<Identity>> = get_missing(&response);
 
         if let Some(missing) = missing {
-            let mut next = updates.iter().filter(|c| !missing.iter().any(|i| c.eq(i)));
+            let next: Vec<&TUpdate> = updates
+                .iter()
+                .filter(|c| !missing.iter().any(|i| c.eq(i)))
+                .collect();
 
-            if next.next().is_none() {
+            if next.is_empty() {
                 if missing.len() == updates.len() {
                     return Ok(vec![]);
                 }
                 return response;
             }
 
-            self.update(updates).await
+            let items = Items::from(next);
+            let response: ItemsWithoutCursor<TResponse> = self
+                .get_client()
+                .post(&format!("{}/update", Self::BASE_PATH), &items)
+                .await?;
+            Ok(response.items)
         } else {
             response
         }

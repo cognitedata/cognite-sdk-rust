@@ -95,7 +95,7 @@ async fn create_update_ignore_missing() {
     let client = get_client();
 
     let mod_assets = vec![new_asset, new_asset_2];
-    client.assets.create_from(&mod_assets).await.unwrap();
+    client.assets.create_from(&mod_assets[..1]).await.unwrap();
 
     client
         .assets
