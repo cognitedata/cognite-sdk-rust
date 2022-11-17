@@ -100,7 +100,7 @@ pub struct PatchTimeSerie {
 impl From<&TimeSerie> for Patch<PatchTimeSerie> {
     fn from(time_serie: &TimeSerie) -> Patch<PatchTimeSerie> {
         Patch::<PatchTimeSerie> {
-            id: Identity::Id { id: time_serie.id },
+            id: to_idt!(time_serie),
             update: PatchTimeSerie {
                 name: Some(time_serie.name.clone().into()),
                 external_id: Some(time_serie.external_id.clone().into()),

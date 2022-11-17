@@ -139,7 +139,7 @@ pub struct PatchEvent {
 impl From<&Event> for Patch<PatchEvent> {
     fn from(event: &Event) -> Patch<PatchEvent> {
         Patch::<PatchEvent> {
-            id: Identity::Id { id: event.id },
+            id: to_idt!(event),
             update: PatchEvent {
                 external_id: Some(event.external_id.clone().into()),
                 data_set_id: Some(event.data_set_id.into()),

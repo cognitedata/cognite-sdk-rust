@@ -119,7 +119,7 @@ pub struct PatchFile {
 impl From<&FileMetadata> for Patch<PatchFile> {
     fn from(file: &FileMetadata) -> Self {
         Self {
-            id: Identity::Id { id: file.id },
+            id: to_idt!(file),
             update: PatchFile {
                 external_id: Some(file.external_id.clone().into()),
                 directory: Some(file.directory.clone().into()),
