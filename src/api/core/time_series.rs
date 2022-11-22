@@ -1,11 +1,14 @@
+use std::collections::HashSet;
+use std::iter::FromIterator;
+
 use crate::api::resource::*;
 use crate::dto::core::datapoint::*;
 use crate::dto::core::time_serie::*;
 use crate::error::Result;
+use crate::get_missing_from_result;
 use crate::Identity;
 use crate::Items;
 use crate::ItemsWithIgnoreUnknownIds;
-use crate::Kind;
 use crate::Patch;
 
 pub type TimeSeries = Resource<TimeSerie>;
@@ -48,20 +51,11 @@ impl TimeSeries {
         generator: &impl Fn(&[Identity]) -> &[AddTimeSerie],
     ) -> Result<()> {
         let result = self.insert_datapoints_proto(add_datapoints).await;
-        let missing = match result {
-            Ok(_) => return result,
-            Err(ref e) => match &e.kind {
-                Kind::BadRequest(k) => match &k.missing {
-                    Some(ms) => ms,
-                    None => return result,
-                },
-                _ => return result,
-            },
+        let missing = get_missing_from_result(&result);
+        let missing_idts = match missing {
+            Some(m) => m,
+            None => return result,
         };
-        let missing_idts: Vec<_> = missing.get_identities().collect();
-        if missing_idts.is_empty() {
-            return result;
-        }
         let to_create = generator(&missing_idts);
         self.create(to_create).await?;
 
@@ -75,6 +69,47 @@ impl TimeSeries {
     ) -> Result<()> {
         let request = DataPointInsertionRequest::from(add_datapoints);
         self.insert_datapoints_proto_create_missing(&request, generator)
+            .await?;
+        Ok(())
+    }
+
+    pub async fn insert_datapoints_proto_ignore_missing(
+        &self,
+        add_datapoints: &DataPointInsertionRequest,
+    ) -> Result<()> {
+        let result = self.insert_datapoints_proto(add_datapoints).await;
+        let missing = get_missing_from_result(&result);
+        let missing_idts = match missing {
+            Some(m) => m,
+            None => return result,
+        };
+        let idt_set = HashSet::<Identity>::from_iter(missing_idts.into_iter());
+
+        let mut items = vec![];
+        for elem in add_datapoints.items.iter() {
+            let idt = match &elem.id_or_external_id {
+                Some(x) => Identity::from(x.clone()),
+                None => continue,
+            };
+            if !idt_set.contains(&idt) {
+                items.push(elem.clone());
+            }
+        }
+
+        if items.is_empty() {
+            return Ok(());
+        }
+
+        let next_request = DataPointInsertionRequest { items };
+        self.insert_datapoints_proto(&next_request).await
+    }
+
+    pub async fn insert_datapoints_ignore_missing(
+        &self,
+        add_datapoints: Vec<AddDatapoints>,
+    ) -> Result<()> {
+        let request = DataPointInsertionRequest::from(add_datapoints);
+        self.insert_datapoints_proto_ignore_missing(&request)
             .await?;
         Ok(())
     }
