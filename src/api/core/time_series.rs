@@ -5,6 +5,7 @@ use crate::error::Result;
 use crate::Identity;
 use crate::Items;
 use crate::ItemsWithIgnoreUnknownIds;
+use crate::Kind;
 use crate::Patch;
 
 pub type TimeSeries = Resource<TimeSerie>;
@@ -37,6 +38,43 @@ impl TimeSeries {
                 "timeseries/data",
                 add_datapoints,
             )
+            .await?;
+        Ok(())
+    }
+
+    pub async fn insert_datapoints_proto_create_missing(
+        &self,
+        add_datapoints: &DataPointInsertionRequest,
+        generator: &impl Fn(&[Identity]) -> &[AddTimeSerie],
+    ) -> Result<()> {
+        let result = self.insert_datapoints_proto(add_datapoints).await;
+        let missing = match result {
+            Ok(_) => return result,
+            Err(ref e) => match &e.kind {
+                Kind::BadRequest(k) => match &k.missing {
+                    Some(ms) => ms,
+                    None => return result,
+                },
+                _ => return result,
+            },
+        };
+        let missing_idts: Vec<_> = missing.get_identities().collect();
+        if missing_idts.is_empty() {
+            return result;
+        }
+        let to_create = generator(&missing_idts);
+        self.create(to_create).await?;
+
+        self.insert_datapoints_proto(add_datapoints).await
+    }
+
+    pub async fn insert_datapoints_create_missing(
+        &self,
+        add_datapoints: Vec<AddDatapoints>,
+        generator: &impl Fn(&[Identity]) -> &[AddTimeSerie],
+    ) -> Result<()> {
+        let request = DataPointInsertionRequest::from(add_datapoints);
+        self.insert_datapoints_proto_create_missing(&request, generator)
             .await?;
         Ok(())
     }
