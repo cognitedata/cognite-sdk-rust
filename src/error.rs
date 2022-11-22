@@ -1,11 +1,10 @@
+use crate::{AuthenticatorError, Identity};
 use reqwest::header::InvalidHeaderValue;
 use reqwest::StatusCode;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::fmt;
 use thiserror::Error;
-
-use crate::AuthenticatorError;
 
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
@@ -15,19 +14,73 @@ pub struct ApiErrorWrapper {
 
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
+#[serde(untagged)]
+pub enum IntegerOrString {
+    Integer(i64),
+    String(String),
+}
+
+impl IntegerOrString {
+    pub fn integer(&self) -> Option<i64> {
+        match self {
+            Self::Integer(i) => Some(*i),
+            Self::String(s) => s.parse().ok(),
+        }
+    }
+
+    pub fn string(&self) -> Option<&String> {
+        match self {
+            Self::Integer(_) => None,
+            Self::String(s) => Some(s),
+        }
+    }
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct ApiErrorDetail(Vec<HashMap<String, IntegerOrString>>);
+
+#[derive(Serialize, Deserialize, Debug)]
+#[serde(rename_all = "camelCase")]
 pub struct ApiErrorMessage {
     pub code: u32,
     pub message: String,
-    pub missing: Option<Vec<HashMap<String, String>>>,
-    pub duplicated: Option<Vec<HashMap<String, String>>>,
+    pub missing: Option<ApiErrorDetail>,
+    pub duplicated: Option<ApiErrorDetail>,
+}
+
+impl ApiErrorDetail {
+    pub fn get_identities(&self) -> impl Iterator<Item = Identity> + '_ {
+        self.iter().filter_map(|m| {
+            Self::get_integer(m, "id")
+                .map(|id| Identity::Id { id })
+                .or_else(|| {
+                    Self::get_string(m, "externalId").map(|external_id| Identity::ExternalId {
+                        external_id: external_id.clone(),
+                    })
+                })
+        })
+    }
+    fn get_integer(map: &HashMap<String, IntegerOrString>, key: &'static str) -> Option<i64> {
+        map.get(key).and_then(|f| f.integer())
+    }
+    fn get_string<'a>(
+        map: &'a HashMap<String, IntegerOrString>,
+        key: &'static str,
+    ) -> Option<&'a String> {
+        map.get(key).and_then(|f| f.string())
+    }
+    pub fn iter(&self) -> impl Iterator<Item = &HashMap<String, IntegerOrString>> + '_ {
+        self.0.iter()
+    }
 }
 
 #[derive(Debug, Default)]
 pub struct CdfApiError {
     pub code: u32,
     pub message: String,
-    pub missing: Option<Vec<HashMap<String, String>>>,
-    pub duplicated: Option<Vec<HashMap<String, String>>>,
+    pub missing: Option<ApiErrorDetail>,
+    pub duplicated: Option<ApiErrorDetail>,
     pub request_id: Option<String>,
 }
 
