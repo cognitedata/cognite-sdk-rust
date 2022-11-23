@@ -2,7 +2,7 @@ mod filter;
 
 pub use self::filter::*;
 
-use crate::{EqIdentity, Identity, Patch, UpdateList, UpdateMap, UpdateSetNull};
+use crate::{EqIdentity, Identity, IntegerOrString, Patch, UpdateList, UpdateMap, UpdateSetNull};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
@@ -12,13 +12,6 @@ pub struct EventListResponse {
     pub items: Vec<Event>,
     previous_cursor: Option<String>,
     next_cursor: Option<String>,
-}
-
-#[derive(Serialize, Deserialize, Debug)]
-#[serde(rename_all = "camelCase", untagged)]
-pub enum IntegerOrString {
-    Integer(i64),
-    String(String),
 }
 
 #[derive(Serialize, Deserialize, Debug)]

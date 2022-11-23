@@ -6,9 +6,11 @@ use serde::{de::DeserializeOwned, Serialize};
 
 use crate::dto::items::*;
 use crate::{
-    ApiClient, AsParams, EqIdentity, Filter, Identity, Kind, Partition, Patch, Result, Search,
-    SetCursor, WithPartition,
+    ApiClient, AsParams, EqIdentity, Filter, Identity, Partition, Patch, Result, Search, SetCursor,
+    WithPartition,
 };
+
+use super::utils::{get_duplicates_from_result, get_missing_from_result};
 
 pub struct Resource<T> {
     pub api_client: Arc<ApiClient>,
@@ -36,27 +38,6 @@ pub trait WithApiClient {
 
 pub trait WithBasePath {
     const BASE_PATH: &'static str;
-}
-
-fn get_duplicates<T>(res: &Result<T>) -> Option<Vec<Identity>> {
-    match res {
-        Ok(_) => None,
-        Err(e) => match &e.kind {
-            Kind::Conflict(c) => c.duplicated.as_ref().map(|dup| {
-                dup.iter()
-                    .filter_map(|m| {
-                        m.get("externalId")
-                            .map(|ext_id| Identity::from(ext_id.clone()))
-                            .or_else(|| {
-                                m.get("id")
-                                    .and_then(|id| id.parse::<i64>().ok().map(Identity::from))
-                            })
-                    })
-                    .collect()
-            }),
-            _ => None,
-        },
-    }
 }
 
 #[async_trait]
@@ -103,7 +84,7 @@ where
     {
         let resp = self.create(creates).await;
 
-        let duplicates: Option<Vec<Identity>> = get_duplicates(&resp);
+        let duplicates: Option<Vec<Identity>> = get_duplicates_from_result(&resp);
 
         if let Some(duplicates) = duplicates {
             let next: Vec<&TCreate> = creates
@@ -157,7 +138,7 @@ where
         let resp: Result<ItemsWithoutCursor<TResponse>> =
             self.get_client().post(Self::BASE_PATH, &items).await;
 
-        let duplicates: Option<Vec<Identity>> = get_duplicates(&resp);
+        let duplicates: Option<Vec<Identity>> = get_duplicates_from_result(&resp);
 
         if let Some(duplicates) = duplicates {
             let mut to_create = Vec::with_capacity(upserts.len() - duplicates.len());
@@ -253,27 +234,6 @@ where
     }
 }
 
-fn get_missing<T>(res: &Result<T>) -> Option<Vec<Identity>> {
-    match res {
-        Ok(_) => None,
-        Err(e) => match &e.kind {
-            Kind::BadRequest(c) => c.missing.as_ref().map(|mis| {
-                mis.iter()
-                    .filter_map(|m| {
-                        m.get("externalId")
-                            .map(|ext_id| Identity::from(ext_id.clone()))
-                            .or_else(|| {
-                                m.get("id")
-                                    .and_then(|id| id.parse::<i64>().ok().map(Identity::from))
-                            })
-                    })
-                    .collect()
-            }),
-            _ => None,
-        },
-    }
-}
-
 #[async_trait]
 pub trait Update<TUpdate, TResponse>
 where
@@ -305,7 +265,7 @@ where
         TResponse: Send,
     {
         let response = self.update(updates).await;
-        let missing: Option<Vec<Identity>> = get_missing(&response);
+        let missing: Option<Vec<Identity>> = get_missing_from_result(&response);
 
         if let Some(missing) = missing {
             let next: Vec<&TUpdate> = updates
