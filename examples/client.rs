@@ -2,6 +2,7 @@ use cognite::assets::*;
 use cognite::events::*;
 use cognite::files::*;
 use cognite::time_series::*;
+use cognite::ClientConfig;
 use cognite::FilterItems;
 use cognite::FilterWithRequest;
 use cognite::List;
@@ -9,7 +10,14 @@ use cognite::{CogniteClient, Identity, SearchItems};
 
 #[tokio::main]
 async fn main() {
-    let cognite_client = CogniteClient::new("TestApp").unwrap();
+    let cognite_client = CogniteClient::new(
+        "TestApp",
+        Some(ClientConfig {
+            max_retries: 5,
+            ..Default::default()
+        }),
+    )
+    .unwrap();
     // List all assets
     let mut filter: AssetFilter = AssetFilter::new();
     filter.name.replace("Aker".to_string());

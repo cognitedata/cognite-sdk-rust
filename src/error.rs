@@ -197,6 +197,8 @@ pub enum Kind {
     IOError(std::io::Error),
     #[error("Error collecting stream: {0}")]
     StreamError(String),
+    #[error("Error in middleware: {0}")]
+    Middleware(String),
 }
 
 #[derive(Debug, Error)]
@@ -274,5 +276,14 @@ impl From<std::io::Error> for Kind {
 impl From<std::io::Error> for Error {
     fn from(err: std::io::Error) -> Error {
         Error::new(Kind::from(err))
+    }
+}
+
+impl From<reqwest_middleware::Error> for Error {
+    fn from(err: reqwest_middleware::Error) -> Self {
+        match err {
+            reqwest_middleware::Error::Middleware(x) => Error::new(Kind::Middleware(x.to_string())),
+            reqwest_middleware::Error::Reqwest(x) => Self::from(x),
+        }
     }
 }
