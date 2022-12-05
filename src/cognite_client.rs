@@ -1,10 +1,13 @@
 use reqwest::Client;
+use reqwest_middleware::{ClientBuilder, ClientWithMiddleware};
 use std::env;
 use std::sync::Arc;
+use std::time::Duration;
 
 use super::{ApiClient, Error, Result};
 use crate::api::core::sequences::Sequences;
 use crate::error::Kind;
+use crate::retry::CustomRetryMiddleware;
 use crate::AuthHeaderManager;
 use crate::{
     assets::Assets, datasets::DataSets, events::Events, extpipes::ExtPipeRuns, extpipes::ExtPipes,
@@ -45,6 +48,13 @@ macro_rules! env_or_none {
     };
 }
 
+#[derive(Default, Clone)]
+pub struct ClientConfig {
+    pub max_retries: u32,
+    pub max_retry_delay_ms: Option<u64>,
+    pub timeout_ms: Option<u64>,
+}
+
 pub struct CogniteClient {
     pub api_client: Arc<ApiClient>,
 
@@ -75,18 +85,18 @@ static COGNITE_AUDIENCE: &str = "COGNITE_AUDIENCE";
 static COGNITE_SCOPES: &str = "COGNITE_SCOPES";
 
 impl CogniteClient {
-    pub fn new(app_name: &str) -> Result<Self> {
+    pub fn new(app_name: &str, config: Option<ClientConfig>) -> Result<Self> {
         let api_key = env_or_error!(COGNITE_API_KEY);
         let api_base_url = env_or!(COGNITE_BASE_URL, "https://api.cognitedata.com/".to_string());
         let project_name = env_or_error!(COGNITE_PROJECT_NAME);
 
-        CogniteClient::new_from(&api_key, &api_base_url, &project_name, app_name)
+        CogniteClient::new_from(&api_key, &api_base_url, &project_name, app_name, config)
     }
 
-    pub fn new_oidc(app_name: &str) -> Result<Self> {
+    pub fn new_oidc(app_name: &str, config: Option<ClientConfig>) -> Result<Self> {
         let api_base_url = env_or!(COGNITE_BASE_URL, "https://api.cognitedata.com/".to_string());
         let project_name = env_or_error!(COGNITE_PROJECT_NAME);
-        let config = AuthenticatorConfig {
+        let auth_config = AuthenticatorConfig {
             client_id: env_or_error!(COGNITE_CLIENT_ID),
             token_url: env_or_error!(COGNITE_TOKEN_URL),
             secret: env_or_error!(COGNITE_CLIENT_SECRET),
@@ -95,7 +105,7 @@ impl CogniteClient {
             scopes: env_or_none!(COGNITE_SCOPES),
         };
 
-        CogniteClient::new_from_oidc(&api_base_url, config, &project_name, app_name)
+        CogniteClient::new_from_oidc(&api_base_url, auth_config, &project_name, app_name, config)
     }
 
     pub fn new_custom_auth(
@@ -103,12 +113,34 @@ impl CogniteClient {
         project_name: &str,
         auth: AuthHeaderManager,
         app_name: &str,
+        config: Option<ClientConfig>,
     ) -> Result<Self> {
-        let client = Client::new();
         let api_base_path = format!("{}/api/{}/projects/{}", api_base_url, "v1", project_name);
-        let api_client = ApiClient::new_custom(&api_base_path, auth, app_name, client);
+        let api_client = ApiClient::new_custom(
+            &api_base_path,
+            auth,
+            app_name,
+            Self::get_client(config.unwrap_or_default())?,
+        );
 
         Self::new_internal(api_client)
+    }
+
+    fn get_client(config: ClientConfig) -> Result<ClientWithMiddleware> {
+        let mut builder = Client::builder();
+        // We can add more here later
+        if let Some(timeout) = config.timeout_ms {
+            builder = builder.timeout(Duration::from_millis(timeout));
+        }
+        let client = builder.build()?;
+        let mut builder = ClientBuilder::new(client);
+        if config.max_retries > 0 {
+            builder = builder.with(CustomRetryMiddleware::new(
+                config.max_retries,
+                config.max_retry_delay_ms.unwrap_or(5 * 60 * 1000),
+            ));
+        }
+        Ok(builder.build())
     }
 
     fn new_internal(api_client: ApiClient) -> Result<Self> {
@@ -137,9 +169,15 @@ impl CogniteClient {
         api_key: &str,
         api_base_url: &str,
         app_name: &str,
+        config: Option<ClientConfig>,
     ) -> Result<Self> {
         // Get project name associated to API KEY
-        let login_api_client = ApiClient::new(api_base_url, api_key, app_name, Client::new());
+        let login_api_client = ApiClient::new(
+            api_base_url,
+            api_key,
+            app_name,
+            Self::get_client(config.clone().unwrap_or_default())?,
+        );
         let login = Login::new(Arc::new(login_api_client));
         let login_status = match login.status().await {
             Ok(status) => status,
@@ -148,19 +186,24 @@ impl CogniteClient {
 
         let project_name = login_status.project;
 
-        CogniteClient::new_from(api_key, api_base_url, &project_name, app_name)
+        CogniteClient::new_from(api_key, api_base_url, &project_name, app_name, config)
     }
 
     pub fn new_from_oidc(
         api_base_url: &str,
-        config: AuthenticatorConfig,
+        auth_config: AuthenticatorConfig,
         project_name: &str,
         app_name: &str,
+        config: Option<ClientConfig>,
     ) -> Result<Self> {
-        let client = Client::new();
-        let authenticator = Authenticator::new(config);
+        let authenticator = Authenticator::new(auth_config);
         let api_base_path = format!("{}/api/{}/projects/{}", api_base_url, "v1", project_name);
-        let api_client = ApiClient::new_oidc(&api_base_path, authenticator, app_name, client);
+        let api_client = ApiClient::new_oidc(
+            &api_base_path,
+            authenticator,
+            app_name,
+            Self::get_client(config.unwrap_or_default())?,
+        );
 
         Self::new_internal(api_client)
     }
@@ -170,10 +213,15 @@ impl CogniteClient {
         api_base_url: &str,
         project_name: &str,
         app_name: &str,
+        config: Option<ClientConfig>,
     ) -> Result<Self> {
-        let client = Client::new();
         let api_base_path = format!("{}/api/{}/projects/{}", api_base_url, "v1", project_name);
-        let api_client = ApiClient::new(&api_base_path, api_key, app_name, client);
+        let api_client = ApiClient::new(
+            &api_base_path,
+            api_key,
+            app_name,
+            Self::get_client(config.unwrap_or_default())?,
+        );
 
         Self::new_internal(api_client)
     }

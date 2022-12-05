@@ -1,15 +1,16 @@
 use futures_locks::RwLock;
 use reqwest::{
     header::{HeaderMap, HeaderValue},
-    Client, StatusCode,
+    StatusCode,
 };
+use reqwest_middleware::ClientWithMiddleware;
 use serde::{Deserialize, Serialize};
 use std::{
     fmt::Display,
     time::{SystemTime, UNIX_EPOCH},
 };
 
-type CustomAuthCallback = dyn Fn(&mut HeaderMap, &Client) + Send + Sync;
+type CustomAuthCallback = dyn Fn(&mut HeaderMap, &ClientWithMiddleware) + Send + Sync;
 
 pub enum AuthHeaderManager {
     OIDCToken(Authenticator),
@@ -23,7 +24,7 @@ impl AuthHeaderManager {
     pub async fn set_headers(
         &self,
         headers: &mut HeaderMap,
-        client: &Client,
+        client: &ClientWithMiddleware,
     ) -> Result<(), AuthenticatorError> {
         match self {
             AuthHeaderManager::OIDCToken(a) => {
@@ -161,7 +162,7 @@ impl Authenticator {
 
     async fn request_token(
         &self,
-        client: &Client,
+        client: &ClientWithMiddleware,
     ) -> Result<AuthenticatorResponse, AuthenticatorError> {
         match client.get(&self.token_url).form(&self.req).send().await {
             Ok(response) => match response.status() {
@@ -196,7 +197,10 @@ impl Authenticator {
         }
     }
 
-    pub async fn get_token(&self, client: &Client) -> Result<String, AuthenticatorError> {
+    pub async fn get_token(
+        &self,
+        client: &ClientWithMiddleware,
+    ) -> Result<String, AuthenticatorError> {
         let now = SystemTime::now()
             .duration_since(UNIX_EPOCH)
             .unwrap()

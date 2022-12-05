@@ -3,6 +3,7 @@ mod cognite_client;
 mod api;
 mod dto;
 mod error;
+mod retry;
 
 pub mod login {
     pub use super::api::auth::login::*;

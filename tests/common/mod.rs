@@ -4,7 +4,16 @@ use rand::{distributions::Alphanumeric, Rng};
 
 #[cfg(test)]
 pub fn get_client() -> CogniteClient {
-    CogniteClient::new_oidc("rust_sdk_test").unwrap()
+    use cognite::ClientConfig;
+
+    CogniteClient::new_oidc(
+        "rust_sdk_test",
+        Some(ClientConfig {
+            max_retries: 5,
+            ..Default::default()
+        }),
+    )
+    .unwrap()
 }
 
 #[cfg(test)]

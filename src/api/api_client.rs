@@ -3,7 +3,9 @@ use crate::{AsParams, AuthHeaderManager};
 use futures::{Stream, TryStreamExt};
 use prost::Message;
 use reqwest::header::{HeaderMap, HeaderValue, ACCEPT, CONTENT_TYPE, USER_AGENT};
-use reqwest::{Body, Client, RequestBuilder, Response, StatusCode};
+use reqwest::{Body, Response, StatusCode};
+use reqwest_middleware::ClientWithMiddleware;
+use reqwest_middleware::RequestBuilder;
 use serde::de::DeserializeOwned;
 use serde::ser::Serialize;
 
@@ -12,14 +14,19 @@ use crate::error::{Error, Result};
 pub struct ApiClient {
     api_base_url: String,
     app_name: String,
-    client: Client,
+    client: ClientWithMiddleware,
     authenticator: AuthHeaderManager,
 }
 
 const SDK_VERSION: &str = concat!("rust-sdk-v", env!("CARGO_PKG_VERSION"));
 
 impl ApiClient {
-    pub fn new(api_base_url: &str, api_key: &str, app_name: &str, client: Client) -> ApiClient {
+    pub fn new(
+        api_base_url: &str,
+        api_key: &str,
+        app_name: &str,
+        client: ClientWithMiddleware,
+    ) -> ApiClient {
         ApiClient {
             api_base_url: String::from(api_base_url),
             app_name: String::from(app_name),
@@ -32,7 +39,7 @@ impl ApiClient {
         api_base_url: &str,
         auth: Authenticator,
         app_name: &str,
-        client: Client,
+        client: ClientWithMiddleware,
     ) -> ApiClient {
         ApiClient {
             api_base_url: String::from(api_base_url),
@@ -46,7 +53,7 @@ impl ApiClient {
         api_base_url: &str,
         auth: AuthHeaderManager,
         app_name: &str,
-        client: Client,
+        client: ClientWithMiddleware,
     ) -> ApiClient {
         ApiClient {
             api_base_url: String::from(api_base_url),
