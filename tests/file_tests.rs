@@ -4,6 +4,8 @@ use cognite::prelude::*;
 mod common;
 use common::*;
 use futures::TryStreamExt;
+use tokio::fs::File;
+use tokio_util::codec::{BytesCodec, FramedRead};
 
 async fn ensure_test_file(client: &CogniteClient) {
     let id = "rust-sdk-test-file".to_string();
@@ -52,7 +54,40 @@ async fn create_upload_delete_file() {
 
     client
         .files
-        .upload_stream("text/plain", &res.upload_url.unwrap(), stream, false)
+        .upload_stream_known_size("text/plain", &res.upload_url.unwrap(), stream, 18)
+        .await
+        .unwrap();
+
+    client
+        .files
+        .delete(&vec![Identity::Id { id: res.id }])
+        .await
+        .unwrap();
+}
+
+#[tokio::test]
+async fn create_upload_delete_actual_file() {
+    let id = format!("{}-file3", PREFIX.as_str());
+    let new_file = AddFile {
+        name: "File 1".to_string(),
+        external_id: Some(id),
+        mime_type: Some("text/plain".to_string()),
+        ..Default::default()
+    };
+
+    let client = get_client();
+
+    let res = client.files.upload(true, &new_file).await.unwrap();
+
+    let size = tokio::fs::metadata("tests/dummyfile.txt")
+        .await
+        .unwrap()
+        .len();
+    let file = File::open("tests/dummyfile.txt").await.unwrap();
+    let stream = FramedRead::new(file, BytesCodec::new());
+    client
+        .files
+        .upload_stream_known_size("text/plain", &res.upload_url.unwrap(), stream, size)
         .await
         .unwrap();
 

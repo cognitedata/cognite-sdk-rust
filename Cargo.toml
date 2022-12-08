@@ -22,6 +22,7 @@ futures-timer = "3.0.2"
 
 [target.'cfg(not(target_arch = "wasm32"))'.dev-dependencies]
 tokio = { version = "1.17.0", features = ["macros", "rt-multi-thread"] }
+tokio-util = { version = "0.7.4" }
 
 [dev-dependencies]
 once_cell = { version = "1.15.0" }

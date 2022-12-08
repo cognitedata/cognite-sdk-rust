@@ -2,7 +2,7 @@ use crate::api::authenticator::Authenticator;
 use crate::{AsParams, AuthHeaderManager};
 use futures::{Stream, TryStreamExt};
 use prost::Message;
-use reqwest::header::{HeaderMap, HeaderValue, ACCEPT, CONTENT_TYPE, USER_AGENT};
+use reqwest::header::{HeaderMap, HeaderValue, ACCEPT, CONTENT_LENGTH, CONTENT_TYPE, USER_AGENT};
 use reqwest::{Body, Response, StatusCode};
 use reqwest_middleware::ClientWithMiddleware;
 use reqwest_middleware::RequestBuilder;
@@ -293,6 +293,7 @@ impl ApiClient {
         mime_type: &str,
         stream: S,
         stream_chunked: bool,
+        known_size: Option<u64>,
     ) -> Result<()>
     where
         S: futures::TryStream + Send + Sync + 'static,
@@ -304,6 +305,9 @@ impl ApiClient {
             headers.insert(CONTENT_TYPE, HeaderValue::from_str(mime_type)?);
             headers.insert("X-Upload-Content-Type", HeaderValue::from_str(mime_type)?);
             headers.insert(ACCEPT, HeaderValue::from_static("*/*"));
+            if let Some(size) = known_size {
+                headers.insert(CONTENT_LENGTH, HeaderValue::from_str(&size.to_string())?);
+            }
             let request_builder = self
                 .client
                 .put(url)
