@@ -66,7 +66,7 @@ impl Files {
     /// ```
     ///
     /// Note that this will still stream the data from disk, so it should be as efficient as `upload_stream` with
-    /// known size.
+    /// `upload_chunked`, but not require the target to accept `content-encoding: chunked`.
     pub async fn upload_stream_known_size<S>(
         &self,
         mime_type: &str,

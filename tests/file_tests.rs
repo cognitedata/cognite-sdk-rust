@@ -54,7 +54,7 @@ async fn create_upload_delete_file() {
 
     client
         .files
-        .upload_stream_known_size("text/plain", &res.upload_url.unwrap(), stream, 18)
+        .upload_stream("text/plain", &res.upload_url.unwrap(), stream, false)
         .await
         .unwrap();
 
