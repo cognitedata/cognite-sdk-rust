@@ -4,6 +4,7 @@ use crate::api::resource::*;
 use crate::dto::core::files::*;
 use crate::dto::items::Items;
 use crate::error::Result;
+use crate::PartitionedFilter;
 use crate::{Identity, ItemsWithoutCursor, Patch};
 
 pub type Files = Resource<FileMetadata>;
@@ -12,7 +13,7 @@ impl WithBasePath for Files {
     const BASE_PATH: &'static str = "files";
 }
 
-impl FilterItems<FileFilter, FileMetadata> for Files {}
+impl FilterWithRequest<PartitionedFilter<FileFilter>, FileMetadata> for Files {}
 impl<'a> SearchItems<'a, FileFilter, FileSearch, FileMetadata> for Files {}
 impl RetrieveWithIgnoreUnknownIds<Identity, FileMetadata> for Files {}
 impl Delete<Identity> for Files {}
