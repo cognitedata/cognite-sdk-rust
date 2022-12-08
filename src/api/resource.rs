@@ -418,7 +418,7 @@ where
     {
         let mut futures = Vec::with_capacity(num_partitions as usize);
         for partition in 0..num_partitions {
-            let part_filter = filter.with_partition(Partition::new(partition, num_partitions));
+            let part_filter = filter.with_partition(Partition::new(partition + 1, num_partitions));
             futures.push(self.filter_all(part_filter));
         }
         let results = try_join_all(futures).await?;
