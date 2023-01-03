@@ -3,9 +3,9 @@ use cognite::events::*;
 use cognite::files::*;
 use cognite::time_series::*;
 use cognite::ClientConfig;
-use cognite::FilterItems;
 use cognite::FilterWithRequest;
 use cognite::List;
+use cognite::PartitionedFilter;
 use cognite::{CogniteClient, Identity, SearchItems};
 
 #[tokio::main]
@@ -91,7 +91,7 @@ async fn main() {
     let file_filter: FileFilter = FileFilter::new();
     let files: Vec<FileMetadata> = cognite_client
         .files
-        .filter_items(file_filter, None, None)
+        .filter(PartitionedFilter::new(file_filter, None, None, None))
         .await
         .unwrap()
         .items;
