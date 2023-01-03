@@ -10,7 +10,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: Install build dependencies
-        run: apt-get install protobuf-compiler
+        run: sudo apt-get install protobuf-compiler
       - uses: actions-rs/toolchain@v1
         with:
           toolchain: stable
