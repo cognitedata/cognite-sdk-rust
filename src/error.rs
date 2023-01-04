@@ -194,7 +194,7 @@ pub enum Kind {
     #[error("Invalid header value: {0}")]
     InvalidHeader(InvalidHeaderValue),
     #[error("Error accessing file: {0}")]
-    IOError(std::io::Error),
+    IOError(#[from] std::io::Error),
     #[error("Error collecting stream: {0}")]
     StreamError(String),
     #[error("Error in middleware: {0}")]
@@ -264,12 +264,6 @@ impl From<InvalidHeaderValue> for Kind {
 impl From<InvalidHeaderValue> for Error {
     fn from(err: InvalidHeaderValue) -> Error {
         Error::new(Kind::from(err))
-    }
-}
-
-impl From<std::io::Error> for Kind {
-    fn from(err: std::io::Error) -> Self {
-        Kind::IOError(err)
     }
 }
 
