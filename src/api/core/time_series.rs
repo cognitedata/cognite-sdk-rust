@@ -45,10 +45,10 @@ impl TimeSeries {
         Ok(())
     }
 
-    pub async fn insert_datapoints_proto_create_missing(
+    pub async fn insert_datapoints_proto_create_missing<T: Iterator<Item = AddTimeSerie>>(
         &self,
         add_datapoints: &DataPointInsertionRequest,
-        generator: &impl Fn(&[Identity]) -> &[AddTimeSerie],
+        generator: &impl Fn(&[Identity]) -> T,
     ) -> Result<()> {
         let result = self.insert_datapoints_proto(add_datapoints).await;
         let missing = get_missing_from_result(&result);
@@ -56,16 +56,16 @@ impl TimeSeries {
             Some(m) => m,
             None => return result,
         };
-        let to_create = generator(&missing_idts);
-        self.create(to_create).await?;
+        let to_create = generator(&missing_idts).collect::<Vec<_>>();
+        self.create(&to_create).await?;
 
         self.insert_datapoints_proto(add_datapoints).await
     }
 
-    pub async fn insert_datapoints_create_missing(
+    pub async fn insert_datapoints_create_missing<T: Iterator<Item = AddTimeSerie>>(
         &self,
         add_datapoints: Vec<AddDatapoints>,
-        generator: &impl Fn(&[Identity]) -> &[AddTimeSerie],
+        generator: &impl Fn(&[Identity]) -> T,
     ) -> Result<()> {
         let request = DataPointInsertionRequest::from(add_datapoints);
         self.insert_datapoints_proto_create_missing(&request, generator)
