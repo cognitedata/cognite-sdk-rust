@@ -47,8 +47,7 @@ impl CustomRetryMiddleware {
 
             let result = next.clone().run(duplicate_request, ext).await;
 
-            // We classify the response which will return None if not
-            // errors were returned.
+            // Check if the error can be retried.
             break match Retryable::from_reqwest_response(&result) {
                 Some(retryable)
                     if retryable == Retryable::Transient && n_past_retries < self.max_retries =>
@@ -71,7 +70,7 @@ impl CustomRetryMiddleware {
 
 #[derive(PartialEq, Eq)]
 pub enum Retryable {
-    /// The failure was due to something tha might resolve in the future.
+    /// The failure was due to something that might resolve in the future.
     Transient,
     /// Unresolvable error.
     Fatal,
@@ -88,16 +87,10 @@ impl Retryable {
         match res {
             Ok(success) => {
                 let status = success.status();
-                if status.is_server_error() {
-                    Some(Retryable::Transient)
-                } else if status.is_client_error()
-                    && status != StatusCode::REQUEST_TIMEOUT
-                    && status != StatusCode::TOO_MANY_REQUESTS
-                {
-                    Some(Retryable::Fatal)
-                } else if status.is_success() {
+                if status.is_success() {
                     None
-                } else if status == StatusCode::REQUEST_TIMEOUT
+                } else if status.is_server_error()
+                    || status == StatusCode::REQUEST_TIMEOUT
                     || status == StatusCode::TOO_MANY_REQUESTS
                 {
                     Some(Retryable::Transient)

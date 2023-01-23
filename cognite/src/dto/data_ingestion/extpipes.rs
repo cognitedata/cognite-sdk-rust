@@ -14,9 +14,13 @@ pub struct ExtPipeRawTable {
 #[derive(Serialize, Deserialize, Clone, Default)]
 #[serde(rename_all = "camelCase")]
 pub struct ExtPipeContact {
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub name: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub email: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub role: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub send_notification: Option<bool>,
 }
 
@@ -162,18 +166,31 @@ impl Default for ExtPipeRunStatus {
 
 #[derive(Serialize, Deserialize, Default, Clone)]
 pub struct ExtPipeFilter {
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub external_id_prefix: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub name: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub description: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub data_set_ids: Option<Vec<Identity>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub schedule: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub contacts: Option<Vec<ExtPipeContact>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub raw_tables: Option<Vec<ExtPipeRawTable>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub metadata: Option<HashMap<String, String>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub source: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub documentation: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub created_by: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub created_time: Option<Range<i64>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub last_updated_time: Option<Range<i64>>,
 }
 
@@ -208,7 +225,10 @@ pub struct ExtPipeStringFilter {
 #[serde(rename_all = "camelCase")]
 pub struct ExtPipeRunFilter {
     pub external_id: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub statuses: Option<Vec<ExtPipeRunStatus>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub created_time: Option<Range<i64>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub message: Option<ExtPipeStringFilter>,
 }

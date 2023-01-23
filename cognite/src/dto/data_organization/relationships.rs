@@ -199,18 +199,31 @@ pub struct SourceOrTargetFilter {
 #[derive(Serialize, Default, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct RelationshipsFilter {
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub source_external_ids: Option<Vec<String>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub source_types: Option<Vec<RelationshipVertexType>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub target_external_ids: Option<Vec<String>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub target_types: Option<Vec<RelationshipVertexType>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub data_set_ids: Option<Vec<Identity>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub start_time: Option<Range<i64>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub end_time: Option<Range<i64>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub confidence: Option<Range<f64>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub last_updated_time: Option<Range<i64>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub created_time: Option<Range<i64>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub active_at_time: Option<Range<i64>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub sources_or_targets: Option<Vec<SourceOrTargetFilter>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub labels: Option<LabelsFilter>,
 }
 
@@ -218,9 +231,13 @@ pub struct RelationshipsFilter {
 #[serde(rename_all = "camelCase")]
 pub struct FilterRelationshipsQuery {
     pub filter: RelationshipsFilter,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub limit: Option<u32>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub cursor: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub fetch_resources: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub partition: Option<Partition>,
 }
 

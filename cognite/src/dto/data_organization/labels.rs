@@ -17,7 +17,9 @@ pub struct Label {
 pub struct AddLabel {
     pub external_id: String,
     pub name: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub description: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub data_set_id: Option<i64>,
 }
 
@@ -35,7 +37,10 @@ impl From<&Label> for AddLabel {
 #[derive(Serialize, Deserialize, Debug, Default, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct LabelFilter {
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub name: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub external_id_prefix: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub data_set_ids: Option<Vec<Identity>>,
 }

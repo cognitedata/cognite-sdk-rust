@@ -1,6 +1,6 @@
 .DS_Store
 .vscode
-/target
+**/target
 **/*.rs.bk
 Cargo.lock
 env_variables
