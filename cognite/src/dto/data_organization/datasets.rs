@@ -20,9 +20,13 @@ pub struct DataSet {
 #[derive(Serialize, Deserialize, Debug, Default)]
 #[serde(rename_all = "camelCase")]
 pub struct AddDataSet {
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub external_id: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub name: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub description: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub metadata: Option<HashMap<String, String>>,
     pub write_protected: bool,
 }
@@ -42,10 +46,15 @@ impl From<&DataSet> for AddDataSet {
 #[derive(Serialize, Deserialize, Debug, Default, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct DataSetFilter {
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub metadata: Option<HashMap<String, String>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub created_time: Option<Range<i64>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub last_updated_time: Option<Range<i64>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub external_id_prefix: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub write_protected: Option<bool>,
 }
 
