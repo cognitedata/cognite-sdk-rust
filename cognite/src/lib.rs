@@ -4,6 +4,7 @@ mod api;
 mod dto;
 mod error;
 mod retry;
+pub mod utils;
 
 pub mod login {
     pub use super::api::auth::login::*;
