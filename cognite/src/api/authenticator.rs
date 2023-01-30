@@ -29,11 +29,13 @@ impl AuthHeaderManager {
         match self {
             AuthHeaderManager::OIDCToken(a) => {
                 let token = a.get_token(client).await?;
-                let auth_header_value = HeaderValue::from_str(&format!("Bearer {token}"))
-                    .map_err(|e| AuthenticatorError {
-                        error: Some(format!("Failed to set authorization bearer token: {e}")),
-                        error_description: None,
-                        error_uri: None,
+                let auth_header_value =
+                    HeaderValue::from_str(&format!("Bearer {token}")).map_err(|e| {
+                        AuthenticatorError {
+                            error: Some(format!("Failed to set authorization bearer token: {e}")),
+                            error_description: None,
+                            error_uri: None,
+                        }
                     })?;
                 headers.insert("Authorization", auth_header_value);
             }
@@ -47,11 +49,13 @@ impl AuthHeaderManager {
                 headers.insert("api-key", api_key_header_value);
             }
             AuthHeaderManager::FixedToken(token) => {
-                let auth_header_value = HeaderValue::from_str(&format!("Bearer {token}"))
-                    .map_err(|e| AuthenticatorError {
-                        error: Some(format!("Failed to set authorization bearer token: {e}")),
-                        error_description: None,
-                        error_uri: None,
+                let auth_header_value =
+                    HeaderValue::from_str(&format!("Bearer {token}")).map_err(|e| {
+                        AuthenticatorError {
+                            error: Some(format!("Failed to set authorization bearer token: {e}")),
+                            error_description: None,
+                            error_uri: None,
+                        }
                     })?;
                 headers.insert("Authorization", auth_header_value);
             }
