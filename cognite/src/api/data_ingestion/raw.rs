@@ -38,7 +38,7 @@ impl Raw {
         cursor: Option<String>,
     ) -> Result<ItemsWithCursor<Table>> {
         let query = LimitCursorQuery { limit, cursor };
-        let path = format!("raw/dbs/{}/tables", db_name);
+        let path = format!("raw/dbs/{db_name}/tables");
         self.api_client.get_with_params(&path, Some(query)).await
     }
 
@@ -49,7 +49,7 @@ impl Raw {
         tables: &[Table],
     ) -> Result<Vec<Table>> {
         let query = EnsureParentQuery { ensure_parent };
-        let path = format!("raw/dbs/{}/tables", db_name);
+        let path = format!("raw/dbs/{db_name}/tables");
         let items = Items::from(tables);
         let result: ItemsWithCursor<Table> = self
             .api_client
@@ -59,7 +59,7 @@ impl Raw {
     }
 
     pub async fn delete_tables(&self, db_name: &str, to_delete: &[Table]) -> Result<()> {
-        let path = format!("raw/dbs/{}/tables/delete", db_name);
+        let path = format!("raw/dbs/{db_name}/tables/delete");
         let items = Items::from(to_delete);
         self.api_client
             .post::<::serde_json::Value, Items>(&path, &items)
@@ -73,7 +73,7 @@ impl Raw {
         table_name: &str,
         params: Option<RetrieveCursorsQuery>,
     ) -> Result<Vec<String>> {
-        let path = format!("raw/dbs/{}/tables/{}/cursors", db_name, table_name);
+        let path = format!("raw/dbs/{db_name}/tables/{table_name}/cursors");
         let result: ItemsWithCursor<String> =
             self.api_client.get_with_params(&path, params).await?;
         Ok(result.items)
@@ -85,7 +85,7 @@ impl Raw {
         table_name: &str,
         params: Option<RetrieveRowsQuery>,
     ) -> Result<ItemsWithCursor<RawRow>> {
-        let path = format!("raw/dbs/{}/tables/{}/rows", db_name, table_name);
+        let path = format!("raw/dbs/{db_name}/tables/{table_name}/rows");
         self.api_client.get_with_params(&path, params).await
     }
 
@@ -96,7 +96,7 @@ impl Raw {
         ensure_parent: Option<bool>,
         rows: &[RawRowCreate],
     ) -> Result<()> {
-        let path = format!("raw/dbs/{}/tables/{}/rows", db_name, table_name);
+        let path = format!("raw/dbs/{db_name}/tables/{table_name}/rows");
         let query = EnsureParentQuery { ensure_parent };
         let items = Items::from(rows);
         self.api_client
@@ -110,7 +110,7 @@ impl Raw {
     }
 
     pub async fn retrieve_row(&self, db_name: &str, table_name: &str, key: &str) -> Result<RawRow> {
-        let path = format!("raw/dbs/{}/tables/{}/rows/{}", db_name, table_name, key);
+        let path = format!("raw/dbs/{db_name}/tables/{table_name}/rows/{key}");
         self.api_client.get(&path).await
     }
 
@@ -120,7 +120,7 @@ impl Raw {
         table_name: &str,
         to_delete: &[DeleteRow],
     ) -> Result<()> {
-        let path = format!("raw/dbs/{}/tables/{}/rows/delete", db_name, table_name);
+        let path = format!("raw/dbs/{db_name}/tables/{table_name}/rows/delete");
         let items = Items::from(to_delete);
         self.api_client
             .post::<::serde_json::Value, Items>(&path, &items)

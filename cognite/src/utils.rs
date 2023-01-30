@@ -12,7 +12,7 @@ pub fn chunk_map<'a, TKey: Hash + Eq + 'a + Clone, TValue: 'a>(
     let mut num_keys = 0;
 
     // First, check if we can just return the input. Since this case is common, it is worthwhile to check.
-    for (_, value) in &inp {
+    for value in inp.values() {
         num_keys += 1;
         total += value.len();
     }
@@ -25,7 +25,7 @@ pub fn chunk_map<'a, TKey: Hash + Eq + 'a + Clone, TValue: 'a>(
     let mut current = HashMap::new();
     let mut current_total = 0;
     for (key, mut values) in inp {
-        if values.len() == 0 {
+        if values.is_empty() {
             continue;
         }
         if current.len() == max_keys {
@@ -36,7 +36,7 @@ pub fn chunk_map<'a, TKey: Hash + Eq + 'a + Clone, TValue: 'a>(
 
         // We overflowed the current list
         if current_total + values.len() > max_total {
-            while values.len() > 0 {
+            while !values.is_empty() {
                 let to_add = (max_total - current_total).min(values.len());
                 current.insert(key.clone(), values.drain(0..to_add).collect());
                 current_total += to_add;
@@ -51,7 +51,7 @@ pub fn chunk_map<'a, TKey: Hash + Eq + 'a + Clone, TValue: 'a>(
             current.insert(key, values);
         }
     }
-    if current.len() > 0 {
+    if !current.is_empty() {
         res.push(current);
     }
     Box::new(res.into_iter())

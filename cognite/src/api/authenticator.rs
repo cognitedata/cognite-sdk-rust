@@ -29,9 +29,9 @@ impl AuthHeaderManager {
         match self {
             AuthHeaderManager::OIDCToken(a) => {
                 let token = a.get_token(client).await?;
-                let auth_header_value = HeaderValue::from_str(&format!("Bearer {}", token))
+                let auth_header_value = HeaderValue::from_str(&format!("Bearer {token}"))
                     .map_err(|e| AuthenticatorError {
-                        error: Some(format!("Failed to set authorization bearer token: {}", e)),
+                        error: Some(format!("Failed to set authorization bearer token: {e}")),
                         error_description: None,
                         error_uri: None,
                     })?;
@@ -40,16 +40,16 @@ impl AuthHeaderManager {
             AuthHeaderManager::ApiKey(a) => {
                 let api_key_header_value =
                     HeaderValue::from_str(a).map_err(|e| AuthenticatorError {
-                        error: Some(format!("Failed to set api key: {}", e)),
+                        error: Some(format!("Failed to set api key: {e}")),
                         error_description: None,
                         error_uri: None,
                     })?;
                 headers.insert("api-key", api_key_header_value);
             }
             AuthHeaderManager::FixedToken(token) => {
-                let auth_header_value = HeaderValue::from_str(&format!("Bearer {}", token))
+                let auth_header_value = HeaderValue::from_str(&format!("Bearer {token}"))
                     .map_err(|e| AuthenticatorError {
-                        error: Some(format!("Failed to set authorization bearer token: {}", e)),
+                        error: Some(format!("Failed to set authorization bearer token: {e}")),
                         error_description: None,
                         error_uri: None,
                     })?;
@@ -58,7 +58,7 @@ impl AuthHeaderManager {
             AuthHeaderManager::AuthTicket(t) => {
                 let auth_ticket_header_value =
                     HeaderValue::from_str(t).map_err(|e| AuthenticatorError {
-                        error: Some(format!("Failed to set auth ticket: {}", e)),
+                        error: Some(format!("Failed to set auth ticket: {e}")),
                         error_description: None,
                         error_uri: None,
                     })?;
@@ -188,8 +188,7 @@ impl Authenticator {
             },
             Err(e) => Err(AuthenticatorError {
                 error: Some(format!(
-                    "Something went wrong when sending the request: {}",
-                    e
+                    "Something went wrong when sending the request: {e}"
                 )),
                 error_description: None,
                 error_uri: None,

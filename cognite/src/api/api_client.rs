@@ -95,7 +95,7 @@ impl ApiClient {
         match &response.text().await {
             Ok(s) => match serde_json::from_str(s) {
                 Ok(error_message) => Error::new_from_cdf(status, error_message, request_id),
-                Err(e) => Error::new_without_json(status, format!("{}. Raw: {}", e, s), request_id),
+                Err(e) => Error::new_without_json(status, format!("{e}. Raw: {s}"), request_id),
             },
             Err(e) => Error::new_without_json(status, e.to_string(), request_id),
         }

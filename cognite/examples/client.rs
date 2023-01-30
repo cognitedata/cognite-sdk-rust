@@ -30,7 +30,7 @@ async fn main() {
         .await
     {
         Ok(assets) => println!("{} assets retrieved.", assets.items.len()),
-        Err(e) => println!("{:?}", e),
+        Err(e) => println!("{e:?}"),
     }
     // Retrieve asset
     match cognite_client
@@ -38,8 +38,8 @@ async fn main() {
         .retrieve(&[Identity::from(6687602007296940)], false, None)
         .await
     {
-        Ok(asset) => println!("{:?}", asset),
-        Err(e) => println!("{:?}", e),
+        Ok(asset) => println!("{asset:?}"),
+        Err(e) => println!("{e:?}"),
     }
     // Search asset
     let mut asset_search: AssetSearch = AssetSearch::new();
@@ -108,12 +108,12 @@ async fn main() {
     // List all service accounts
     match cognite_client.service_accounts.list_all().await {
         Ok(service_accounts) => println!("{} service accounts retrieved.", service_accounts.len()),
-        Err(e) => println!("{:?}", e),
+        Err(e) => println!("{e:?}"),
     }
     // List all api keys
     match cognite_client.api_keys.list(None).await {
         Ok(api_keys) => println!("{} api keys retrieved.", api_keys.items.len()),
-        Err(e) => println!("{:?}", e),
+        Err(e) => println!("{e:?}"),
     }
     // List all groups
     match cognite_client.groups.list(None).await {
@@ -127,10 +127,10 @@ async fn main() {
                         service_accounts.len(),
                         group_id
                     ),
-                    Err(e) => println!("{:?}", e),
+                    Err(e) => println!("{e:?}"),
                 }
             }
         }
-        Err(e) => println!("{:?}", e),
+        Err(e) => println!("{e:?}"),
     }
 }
