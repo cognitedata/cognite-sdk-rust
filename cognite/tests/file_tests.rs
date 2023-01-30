@@ -60,7 +60,7 @@ async fn create_upload_delete_file() {
 
     client
         .files
-        .delete(&vec![Identity::Id { id: res.id }])
+        .delete(&[Identity::Id { id: res.id }])
         .await
         .unwrap();
 }
@@ -93,7 +93,7 @@ async fn create_upload_delete_actual_file() {
 
     client
         .files
-        .delete(&vec![Identity::Id { id: res.id }])
+        .delete(&[Identity::Id { id: res.id }])
         .await
         .unwrap();
 }
@@ -122,7 +122,7 @@ async fn create_update_delete_file() {
 
     client
         .files
-        .delete(&vec![Identity::ExternalId { external_id: id }])
+        .delete(&[Identity::ExternalId { external_id: id }])
         .await
         .unwrap();
 }
@@ -144,7 +144,7 @@ async fn download_test_file() {
         .await
         .unwrap();
 
-    let data: Vec<u8> = data.into_iter().flat_map(|b| b).collect();
+    let data: Vec<u8> = data.into_iter().flatten().collect();
     let contents = String::from_utf8(data).unwrap();
 
     assert_eq!("test file contents", contents.as_str())

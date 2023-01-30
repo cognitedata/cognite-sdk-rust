@@ -21,7 +21,7 @@ pub fn to_query_vec(name: &str, item: &Option<Vec<String>>, params: &mut Vec<(St
             format!(
                 "[{}]",
                 it.iter()
-                    .map(|val| { format!("\"{}\"", val) })
+                    .map(|val| { format!("\"{val}\"") })
                     .collect::<Vec<String>>()
                     .join(", ")
             ),
@@ -37,7 +37,7 @@ pub fn to_query_vec_i64(name: &str, item: &Option<Vec<i64>>, params: &mut Vec<(S
             format!(
                 "[{}]",
                 it.iter()
-                    .map(|val| { format!("{}", val) })
+                    .map(|val| { format!("{val}") })
                     .collect::<Vec<String>>()
                     .join(", ")
             ),

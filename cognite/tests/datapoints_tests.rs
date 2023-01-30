@@ -8,7 +8,7 @@ async fn create_test_ts(client: &CogniteClient, is_string: bool, idx: i32) -> Ti
     let ts = AddTimeSerie {
         external_id: Some(format!("{}-ts-{}", PREFIX.as_str(), idx)),
         is_string,
-        name: Some(format!("Test ts {}", idx)),
+        name: Some(format!("Test ts {idx}")),
         ..Default::default()
     };
 
@@ -134,7 +134,7 @@ async fn create_retrieve_delete_string_datapoints() {
                 (0..100)
                     .map(|i| DatapointString {
                         timestamp: start + i * 1000,
-                        value: format!("{}-dp", i),
+                        value: format!("{i}-dp"),
                     })
                     .collect(),
             ),
