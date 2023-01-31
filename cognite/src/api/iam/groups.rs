@@ -20,7 +20,7 @@ impl Groups {
     pub async fn list_service_accounts(&self, group_id: u64) -> Result<Vec<ServiceAccount>> {
         let service_accounts_response: ServiceAccountListResponse = self
             .api_client
-            .get(&format!("groups/{}/serviceaccounts", group_id))
+            .get(&format!("groups/{group_id}/serviceaccounts"))
             .await?;
         Ok(service_accounts_response.items)
     }
@@ -33,7 +33,7 @@ impl Groups {
         let id_items = Items::from(service_account_ids);
         self.api_client
             .post::<::serde_json::Value, Items>(
-                &format!("groups/{}/serviceaccounts", group_id),
+                &format!("groups/{group_id}/serviceaccounts"),
                 &id_items,
             )
             .await?;
@@ -48,7 +48,7 @@ impl Groups {
         let id_items = Items::from(service_account_ids);
         self.api_client
             .post::<::serde_json::Value, Items>(
-                &format!("groups/{}/serviceaccounts/remove", group_id),
+                &format!("groups/{group_id}/serviceaccounts/remove"),
                 &id_items,
             )
             .await?;

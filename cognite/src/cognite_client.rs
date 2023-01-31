@@ -6,6 +6,7 @@ use std::time::Duration;
 
 use super::{ApiClient, Error, Result};
 use crate::api::core::sequences::Sequences;
+use crate::api::iam::sessions::Sessions;
 use crate::error::Kind;
 use crate::retry::CustomRetryMiddleware;
 use crate::AuthHeaderManager;
@@ -72,6 +73,7 @@ pub struct CogniteClient {
     pub ext_pipes: ExtPipes,
     pub ext_pipe_runs: ExtPipeRuns,
     pub sequences: Sequences,
+    pub sessions: Sessions,
 }
 
 static COGNITE_API_KEY: &str = "COGNITE_API_KEY";
@@ -161,7 +163,8 @@ impl CogniteClient {
             relationships: Relationships::new(ac.clone()),
             ext_pipes: ExtPipes::new(ac.clone()),
             ext_pipe_runs: ExtPipeRuns::new(ac.clone()),
-            sequences: Sequences::new(ac),
+            sequences: Sequences::new(ac.clone()),
+            sessions: Sessions::new(ac),
         })
     }
 

@@ -62,9 +62,11 @@ pub mod sequences {
 
 pub mod iam {
     pub use super::api::iam::{
-        api_keys::*, groups::*, security_categories::*, service_accounts::*,
+        api_keys::*, groups::*, security_categories::*, service_accounts::*, sessions::*,
     };
-    pub use super::dto::iam::{api_key::*, group::*, security_category::*, service_account::*};
+    pub use super::dto::iam::{
+        api_key::*, group::*, security_category::*, service_account::*, session::*,
+    };
 }
 
 pub use self::{
