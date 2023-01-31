@@ -5,16 +5,12 @@ use serde::{Deserialize, Serialize};
 use crate::{to_query, AsParams, SetCursor};
 
 #[derive(Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
 pub enum SessionStatus {
-    #[serde(rename = "ready")]
     Ready,
-    #[serde(rename = "active")]
     Active,
-    #[serde(rename = "cancelled")]
     Cancelled,
-    #[serde(rename = "revoked")]
     Revoked,
-    #[serde(rename = "access_lost")]
     AccessLost,
 }
 
