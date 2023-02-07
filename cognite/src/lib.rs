@@ -1,6 +1,7 @@
 mod cognite_client;
 
 mod api;
+mod auth;
 mod dto;
 mod error;
 mod retry;
