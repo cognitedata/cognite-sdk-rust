@@ -39,6 +39,7 @@ impl CustomRetryMiddleware {
         ext: &'a mut Extensions,
     ) -> Result<Response> {
         let mut n_past_retries = 0;
+        let mut last_req_401 = false;
         loop {
             let duplicate_request = match req.try_clone() {
                 Some(x) => x,
@@ -50,8 +51,11 @@ impl CustomRetryMiddleware {
             // Check if the error can be retried.
             break match Retryable::from_reqwest_response(&result) {
                 Some(retryable)
-                    if retryable == Retryable::Transient && n_past_retries < self.max_retries =>
+                    if (retryable == Retryable::Transient
+                        || retryable == Retryable::Unauthorized && !last_req_401)
+                        && n_past_retries < self.max_retries =>
                 {
+                    last_req_401 = retryable == Retryable::Unauthorized;
                     // If the response failed and the error type was transient
                     // we can safely try to retry the request.
                     let mut retry_delay = 125u64 * 2u64.pow(n_past_retries);
@@ -74,6 +78,8 @@ pub enum Retryable {
     Transient,
     /// Unresolvable error.
     Fatal,
+    /// Unauthorized. This is _maybe_ resolvable, if the last request wasn't also a 401.
+    Unauthorized,
 }
 
 impl Retryable {
@@ -89,6 +95,8 @@ impl Retryable {
                 let status = success.status();
                 if status.is_success() {
                     None
+                } else if status == StatusCode::UNAUTHORIZED {
+                    Some(Retryable::Unauthorized)
                 } else if status.is_server_error()
                     || status == StatusCode::REQUEST_TIMEOUT
                     || status == StatusCode::TOO_MANY_REQUESTS

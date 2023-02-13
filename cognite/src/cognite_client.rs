@@ -7,6 +7,7 @@ use std::time::Duration;
 use super::{ApiClient, Error, Result};
 use crate::api::core::sequences::Sequences;
 use crate::api::iam::sessions::Sessions;
+use crate::auth::AuthenticatorMiddleware;
 use crate::error::Kind;
 use crate::retry::CustomRetryMiddleware;
 use crate::AuthHeaderManager;
@@ -118,17 +119,19 @@ impl CogniteClient {
         config: Option<ClientConfig>,
     ) -> Result<Self> {
         let api_base_path = format!("{}/api/{}/projects/{}", api_base_url, "v1", project_name);
-        let api_client = ApiClient::new_custom(
+        let api_client = ApiClient::new(
             &api_base_path,
-            auth,
             app_name,
-            Self::get_client(config.unwrap_or_default())?,
+            Self::get_client(config.unwrap_or_default(), auth)?,
         );
 
         Self::new_internal(api_client)
     }
 
-    fn get_client(config: ClientConfig) -> Result<ClientWithMiddleware> {
+    fn get_client(
+        config: ClientConfig,
+        authenticator: AuthHeaderManager,
+    ) -> Result<ClientWithMiddleware> {
         let mut builder = Client::builder();
         // We can add more here later
         if let Some(timeout) = config.timeout_ms {
@@ -142,6 +145,7 @@ impl CogniteClient {
                 config.max_retry_delay_ms.unwrap_or(5 * 60 * 1000),
             ));
         }
+        builder = builder.with(AuthenticatorMiddleware::new(authenticator)?);
         Ok(builder.build())
     }
 
@@ -175,11 +179,11 @@ impl CogniteClient {
         config: Option<ClientConfig>,
     ) -> Result<Self> {
         // Get project name associated to API KEY
+        let auth = AuthHeaderManager::ApiKey(api_key.to_owned());
         let login_api_client = ApiClient::new(
             api_base_url,
-            api_key,
             app_name,
-            Self::get_client(config.clone().unwrap_or_default())?,
+            Self::get_client(config.clone().unwrap_or_default(), auth)?,
         );
         let login = Login::new(Arc::new(login_api_client));
         let login_status = match login.status().await {
@@ -201,11 +205,11 @@ impl CogniteClient {
     ) -> Result<Self> {
         let authenticator = Authenticator::new(auth_config);
         let api_base_path = format!("{}/api/{}/projects/{}", api_base_url, "v1", project_name);
-        let api_client = ApiClient::new_oidc(
+        let auth = AuthHeaderManager::OIDCToken(authenticator);
+        let api_client = ApiClient::new(
             &api_base_path,
-            authenticator,
             app_name,
-            Self::get_client(config.unwrap_or_default())?,
+            Self::get_client(config.unwrap_or_default(), auth)?,
         );
 
         Self::new_internal(api_client)
@@ -219,11 +223,11 @@ impl CogniteClient {
         config: Option<ClientConfig>,
     ) -> Result<Self> {
         let api_base_path = format!("{}/api/{}/projects/{}", api_base_url, "v1", project_name);
+        let auth = AuthHeaderManager::ApiKey(api_key.to_owned());
         let api_client = ApiClient::new(
             &api_base_path,
-            api_key,
             app_name,
-            Self::get_client(config.unwrap_or_default())?,
+            Self::get_client(config.unwrap_or_default(), auth)?,
         );
 
         Self::new_internal(api_client)

@@ -1,5 +1,4 @@
-use crate::api::authenticator::Authenticator;
-use crate::{AsParams, AuthHeaderManager};
+use crate::AsParams;
 use futures::{Stream, TryStreamExt};
 use prost::Message;
 use reqwest::header::{HeaderMap, HeaderValue, ACCEPT, CONTENT_LENGTH, CONTENT_TYPE, USER_AGENT};
@@ -15,60 +14,21 @@ pub struct ApiClient {
     api_base_url: String,
     app_name: String,
     client: ClientWithMiddleware,
-    authenticator: AuthHeaderManager,
 }
 
 const SDK_VERSION: &str = concat!("rust-sdk-v", env!("CARGO_PKG_VERSION"));
 
 impl ApiClient {
-    pub fn new(
-        api_base_url: &str,
-        api_key: &str,
-        app_name: &str,
-        client: ClientWithMiddleware,
-    ) -> ApiClient {
+    pub fn new(api_base_url: &str, app_name: &str, client: ClientWithMiddleware) -> ApiClient {
         ApiClient {
             api_base_url: String::from(api_base_url),
             app_name: String::from(app_name),
             client,
-            authenticator: AuthHeaderManager::ApiKey(api_key.to_string()),
         }
     }
 
-    pub fn new_oidc(
-        api_base_url: &str,
-        auth: Authenticator,
-        app_name: &str,
-        client: ClientWithMiddleware,
-    ) -> ApiClient {
-        ApiClient {
-            api_base_url: String::from(api_base_url),
-            app_name: String::from(app_name),
-            client,
-            authenticator: AuthHeaderManager::OIDCToken(auth),
-        }
-    }
-
-    pub fn new_custom(
-        api_base_url: &str,
-        auth: AuthHeaderManager,
-        app_name: &str,
-        client: ClientWithMiddleware,
-    ) -> ApiClient {
-        ApiClient {
-            api_base_url: String::from(api_base_url),
-            app_name: String::from(app_name),
-            client,
-            authenticator: auth,
-        }
-    }
-
-    async fn get_headers(&self) -> Result<HeaderMap> {
+    fn get_headers(&self) -> HeaderMap {
         let mut headers = HeaderMap::new();
-
-        self.authenticator
-            .set_headers(&mut headers, &self.client)
-            .await?;
 
         headers.insert("x-cdp-sdk", HeaderValue::from_str(SDK_VERSION).expect(""));
         headers.insert(
@@ -78,7 +38,7 @@ impl ApiClient {
         headers.insert(USER_AGENT, HeaderValue::from_static("user-agent-goes-here"));
         headers.insert(CONTENT_TYPE, HeaderValue::from_static("application/json"));
         headers.insert(ACCEPT, HeaderValue::from_static("application/json"));
-        Ok(headers)
+        headers
     }
 
     async fn handle_error(&self, response: Response) -> Error {
@@ -103,8 +63,9 @@ impl ApiClient {
 
     async fn send_request<T: DeserializeOwned>(
         &self,
-        request_builder: RequestBuilder,
+        mut request_builder: RequestBuilder,
     ) -> Result<T> {
+        request_builder.extensions().insert(self.client.clone());
         match request_builder.send().await {
             Ok(response) => match response.status() {
                 StatusCode::OK | StatusCode::ACCEPTED | StatusCode::CREATED => {
@@ -119,7 +80,8 @@ impl ApiClient {
         }
     }
 
-    async fn send_request_no_response(&self, request_builder: RequestBuilder) -> Result<()> {
+    async fn send_request_no_response(&self, mut request_builder: RequestBuilder) -> Result<()> {
+        request_builder.extensions().insert(self.client.clone());
         match request_builder.send().await {
             Ok(response) => match response.status() {
                 StatusCode::OK | StatusCode::ACCEPTED | StatusCode::CREATED => Ok(()),
@@ -131,8 +93,9 @@ impl ApiClient {
 
     async fn send_request_proto<T: Message + Default>(
         &self,
-        request_builder: RequestBuilder,
+        mut request_builder: RequestBuilder,
     ) -> Result<T> {
+        request_builder.extensions().insert(self.client.clone());
         match request_builder.send().await {
             Ok(response) => match response.status() {
                 StatusCode::OK | StatusCode::ACCEPTED | StatusCode::CREATED => {
@@ -152,7 +115,7 @@ impl ApiClient {
 
     pub async fn get<T: DeserializeOwned>(&self, path: &str) -> Result<T> {
         let url = format!("{}/{}", self.api_base_url, path);
-        let headers: HeaderMap = self.get_headers().await?;
+        let headers: HeaderMap = self.get_headers();
         let request_builder = self.client.get(&url).headers(headers);
         self.send_request(request_builder).await
     }
@@ -168,7 +131,7 @@ impl ApiClient {
         };
 
         let url = format!("{}/{}", self.api_base_url, path);
-        let headers: HeaderMap = self.get_headers().await?;
+        let headers: HeaderMap = self.get_headers();
         let request_builder = self.client.get(&url).headers(headers).query(&http_params);
         self.send_request(request_builder).await
     }
@@ -210,7 +173,7 @@ impl ApiClient {
 
     pub async fn post_json<T: DeserializeOwned>(&self, path: &str, body: String) -> Result<T> {
         let url = format!("{}/{}", self.api_base_url, path);
-        let headers: HeaderMap = self.get_headers().await?;
+        let headers: HeaderMap = self.get_headers();
         let request_builder = self.client.post(&url).headers(headers).body(body);
         self.send_request(request_builder).await
     }
@@ -230,7 +193,7 @@ impl ApiClient {
             Err(e) => return Err(Error::from(e)),
         };
         let url = format!("{}/{}", self.api_base_url, path);
-        let headers: HeaderMap = self.get_headers().await?;
+        let headers: HeaderMap = self.get_headers();
         let request_builder = self
             .client
             .post(&url)
@@ -246,7 +209,7 @@ impl ApiClient {
         value: &T,
     ) -> Result<D> {
         let url = format!("{}/{}", self.api_base_url, path);
-        let mut headers: HeaderMap = self.get_headers().await?;
+        let mut headers: HeaderMap = self.get_headers();
         headers.insert(
             CONTENT_TYPE,
             HeaderValue::from_static("application/protobuf"),
@@ -265,7 +228,7 @@ impl ApiClient {
         object: &S,
     ) -> Result<D> {
         let url = format!("{}/{}", self.api_base_url, path);
-        let mut headers: HeaderMap = self.get_headers().await?;
+        let mut headers: HeaderMap = self.get_headers();
         headers.insert(ACCEPT, HeaderValue::from_static("application/protobuf"));
         let json = match serde_json::to_string(object) {
             Ok(json) => json,
@@ -277,7 +240,7 @@ impl ApiClient {
     }
 
     pub async fn put_blob(&self, url: &str, mime_type: &str, data: Vec<u8>) -> Result<()> {
-        let mut headers: HeaderMap = self.get_headers().await?;
+        let mut headers: HeaderMap = self.get_headers();
         headers.insert(CONTENT_TYPE, HeaderValue::from_str(mime_type)?);
         headers.insert("X-Upload-Content-Type", HeaderValue::from_str(mime_type)?);
         headers.insert(ACCEPT, HeaderValue::from_static("*/*"));
@@ -301,7 +264,7 @@ impl ApiClient {
         bytes::Bytes: From<S::Ok>,
     {
         if stream_chunked {
-            let mut headers: HeaderMap = self.get_headers().await?;
+            let mut headers: HeaderMap = self.get_headers();
             headers.insert(CONTENT_TYPE, HeaderValue::from_str(mime_type)?);
             headers.insert("X-Upload-Content-Type", HeaderValue::from_str(mime_type)?);
             headers.insert(ACCEPT, HeaderValue::from_static("*/*"));
@@ -343,7 +306,7 @@ impl ApiClient {
 
     pub async fn put_json<T: DeserializeOwned>(&self, path: &str, body: &str) -> Result<T> {
         let url = format!("{}/{}", self.api_base_url, path);
-        let headers: HeaderMap = self.get_headers().await?;
+        let headers: HeaderMap = self.get_headers();
         let request_builder = self
             .client
             .put(&url)
@@ -354,7 +317,7 @@ impl ApiClient {
 
     pub async fn delete<T: DeserializeOwned>(&self, path: &str) -> Result<T> {
         let url = format!("{}/{}", self.api_base_url, path);
-        let headers: HeaderMap = self.get_headers().await?;
+        let headers: HeaderMap = self.get_headers();
         let request_builder = self.client.delete(&url).headers(headers);
         self.send_request::<T>(request_builder).await
     }
@@ -370,7 +333,7 @@ impl ApiClient {
         };
 
         let url = format!("{}/{}", self.api_base_url, path);
-        let headers: HeaderMap = self.get_headers().await?;
+        let headers: HeaderMap = self.get_headers();
         let request_builder = self
             .client
             .delete(&url)

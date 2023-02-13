@@ -9,6 +9,7 @@ use std::{
     fmt::Display,
     time::{SystemTime, UNIX_EPOCH},
 };
+use thiserror::Error;
 
 type CustomAuthCallback = dyn Fn(&mut HeaderMap, &ClientWithMiddleware) + Send + Sync;
 
@@ -112,7 +113,7 @@ struct AuthenticatorResponse {
     expires_in: u64,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Error)]
 pub struct AuthenticatorError {
     pub error: Option<String>,
     pub error_description: Option<String>,
