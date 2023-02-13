@@ -122,7 +122,7 @@ impl CogniteClient {
         let api_client = ApiClient::new(
             &api_base_path,
             app_name,
-            Self::get_client(config.unwrap_or_default(), auth)?,
+            Self::get_client(config.unwrap_or_default(), auth, None)?,
         );
 
         Self::new_internal(api_client)
@@ -131,13 +131,20 @@ impl CogniteClient {
     fn get_client(
         config: ClientConfig,
         authenticator: AuthHeaderManager,
+        client: Option<Client>,
     ) -> Result<ClientWithMiddleware> {
-        let mut builder = Client::builder();
-        // We can add more here later
-        if let Some(timeout) = config.timeout_ms {
-            builder = builder.timeout(Duration::from_millis(timeout));
-        }
-        let client = builder.build()?;
+        let client = if let Some(client) = client {
+            client
+        } else {
+            let mut builder = Client::builder();
+            // We can add more here later
+            if let Some(timeout) = config.timeout_ms {
+                builder = builder.timeout(Duration::from_millis(timeout));
+            }
+
+            builder.build()?
+        };
+
         let mut builder = ClientBuilder::new(client);
         if config.max_retries > 0 {
             builder = builder.with(CustomRetryMiddleware::new(
@@ -147,6 +154,23 @@ impl CogniteClient {
         }
         builder = builder.with(AuthenticatorMiddleware::new(authenticator)?);
         Ok(builder.build())
+    }
+
+    fn new_from_builder(
+        auth: AuthHeaderManager,
+        config: ClientConfig,
+        client: Option<Client>,
+        app_name: String,
+        project: String,
+        base_url: String,
+    ) -> Result<Self> {
+        let api_base_path = format!("{}/api/{}/projects/{}", base_url, "v1", project);
+        let api_client = ApiClient::new(
+            &api_base_path,
+            &app_name,
+            Self::get_client(config, auth, client)?,
+        );
+        Self::new_internal(api_client)
     }
 
     fn new_internal(api_client: ApiClient) -> Result<Self> {
@@ -183,7 +207,7 @@ impl CogniteClient {
         let login_api_client = ApiClient::new(
             api_base_url,
             app_name,
-            Self::get_client(config.clone().unwrap_or_default(), auth)?,
+            Self::get_client(config.clone().unwrap_or_default(), auth, None)?,
         );
         let login = Login::new(Arc::new(login_api_client));
         let login_status = match login.status().await {
@@ -209,7 +233,7 @@ impl CogniteClient {
         let api_client = ApiClient::new(
             &api_base_path,
             app_name,
-            Self::get_client(config.unwrap_or_default(), auth)?,
+            Self::get_client(config.unwrap_or_default(), auth, None)?,
         );
 
         Self::new_internal(api_client)
@@ -227,9 +251,84 @@ impl CogniteClient {
         let api_client = ApiClient::new(
             &api_base_path,
             app_name,
-            Self::get_client(config.unwrap_or_default(), auth)?,
+            Self::get_client(config.unwrap_or_default(), auth, None)?,
         );
 
         Self::new_internal(api_client)
+    }
+
+    pub fn builder() -> Builder {
+        Builder::default()
+    }
+}
+
+#[derive(Default)]
+pub struct Builder {
+    auth: Option<AuthHeaderManager>,
+    config: Option<ClientConfig>,
+    client: Option<Client>,
+    app_name: Option<String>,
+    project: Option<String>,
+    base_url: Option<String>,
+}
+
+impl Builder {
+    pub fn set_custom_auth(&mut self, auth: AuthHeaderManager) -> &mut Self {
+        self.auth = Some(auth);
+        self
+    }
+
+    pub fn set_oidc_credentials(&mut self, auth: AuthenticatorConfig) -> &mut Self {
+        self.auth = Some(AuthHeaderManager::OIDCToken(Authenticator::new(auth)));
+        self
+    }
+
+    pub fn set_api_key(&mut self, api_key: &str) -> &mut Self {
+        self.auth = Some(AuthHeaderManager::ApiKey(api_key.to_owned()));
+        self
+    }
+
+    pub fn set_project(&mut self, project: &str) -> &mut Self {
+        self.project = Some(project.to_owned());
+        self
+    }
+
+    pub fn set_app_name(&mut self, app_name: &str) -> &mut Self {
+        self.app_name = Some(app_name.to_owned());
+        self
+    }
+
+    pub fn set_internal_client(&mut self, client: Client) -> &mut Self {
+        self.client = Some(client);
+        self
+    }
+
+    pub fn set_client_config(&mut self, config: ClientConfig) -> &mut Self {
+        self.config = Some(config);
+        self
+    }
+
+    pub fn set_base_url(&mut self, base_url: &str) -> &mut Self {
+        self.base_url = Some(base_url.to_owned());
+        self
+    }
+
+    pub fn build(self) -> Result<CogniteClient> {
+        let auth = self
+            .auth
+            .ok_or_else(|| Error::new(Kind::Config("Some form of auth is required".to_string())))?;
+        let config = self.config.unwrap_or_default();
+        let client = self.client;
+        let app_name = self
+            .app_name
+            .ok_or_else(|| Error::new(Kind::Config("App name is required".to_string())))?;
+        let project = self
+            .project
+            .ok_or_else(|| Error::new(Kind::Config("Project is required".to_string())))?;
+        let base_url = self
+            .base_url
+            .unwrap_or_else(|| "https://api.cognitedata.com/".to_owned());
+
+        CogniteClient::new_from_builder(auth, config, client, app_name, project, base_url)
     }
 }
