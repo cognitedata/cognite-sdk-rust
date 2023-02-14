@@ -199,6 +199,8 @@ pub enum Kind {
     StreamError(String),
     #[error("Error in middleware: {0}")]
     Middleware(String),
+    #[error("Error in configuration: {0}")]
+    Config(String),
 }
 
 #[derive(Debug, Error)]
