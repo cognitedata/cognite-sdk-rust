@@ -1,3 +1,4 @@
+use async_trait::async_trait;
 use futures_locks::RwLock;
 use reqwest::{
     header::{HeaderMap, HeaderValue},
@@ -13,12 +14,18 @@ use thiserror::Error;
 
 type CustomAuthCallback = dyn Fn(&mut HeaderMap, &ClientWithMiddleware) + Send + Sync;
 
+#[async_trait]
+pub trait CustomAuthenticator {
+    async fn set_headers(&self, headers: &mut HeaderMap, client: &ClientWithMiddleware);
+}
+
 pub enum AuthHeaderManager {
     OIDCToken(Authenticator),
     ApiKey(String),
     FixedToken(String),
     AuthTicket(String),
     Custom(Box<CustomAuthCallback>),
+    CustomAsync(Box<dyn CustomAuthenticator + Send + Sync>),
 }
 
 impl AuthHeaderManager {
@@ -70,6 +77,7 @@ impl AuthHeaderManager {
                 headers.insert("auth-ticket", auth_ticket_header_value);
             }
             AuthHeaderManager::Custom(c) => c(headers, client),
+            AuthHeaderManager::CustomAsync(c) => c.set_headers(headers, client).await,
         }
         Ok(())
     }
