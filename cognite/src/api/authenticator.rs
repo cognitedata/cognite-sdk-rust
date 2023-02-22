@@ -12,11 +12,16 @@ use std::{
 };
 use thiserror::Error;
 
-type CustomAuthCallback = dyn Fn(&mut HeaderMap, &ClientWithMiddleware) -> Result<(), AuthenticatorError> + Send + Sync;
+type CustomAuthCallback =
+    dyn Fn(&mut HeaderMap, &ClientWithMiddleware) -> Result<(), AuthenticatorError> + Send + Sync;
 
 #[async_trait]
 pub trait CustomAuthenticator {
-    async fn set_headers(&self, headers: &mut HeaderMap, client: &ClientWithMiddleware) -> Result<(), AuthenticatorError>;
+    async fn set_headers(
+        &self,
+        headers: &mut HeaderMap,
+        client: &ClientWithMiddleware,
+    ) -> Result<(), AuthenticatorError>;
 }
 
 pub enum AuthHeaderManager {
