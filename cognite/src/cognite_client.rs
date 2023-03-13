@@ -75,6 +75,7 @@ pub struct CogniteClient {
     pub ext_pipe_runs: ExtPipeRuns,
     pub sequences: Sequences,
     pub sessions: Sessions,
+    // pub models:
 }
 
 static COGNITE_API_KEY: &str = "COGNITE_API_KEY";

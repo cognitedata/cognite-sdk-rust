@@ -6,6 +6,7 @@ pub mod core;
 pub mod data_ingestion;
 pub mod data_organization;
 pub mod iam;
+pub mod models;
 pub mod resource;
 pub mod utils;
 

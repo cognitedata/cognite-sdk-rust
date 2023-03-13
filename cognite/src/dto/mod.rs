@@ -10,3 +10,5 @@ pub mod data_ingestion;
 pub mod data_organization;
 pub mod iam;
 pub mod identity;
+
+pub mod models;
