@@ -6,9 +6,9 @@ use std::time::Duration;
 
 use super::{ApiClient, Error, Result};
 use crate::api::core::sequences::Sequences;
+use crate::api::data_modeling::Models;
 use crate::api::iam::sessions::Sessions;
 use crate::auth::AuthenticatorMiddleware;
-use crate::dto::data_modeling::Models;
 use crate::error::Kind;
 use crate::retry::CustomRetryMiddleware;
 use crate::AuthHeaderManager;

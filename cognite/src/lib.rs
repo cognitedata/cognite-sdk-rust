@@ -62,6 +62,11 @@ pub mod sequences {
     pub use super::dto::core::sequences::*;
 }
 
+pub mod models {
+    pub use super::api::data_modeling::*;
+    pub use super::dto::data_modeling::*;
+}
+
 pub mod iam {
     pub use super::api::iam::{
         api_keys::*, groups::*, security_categories::*, service_accounts::*, sessions::*,

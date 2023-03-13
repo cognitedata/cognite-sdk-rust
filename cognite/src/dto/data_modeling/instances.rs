@@ -115,9 +115,9 @@ pub struct InstanceInfo {
 impl From<(String, String, String)> for InstanceInfo {
     fn from((instance_type, external_id, space): (String, String, String)) -> Self {
         InstanceInfo {
-            instance_type: instance_type.to_string(),
-            external_id: external_id.to_string(),
-            space: space.to_string(),
+            instance_type,
+            external_id,
+            space,
         }
     }
 }
