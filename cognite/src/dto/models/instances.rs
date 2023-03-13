@@ -101,6 +101,7 @@ pub struct SpaceExternalId {
 }
 
 #[derive(Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct InstanceItemInfo {
     pub instance_type: String,
     pub external_id: String,
