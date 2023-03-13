@@ -99,3 +99,20 @@ pub struct SpaceExternalId {
     pub space: String,
     pub external_id: String,
 }
+
+#[derive(Serialize, Deserialize)]
+pub struct RetrieveInstancesRequest {
+    pub instance_type: String,
+    pub external_id: String,
+    pub space: String,
+}
+
+impl From<(String, String, String)> for RetrieveInstancesRequest {
+    fn from((instance_type, external_id, space): (String, String, String)) -> Self {
+        RetrieveInstancesRequest {
+            instance_type: instance_type.to_string(),
+            external_id: external_id.to_string(),
+            space: space.to_string(),
+        }
+    }
+}
