@@ -59,6 +59,7 @@ where
 pub trait ListWithRequest<TResponse, TReq>
 where
     TResponse: Serialize + DeserializeOwned + Send + Sync,
+    TReq: Serialize + DeserializeOwned + Send + Sync,
     Self: WithApiClient + WithBasePath,
 {
     async fn list(&self, req: &TReq) -> Result<ItemsWithCursor<TResponse>> {

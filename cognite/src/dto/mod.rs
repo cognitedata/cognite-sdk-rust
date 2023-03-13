@@ -11,4 +11,4 @@ pub mod data_organization;
 pub mod iam;
 pub mod identity;
 
-pub mod models;
+pub mod data_modeling;

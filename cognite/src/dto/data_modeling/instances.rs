@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub enum Instance<TNodeOrEdgeProperties> {
+pub enum NodeOrEdgeWrite<TNodeOrEdgeProperties> {
     Node(NodeWrite<TNodeOrEdgeProperties>),
     Edge(EdgeWrite<TNodeOrEdgeProperties>),
 }

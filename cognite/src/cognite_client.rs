@@ -8,6 +8,7 @@ use super::{ApiClient, Error, Result};
 use crate::api::core::sequences::Sequences;
 use crate::api::iam::sessions::Sessions;
 use crate::auth::AuthenticatorMiddleware;
+use crate::dto::data_modeling::Models;
 use crate::error::Kind;
 use crate::retry::CustomRetryMiddleware;
 use crate::AuthHeaderManager;
@@ -75,7 +76,7 @@ pub struct CogniteClient {
     pub ext_pipe_runs: ExtPipeRuns,
     pub sequences: Sequences,
     pub sessions: Sessions,
-    // pub models:
+    pub models: Models,
 }
 
 static COGNITE_API_KEY: &str = "COGNITE_API_KEY";
@@ -193,7 +194,8 @@ impl CogniteClient {
             ext_pipes: ExtPipes::new(ac.clone()),
             ext_pipe_runs: ExtPipeRuns::new(ac.clone()),
             sequences: Sequences::new(ac.clone()),
-            sessions: Sessions::new(ac),
+            sessions: Sessions::new(ac.clone()),
+            models: Models::new(ac),
         })
     }
 
