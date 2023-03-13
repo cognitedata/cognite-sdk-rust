@@ -9,6 +9,10 @@ pub enum Instance<TNodeOrEdgeProperties> {
 
 #[derive(Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
+pub struct ListRequest {}
+
+#[derive(Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct NodeWrite<TNodeOrEdgeProperties> {
     pub instance_type: String,
     pub space: String,
@@ -102,15 +106,15 @@ pub struct SpaceExternalId {
 
 #[derive(Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct InstanceItemInfo {
+pub struct InstanceInfo {
     pub instance_type: String,
     pub external_id: String,
     pub space: String,
 }
 
-impl From<(String, String, String)> for InstanceItemInfo {
+impl From<(String, String, String)> for InstanceInfo {
     fn from((instance_type, external_id, space): (String, String, String)) -> Self {
-        InstanceItemInfo {
+        InstanceInfo {
             instance_type: instance_type.to_string(),
             external_id: external_id.to_string(),
             space: space.to_string(),
