@@ -19,16 +19,11 @@ pub struct SecurityCategory {
     pub id: Option<u64>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub enum SecurityCategorySortEnum {
+    #[default]
     ASC,
     DESC,
-}
-
-impl Default for SecurityCategorySortEnum {
-    fn default() -> Self {
-        SecurityCategorySortEnum::ASC
-    }
 }
 
 impl Display for SecurityCategorySortEnum {
