@@ -5,19 +5,15 @@ use std::collections::HashMap;
 
 #[derive(Serialize, Deserialize, Debug, Clone, Copy)]
 #[serde(rename_all = "camelCase")]
+#[derive(Default)]
 pub enum SequenceValueType {
     #[serde(rename = "DOUBLE")]
+    #[default]
     Double,
     #[serde(rename = "STRING")]
     String,
     #[serde(rename = "LONG")]
     Long,
-}
-
-impl Default for SequenceValueType {
-    fn default() -> Self {
-        SequenceValueType::Double
-    }
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, Default)]
