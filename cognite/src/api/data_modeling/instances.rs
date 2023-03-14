@@ -1,10 +1,9 @@
 use serde::de::DeserializeOwned;
 use serde::Serialize;
 
-use crate::dto::data_modeling::instances::{
-    InstanceInfo, ListRequest, NodeOrEdge, NodeOrEdgeCreate, SlimNodeOrEdge,
-};
-use crate::{Delete, ItemsWithCursor, ListWithRequest, Retrieve, Upsert};
+use crate::dto::data_modeling::instances::{InstanceInfo, ListRequest, NodeOrEdge, SlimNodeOrEdge};
+use crate::models::NodeAndEdgeCreateCollection;
+use crate::{Delete, ItemsWithCursor, ListWithRequest, Retrieve, UpsertCollection};
 use crate::{Resource, WithBasePath};
 
 pub struct Instance {}
@@ -24,8 +23,10 @@ impl<TProperties> Retrieve<InstanceInfo, NodeOrEdge<TProperties>> for Instances 
     TProperties: Serialize + DeserializeOwned + Sync + Send
 {
 }
-impl<TProperties> Upsert<NodeOrEdgeCreate<TProperties>, SlimNodeOrEdge> for Instances where
-    TProperties: Serialize + Sync + Send
+impl<TProperties> UpsertCollection<NodeAndEdgeCreateCollection<TProperties>, SlimNodeOrEdge>
+    for Instances
+where
+    TProperties: Serialize + Sync + Send,
 {
 }
 impl Delete<InstanceInfo> for Instances {}

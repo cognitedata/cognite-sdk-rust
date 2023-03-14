@@ -218,6 +218,20 @@ pub trait Upsert<TUpsert, TResponse> {
 }
 
 #[async_trait]
+pub trait UpsertCollection<TUpsert, TResponse> {
+    async fn upsert(&self, collection: &TUpsert) -> Result<Vec<TResponse>>
+    where
+        TUpsert: Serialize + Sync + Send,
+        TResponse: Serialize + DeserializeOwned + Sync + Send,
+        Self: WithApiClient + WithBasePath,
+    {
+        let response: ItemsWithoutCursor<TResponse> =
+            self.get_client().post(Self::BASE_PATH, &collection).await?;
+        Ok(response.items)
+    }
+}
+
+#[async_trait]
 pub trait Delete<TIdt>
 where
     TIdt: Serialize + Sync + Send,

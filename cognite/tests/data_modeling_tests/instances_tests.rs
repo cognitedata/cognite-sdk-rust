@@ -1,11 +1,16 @@
 use cognite::models::*;
 use cognite::*;
 
-use crate::common::*;
+use crate::common::get_client_for_mocking;
 
 #[tokio::test]
 async fn create_and_delete_instances() {
-    // let client = get_client();
+    let space = "my_space".to_string();
+    let node_external_id = "my_node".to_string();
+    let view_external_id = "my_view".to_string();
+    let edge_external_id = "my_edge".to_string();
+
+    let client = get_client_for_mocking();
 
     let space = "space".to_string();
 
@@ -13,48 +18,44 @@ async fn create_and_delete_instances() {
     hm.insert("key1", "value1");
     hm.insert("key2", "value2");
 
-    let upserts = vec![
-        NodeOrEdgeCreate::Node(NodeWrite {
-            space: space.to_owned(),
-            external_id: "my_node".to_string(),
-            sources: vec![EdgeOrNodeData {
-                source: SourceReference {
-                    r#type: "type".to_string(),
+    let upsert_collection = NodeAndEdgeCreateCollection {
+        items: vec![
+            NodeOrEdgeCreate::Node(NodeWrite {
+                instance_type: InstanceType::Node,
+                space: space.to_owned(),
+                external_id: node_external_id,
+                sources: Some(vec![EdgeOrNodeData {
+                    source: SourceReference {
+                        r#type: "type".to_string(),
+                        space: space.to_owned(),
+                        external_id: view_external_id,
+                        version: "1".to_string(),
+                    },
+                    properties: hm.clone(),
+                }]),
+                ..Default::default()
+            }),
+            NodeOrEdgeCreate::Edge(EdgeWrite {
+                instance_type: InstanceType::Edge,
+                r#type: EdgeType {
                     space: space.to_owned(),
-                    external_id: "my_view".to_string(),
-                    version: "1".to_string(),
+                    external_id: edge_external_id,
                 },
-                properties: hm.clone(),
-            }],
-            instance_type: InstanceType::Node,
-        }),
-        NodeOrEdgeCreate::Edge(EdgeWrite {
-            r#type: EdgeType {
                 space: space.to_owned(),
-                external_id: "my_edge".to_string(),
-            },
-            space: space.to_owned(),
-            external_id: "my_node".to_string(),
-            sources: vec![EdgeOrNodeData {
-                source: SourceReference {
-                    r#type: "type".to_string(),
+                external_id: edge_external_id.to_string(),
+                start_node: DirectRelationReference {
                     space: space.to_owned(),
-                    external_id: "my_view".to_string(),
-                    version: "1".to_string(),
+                    external_id: node_external_id.to_string(),
                 },
-                properties: hm,
-            }],
-            instance_type: InstanceType::Edge,
-            start_node: DirectRelationReference {
-                space: space.to_owned(),
-                external_id: "my_node".to_string(),
-            },
-            end_node: DirectRelationReference {
-                space: space.to_owned(),
-                external_id: "my_node".to_string(),
-            },
-        }),
-    ];
+                end_node: DirectRelationReference {
+                    space: space.to_owned(),
+                    external_id: node_external_id.to_string(),
+                },
+                ..Default::default()
+            }),
+        ],
+        ..Default::default()
+    };
 
     println!("{}", serde_json::to_string_pretty(&upserts).unwrap());
 
