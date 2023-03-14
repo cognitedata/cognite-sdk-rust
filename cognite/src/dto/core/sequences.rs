@@ -16,8 +16,6 @@ pub enum SequenceValueType {
     Long,
 }
 
-
-
 #[derive(Serialize, Deserialize, Debug, Clone, Default)]
 #[serde(rename_all = "camelCase")]
 pub struct SequenceColumn {

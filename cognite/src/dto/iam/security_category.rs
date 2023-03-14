@@ -19,15 +19,12 @@ pub struct SecurityCategory {
     pub id: Option<u64>,
 }
 
-#[derive(Debug)]
-#[derive(Default)]
+#[derive(Debug, Default)]
 pub enum SecurityCategorySortEnum {
     #[default]
     ASC,
     DESC,
 }
-
-
 
 impl Display for SecurityCategorySortEnum {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {

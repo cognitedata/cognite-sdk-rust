@@ -23,7 +23,6 @@ pub enum RelationshipVertexType {
 // Want a default impl for AddRelationship, so we need a default value here
 // not ideal, really...
 
-
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(rename_all = "camelCase", untagged)]
 pub enum RelationshipVertex {
