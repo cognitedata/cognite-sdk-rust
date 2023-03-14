@@ -56,7 +56,7 @@ async fn create_and_delete_instances() {
         }),
     ];
 
-    println!("{:?}", serde_json::to_string(&upserts));
+    println!("{}", serde_json::to_string_pretty(&upserts).unwrap());
 
     // let result = client
     //     .models
