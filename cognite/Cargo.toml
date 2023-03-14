@@ -16,7 +16,7 @@ async-trait = "0.1.66"
 futures = "0.3.27"
 thiserror = "1.0.39"
 bytes = "1.4.0"
-reqwest-middleware = "0.2.0"
+reqwest-middleware = "0.2.1"
 task-local-extensions = "0.1.4"
 futures-timer = "3.0.2"
 
