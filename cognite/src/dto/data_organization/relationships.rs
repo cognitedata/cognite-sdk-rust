@@ -10,7 +10,9 @@ use crate::{assets::Asset, events::Event, files::FileMetadata, time_series::Time
 
 #[derive(Serialize, Deserialize, Clone, Copy, Debug)]
 #[serde(rename_all = "camelCase")]
+#[derive(Default)]
 pub enum RelationshipVertexType {
+    #[default]
     Asset,
     TimeSeries,
     File,
@@ -20,11 +22,7 @@ pub enum RelationshipVertexType {
 
 // Want a default impl for AddRelationship, so we need a default value here
 // not ideal, really...
-impl Default for RelationshipVertexType {
-    fn default() -> Self {
-        RelationshipVertexType::Asset
-    }
-}
+
 
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(rename_all = "camelCase", untagged)]
