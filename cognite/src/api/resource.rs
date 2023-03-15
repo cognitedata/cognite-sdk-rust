@@ -192,8 +192,7 @@ where
     }
 }
 
-impl<'a, T, TCreate, TUpdate, TResponse> UpsertWithCreateUpdate<'a, TCreate, TUpdate, TResponse>
-    for T
+impl<'a, T, TCreate, TUpdate, TResponse> Upsert<'a, TCreate, TUpdate, TResponse> for T
 where
     T: Create<TCreate, TResponse> + Update<Patch<TUpdate>, TResponse>,
     TCreate: Serialize + Sync + Send + EqIdentity + 'a,
