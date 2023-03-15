@@ -25,7 +25,7 @@ pub enum NodeOrEdgeCreate<TProperties> {
     Edge(EdgeWrite<TProperties>),
 }
 
-#[derive(Serialize, Deserialize, Default, Debug, Clone)]
+#[derive(Serialize, Deserialize, Default, Clone)]
 #[serde(rename_all = "lowercase")]
 pub enum InstanceType {
     #[default]
@@ -88,7 +88,7 @@ pub enum SourceReferenceType {
     Container,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct SlimNodeOrEdge {
     pub instance_type: InstanceType,

@@ -35,7 +35,7 @@ async fn create_and_delete_instances() {
         .await;
 
     // mock delete instance
-    let delete = Mock::given(method("POST"))
+    Mock::given(method("POST"))
         .and(path(get_path("", project, "models/instances/delete")))
         .and(body_json_string(get_instances_delete_request_string(
             space,
@@ -44,8 +44,9 @@ async fn create_and_delete_instances() {
         )))
         .respond_with(ResponseTemplate::new(200).set_body_string(
             get_instances_delete_response_string(space, &node_external_ids, &edge_external_ids),
-        ));
-    mock_server.register(delete).await;
+        ))
+        .mount(&mock_server)
+        .await;
 
     // create instances
     let client = get_client_for_mocking(&mock_server.uri(), project);
