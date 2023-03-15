@@ -4,7 +4,7 @@ authors = [
     "Haakon Garseg Mørk <haakon.mork@cognite.com>",
     "Niek Beckers <niek.beckers@cognite.com>",
 ]
-edition = "2021"
+edition = "2018"
 name = "cognite"
 publish = false
 version = "0.2.1"
