@@ -56,6 +56,21 @@ where
 }
 
 #[async_trait]
+pub trait ListWithRequest<TResponse, TReq>
+where
+    TResponse: Serialize + DeserializeOwned + Send + Sync,
+    TReq: Serialize + DeserializeOwned + Send + Sync,
+    Self: WithApiClient + WithBasePath,
+{
+    async fn list(&self, req: &TReq) -> Result<ItemsWithCursor<TResponse>> {
+        Ok(self
+            .get_client()
+            .post(&format!("{}/list", Self::BASE_PATH), req)
+            .await?)
+    }
+}
+
+#[async_trait]
 pub trait Create<TCreate, TResponse>
 where
     TCreate: Serialize + Sync + Send,
@@ -126,7 +141,7 @@ pub trait FromDuplicateCreate<'a, TCreate> {
 }
 
 #[async_trait]
-pub trait Upsert<TCreate, TUpdate, TResponse, 'a>
+pub trait UpsertWithCreateUpdate<TCreate, TUpdate, TResponse, 'a>
 where
     TCreate: Serialize + Sync + Send + EqIdentity + 'a,
     TUpdate: Serialize + Sync + Send + From<&'a TCreate> + Default,
@@ -177,13 +192,43 @@ where
     }
 }
 
-impl<'a, T, TCreate, TUpdate, TResponse> Upsert<'a, TCreate, TUpdate, TResponse> for T
+impl<'a, T, TCreate, TUpdate, TResponse> UpsertWithCreateUpdate<'a, TCreate, TUpdate, TResponse>
+    for T
 where
     T: Create<TCreate, TResponse> + Update<Patch<TUpdate>, TResponse>,
     TCreate: Serialize + Sync + Send + EqIdentity + 'a,
     TUpdate: Serialize + Sync + Send + From<&'a TCreate> + Default,
     TResponse: Serialize + DeserializeOwned + Sync + Send,
 {
+}
+
+#[async_trait]
+pub trait Upsert<TUpsert, TResponse> {
+    async fn upsert(&self, upserts: &[TUpsert]) -> Result<Vec<TResponse>>
+    where
+        TUpsert: Serialize + Sync + Send,
+        TResponse: Serialize + DeserializeOwned + Sync + Send,
+        Self: WithApiClient + WithBasePath,
+    {
+        let items = Items::from(upserts);
+        let response: ItemsWithoutCursor<TResponse> =
+            self.get_client().post(Self::BASE_PATH, &items).await?;
+        Ok(response.items)
+    }
+}
+
+#[async_trait]
+pub trait UpsertCollection<TUpsert, TResponse> {
+    async fn upsert(&self, collection: &TUpsert) -> Result<Vec<TResponse>>
+    where
+        TUpsert: Serialize + Sync + Send,
+        TResponse: Serialize + DeserializeOwned + Sync + Send,
+        Self: WithApiClient + WithBasePath,
+    {
+        let response: ItemsWithoutCursor<TResponse> =
+            self.get_client().post(Self::BASE_PATH, &collection).await?;
+        Ok(response.items)
+    }
 }
 
 #[async_trait]
@@ -198,6 +243,23 @@ where
             .post::<::serde_json::Value, Items>(&format!("{}/delete", Self::BASE_PATH), &items)
             .await?;
         Ok(())
+    }
+}
+
+#[async_trait]
+pub trait DeleteWithResponse<TIdt, TResponse>
+where
+    TIdt: Serialize + Sync + Send,
+    TResponse: Serialize + DeserializeOwned + Sync + Send,
+    Self: WithApiClient + WithBasePath,
+{
+    async fn delete(&self, deletes: &[TIdt]) -> Result<ItemsWithoutCursor<TResponse>> {
+        let items = Items::from(deletes);
+        let response: ItemsWithoutCursor<TResponse> = self
+            .get_client()
+            .post(&format!("{}/delete", Self::BASE_PATH), &items)
+            .await?;
+        Ok(response)
     }
 }
 
