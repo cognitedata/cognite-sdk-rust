@@ -141,7 +141,7 @@ pub trait FromDuplicateCreate<'a, TCreate> {
 }
 
 #[async_trait]
-pub trait UpsertWithCreateUpdate<TCreate, TUpdate, TResponse, 'a>
+pub trait Upsert<TCreate, TUpdate, TResponse, 'a>
 where
     TCreate: Serialize + Sync + Send + EqIdentity + 'a,
     TUpdate: Serialize + Sync + Send + From<&'a TCreate> + Default,
@@ -200,21 +200,6 @@ where
     TUpdate: Serialize + Sync + Send + From<&'a TCreate> + Default,
     TResponse: Serialize + DeserializeOwned + Sync + Send,
 {
-}
-
-#[async_trait]
-pub trait Upsert<TUpsert, TResponse> {
-    async fn upsert(&self, upserts: &[TUpsert]) -> Result<Vec<TResponse>>
-    where
-        TUpsert: Serialize + Sync + Send,
-        TResponse: Serialize + DeserializeOwned + Sync + Send,
-        Self: WithApiClient + WithBasePath,
-    {
-        let items = Items::from(upserts);
-        let response: ItemsWithoutCursor<TResponse> =
-            self.get_client().post(Self::BASE_PATH, &items).await?;
-        Ok(response.items)
-    }
 }
 
 #[async_trait]
