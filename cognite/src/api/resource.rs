@@ -247,6 +247,23 @@ where
 }
 
 #[async_trait]
+pub trait DeleteWithResponse<TIdt, TResponse>
+where
+    TIdt: Serialize + Sync + Send,
+    TResponse: Serialize + DeserializeOwned + Sync + Send,
+    Self: WithApiClient + WithBasePath,
+{
+    async fn delete(&self, deletes: &[TIdt]) -> Result<ItemsWithoutCursor<TResponse>> {
+        let items = Items::from(deletes);
+        let response: ItemsWithoutCursor<TResponse> = self
+            .get_client()
+            .post(&format!("{}/delete", Self::BASE_PATH), &items)
+            .await?;
+        Ok(response)
+    }
+}
+
+#[async_trait]
 pub trait DeleteWithRequest<TReq>
 where
     TReq: Serialize + Sync + Send,

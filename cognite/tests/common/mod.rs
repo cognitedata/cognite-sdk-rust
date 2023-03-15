@@ -28,10 +28,7 @@ pub fn get_client_for_mocking(api_base_url: &str, project_name: &str) -> Cognite
 }
 
 pub fn get_path(base_url: &str, project: &str, endpoint: &str) -> String {
-    format!(
-        "{}/api/{}/projects/{}/{}",
-        base_url, "v1", project, endpoint
-    )
+    format!("{}/api/v1/projects/{}/{}", base_url, project, endpoint)
 }
 
 pub static PREFIX: Lazy<String> = Lazy::new(|| {

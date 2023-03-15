@@ -157,17 +157,14 @@ pub struct DirectRelationReference {
 #[derive(Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct InstanceInfo {
-    pub instance_type: String,
+    pub instance_type: InstanceType,
     pub external_id: String,
     pub space: String,
 }
 
-impl From<(String, String, String)> for InstanceInfo {
-    fn from((instance_type, external_id, space): (String, String, String)) -> Self {
-        InstanceInfo {
-            instance_type,
-            external_id,
-            space,
-        }
-    }
+#[derive(Serialize, Deserialize, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct SpaceAndExternalId {
+    pub external_id: String,
+    pub space: String,
 }

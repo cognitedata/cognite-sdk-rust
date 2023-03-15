@@ -1,8 +1,8 @@
 use std::collections::HashMap;
 
 use cognite::models::{
-    DirectRelationReference, EdgeOrNodeData, EdgeType, EdgeWrite, InstanceType, NodeOrEdgeCreate,
-    NodeWrite, SourceReference, SourceReferenceType,
+    DirectRelationReference, EdgeOrNodeData, EdgeType, EdgeWrite, InstanceInfo, InstanceType,
+    NodeOrEdgeCreate, NodeWrite, SourceReference, SourceReferenceType,
 };
 
 fn get_mock_properties() -> HashMap<String, String> {
@@ -72,7 +72,7 @@ pub fn get_mock_instances(
     mock_instances
 }
 
-pub fn get_instances_request_string(
+pub fn get_instances_create_request_string(
     space: &str,
     node_external_ids: &[&str],
     edge_external_ids: &[&str],
@@ -96,7 +96,7 @@ pub fn get_instances_request_string(
     req
 }
 
-pub fn get_instances_response_string(
+pub fn get_instances_create_response_string(
     space: &str,
     node_external_ids: &[&str],
     edge_external_ids: &[&str],
@@ -119,4 +119,69 @@ pub fn get_instances_response_string(
 
     let res = format!(r#"{{"items": [ {items} ] }}"#);
     res
+}
+
+pub fn get_mock_instances_delete(
+    space: &str,
+    node_external_ids: &[&str],
+    edge_external_ids: &[&str],
+) -> Vec<InstanceInfo> {
+    let mut instances = Vec::new();
+    node_external_ids.iter().for_each(|id| {
+        instances.push(InstanceInfo {
+            instance_type: InstanceType::Node,
+            space: space.to_owned(),
+            external_id: id.to_string(),
+        });
+    });
+    edge_external_ids.iter().for_each(|id| {
+        instances.push(InstanceInfo {
+            instance_type: InstanceType::Edge,
+            space: space.to_owned(),
+            external_id: id.to_string(),
+        });
+    });
+    instances
+}
+
+pub fn get_instances_delete_request_string(
+    space: &str,
+    node_external_ids: &[&str],
+    edge_external_ids: &[&str],
+) -> String {
+    let mut items = "".to_string();
+    node_external_ids.iter().for_each(|id| {
+        items.push_str(&format!(
+            r#"{{"instanceType": "node", "externalId": "{id}", "space": "{space}" }},"#,
+        ));
+    });
+    edge_external_ids.iter().for_each(|id| {
+        items.push_str(&format!(
+            r#"{{"instanceType": "edge", "externalId": "{id}", "space": "{space}" }},"#,
+        ));
+    });
+    items.pop(); // remove last comma
+
+    format!(r#"{{"items": [ {items} ] }}"#)
+}
+
+pub fn get_instances_delete_response_string(
+    space: &str,
+    node_external_ids: &[&str],
+    edge_external_ids: &[&str],
+) -> String {
+    let mut items = "".to_string();
+    node_external_ids.iter().for_each(|id| {
+        items.push_str(&format!(
+            r#"{{"instanceType": "node", "externalId": "{id}", "space": "{space}" }},"#,
+        ));
+    });
+    edge_external_ids.iter().for_each(|id| {
+        items.push_str(&format!(
+            r#"{{"instanceType": "edge", "externalId": "{id}", "space": "{space}" }},"#,
+        ));
+    });
+    items.pop(); // remove last comma
+
+    format!(r#"{{"items": [ {items} ] }}"#)
 }
