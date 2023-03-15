@@ -22,7 +22,7 @@ jobs:
       - name: Test
         run: cargo test
         env:
-          COGNITE_PROJECT: officerobotics
+          COGNITE_PROJECT: opcua-interface-test
           COGNITE_BASE_URL: https://greenfield.cognitedata.com
           COGNITE_TOKEN_URL: ${{ secrets.TOKEN_URL }}
           COGNITE_SCOPES: https://greenfield.cognitedata.com/.default
