@@ -1,9 +1,8 @@
-#[cfg(test)]
 use cognite::assets::*;
 use cognite::*;
 
 mod common;
-pub use common::*;
+use common::*;
 
 #[tokio::test]
 async fn create_and_delete_asset() {
