@@ -1,8 +1,9 @@
-mod common;
-use common::*;
-
+#[cfg(test)]
 use cognite::time_series::*;
 use cognite::*;
+
+mod common;
+pub use common::*;
 
 #[tokio::test]
 async fn create_and_delete_time_series() {

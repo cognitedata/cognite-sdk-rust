@@ -1,8 +1,8 @@
-mod common;
-use common::*;
-
 use cognite::events::*;
 use cognite::*;
+
+mod common;
+pub use common::*;
 
 #[tokio::test]
 async fn create_update_and_delete_events() {

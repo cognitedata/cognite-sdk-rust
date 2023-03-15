@@ -1,11 +1,8 @@
-use cognite::CogniteClient;
+use cognite::{ClientConfig, CogniteClient};
 use once_cell::sync::Lazy;
 use rand::{distributions::Alphanumeric, Rng};
 
-#[cfg(test)]
 pub fn get_client() -> CogniteClient {
-    use cognite::ClientConfig;
-
     CogniteClient::new_oidc(
         "rust_sdk_test",
         Some(ClientConfig {
@@ -16,9 +13,7 @@ pub fn get_client() -> CogniteClient {
     .unwrap()
 }
 
-#[cfg(test)]
 pub fn get_client_for_mocking(api_base_url: &str, project_name: &str) -> CogniteClient {
-    use cognite::ClientConfig;
     CogniteClient::new_custom_auth(
         api_base_url,
         project_name,
@@ -32,7 +27,13 @@ pub fn get_client_for_mocking(api_base_url: &str, project_name: &str) -> Cognite
     .unwrap()
 }
 
-#[cfg(test)]
+pub fn get_path(base_url: &str, project: &str, endpoint: &str) -> String {
+    format!(
+        "{}/api/{}/projects/{}/{}",
+        base_url, "v1", project, endpoint
+    )
+}
+
 pub static PREFIX: Lazy<String> = Lazy::new(|| {
     format!(
         "rust-sdk-test-{}",

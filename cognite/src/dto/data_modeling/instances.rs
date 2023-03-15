@@ -1,7 +1,7 @@
 use derivative::Derivative;
 use serde::{Deserialize, Serialize};
 
-#[derive(Default, Serialize, Deserialize, Derivative)]
+#[derive(Default, Serialize, Deserialize, Derivative, Clone)]
 pub struct NodeAndEdgeCreateCollection<TProperties> {
     pub items: Vec<NodeOrEdgeCreate<TProperties>>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -18,14 +18,14 @@ pub struct NodeAndEdgeCreateCollection<TProperties> {
     pub replace: Option<bool>,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase", untagged)]
 pub enum NodeOrEdgeCreate<TProperties> {
     Node(NodeWrite<TProperties>),
     Edge(EdgeWrite<TProperties>),
 }
 
-#[derive(Serialize, Deserialize, Default)]
+#[derive(Serialize, Deserialize, Default, Debug, Clone)]
 #[serde(rename_all = "lowercase")]
 pub enum InstanceType {
     #[default]
@@ -37,7 +37,7 @@ pub enum InstanceType {
 #[serde(rename_all = "camelCase")]
 pub struct ListRequest {}
 
-#[derive(Serialize, Deserialize, Default, Derivative)]
+#[derive(Serialize, Deserialize, Default, Derivative, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct NodeWrite<TProperties> {
     #[derivative(Default(value = "InstanceType::Node"))]
@@ -47,10 +47,10 @@ pub struct NodeWrite<TProperties> {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub sources: Option<Vec<EdgeOrNodeData<TProperties>>>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    existing_version: Option<i64>,
+    pub existing_version: Option<i64>,
 }
 
-#[derive(Serialize, Deserialize, Default, Derivative)]
+#[derive(Serialize, Deserialize, Default, Derivative, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct EdgeWrite<TProperties> {
     #[derivative(Default(value = "InstanceType::Edge"))]
@@ -63,30 +63,37 @@ pub struct EdgeWrite<TProperties> {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub sources: Option<Vec<EdgeOrNodeData<TProperties>>>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    existing_version: Option<i64>,
+    pub existing_version: Option<i64>,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Clone)]
 pub struct EdgeOrNodeData<TProperties> {
     pub source: SourceReference,
     pub properties: TProperties,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct SourceReference {
-    pub r#type: String,
+    pub r#type: SourceReferenceType,
     pub space: String,
     pub external_id: String,
     pub version: String,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Clone)]
+#[serde(rename_all = "lowercase")]
+pub enum SourceReferenceType {
+    View,
+    Container,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct SlimNodeOrEdge {
     pub instance_type: InstanceType,
     pub space: String,
-    pub version: String,
+    pub version: i64,
     pub was_modified: bool,
     pub external_id: String,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -133,21 +140,21 @@ pub enum NodeOrEdge<TProperties> {
     Edge(EdgeDefinition<TProperties>),
 }
 
-#[derive(Serialize, Deserialize, Default)]
+#[derive(Serialize, Deserialize, Default, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct EdgeType {
     pub space: String,
     pub external_id: String,
 }
 
-#[derive(Serialize, Deserialize, Default)]
+#[derive(Serialize, Deserialize, Default, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct DirectRelationReference {
     pub space: String,
     pub external_id: String,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct InstanceInfo {
     pub instance_type: String,
