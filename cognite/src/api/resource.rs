@@ -155,22 +155,26 @@ where
                 }
             }
 
-            let create_response: ItemsWithoutCursor<TResponse> = self
-                .get_client()
-                .post(Self::BASE_PATH, &Items::from(to_create))
-                .await?;
-            let update_response: ItemsWithoutCursor<TResponse> = self
-                .get_client()
-                .post(
-                    &format!("{}/update", Self::BASE_PATH),
-                    &Items::from(&to_update),
-                )
-                .await?;
-            Ok(create_response
-                .items
-                .into_iter()
-                .chain(update_response.items.into_iter())
-                .collect())
+            let mut result = Vec::with_capacity(to_create.len() + to_update.len());
+            if !to_create.is_empty() {
+                let mut create_response: ItemsWithoutCursor<TResponse> = self
+                    .get_client()
+                    .post(Self::BASE_PATH, &Items::from(to_create))
+                    .await?;
+                result.append(&mut create_response.items);
+            }
+            if !to_update.is_empty() {
+                let mut update_response: ItemsWithoutCursor<TResponse> = self
+                    .get_client()
+                    .post(
+                        &format!("{}/update", Self::BASE_PATH),
+                        &Items::from(&to_update),
+                    )
+                    .await?;
+                result.append(&mut update_response.items);
+            }
+
+            Ok(result)
         } else {
             resp.map(|i| i.items)
         }
