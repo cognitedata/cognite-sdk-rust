@@ -1,8 +1,8 @@
 use std::collections::HashMap;
 
 use cognite::models::{
-    DirectRelationReference, EdgeOrNodeData, EdgeWrite, InstanceInfo, InstanceType,
-    NodeOrEdgeCreate, NodeWrite, SourceReference, SourceReferenceType,
+    DirectRelationReference, EdgeOrNodeData, EdgeWrite, InstanceId, NodeOrEdgeCreate,
+    NodeOrEdgeSpecification, NodeWrite, SourceReference, SourceReferenceId,
 };
 
 fn get_mock_properties() -> HashMap<String, String> {
@@ -27,16 +27,14 @@ pub(crate) fn get_mock_instances(
             .iter()
             .map(|id| {
                 NodeOrEdgeCreate::Node(NodeWrite {
-                    instance_type: InstanceType::Node,
                     space: space.to_owned(),
                     external_id: id.to_string(),
                     sources: Some(vec![EdgeOrNodeData {
-                        source: SourceReference {
-                            r#type: SourceReferenceType::View,
+                        source: SourceReference::View(SourceReferenceId {
                             space: space.to_owned(),
                             external_id: "some_view".to_string(),
                             version: "1".to_string(),
-                        },
+                        }),
                         properties: properties.clone(),
                     }]),
                     ..Default::default()
@@ -49,7 +47,6 @@ pub(crate) fn get_mock_instances(
             .iter()
             .map(|id| {
                 NodeOrEdgeCreate::Edge(EdgeWrite {
-                    instance_type: InstanceType::Edge,
                     r#type: DirectRelationReference {
                         space: space.to_owned(),
                         external_id: id.to_string(),
@@ -125,21 +122,19 @@ pub(crate) fn get_mock_instances_delete(
     space: &str,
     node_external_ids: &[&str],
     edge_external_ids: &[&str],
-) -> Vec<InstanceInfo> {
+) -> Vec<NodeOrEdgeSpecification> {
     let mut instances = Vec::new();
     node_external_ids.iter().for_each(|id| {
-        instances.push(InstanceInfo {
-            instance_type: InstanceType::Node,
+        instances.push(NodeOrEdgeSpecification::Node(InstanceId {
             space: space.to_owned(),
             external_id: id.to_string(),
-        });
+        }));
     });
     edge_external_ids.iter().for_each(|id| {
-        instances.push(InstanceInfo {
-            instance_type: InstanceType::Edge,
+        instances.push(NodeOrEdgeSpecification::Edge(InstanceId {
             space: space.to_owned(),
             external_id: id.to_string(),
-        });
+        }));
     });
     instances
 }

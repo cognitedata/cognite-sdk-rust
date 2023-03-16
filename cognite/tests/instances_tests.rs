@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 #[cfg(test)]
 use cognite::models::*;
 use cognite::*;
