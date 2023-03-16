@@ -1,11 +1,10 @@
 #[cfg(test)]
+use cognite::ClientConfig;
 use cognite::CogniteClient;
 use once_cell::sync::Lazy;
 use rand::{distributions::Alphanumeric, Rng};
 
 pub fn get_client() -> CogniteClient {
-    use cognite::ClientConfig;
-
     CogniteClient::new_oidc(
         "rust_sdk_test",
         Some(ClientConfig {
