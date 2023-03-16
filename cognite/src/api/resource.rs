@@ -56,21 +56,6 @@ where
 }
 
 #[async_trait]
-pub trait ListWithRequest<TResponse, TReq>
-where
-    TResponse: Serialize + DeserializeOwned + Send + Sync,
-    TReq: Serialize + DeserializeOwned + Send + Sync,
-    Self: WithApiClient + WithBasePath,
-{
-    async fn list(&self, req: &TReq) -> Result<ItemsWithCursor<TResponse>> {
-        Ok(self
-            .get_client()
-            .post(&format!("{}/list", Self::BASE_PATH), req)
-            .await?)
-    }
-}
-
-#[async_trait]
 pub trait Create<TCreate, TResponse>
 where
     TCreate: Serialize + Sync + Send,
