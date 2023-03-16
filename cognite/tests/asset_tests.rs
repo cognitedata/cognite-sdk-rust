@@ -1,7 +1,7 @@
 use cognite::assets::*;
 use cognite::*;
 mod common;
-use common::*;
+pub(crate) use common::*;
 
 #[tokio::test]
 async fn create_and_delete_asset() {

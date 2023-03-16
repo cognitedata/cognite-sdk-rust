@@ -6,10 +6,10 @@ use wiremock::matchers::{body_json_string, method, path};
 use wiremock::{Mock, MockServer, ResponseTemplate};
 
 mod common;
-use common::*;
+pub(crate) use common::*;
 
 mod fixtures;
-use fixtures::*;
+pub(crate) use fixtures::*;
 
 #[tokio::test]
 async fn create_and_delete_instances() {

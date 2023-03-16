@@ -1,5 +1,5 @@
 mod common;
-use common::*;
+pub(crate) use common::*;
 
 use cognite::time_series::*;
 use cognite::*;

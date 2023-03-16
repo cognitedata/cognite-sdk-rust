@@ -12,7 +12,7 @@ fn get_mock_properties() -> HashMap<String, String> {
     properties
 }
 
-pub fn get_mock_instances(
+pub(crate) fn get_mock_instances(
     space: &str,
     node_external_id: &[&str],
     edge_external_id: &[&str],
@@ -72,7 +72,7 @@ pub fn get_mock_instances(
     mock_instances
 }
 
-pub fn get_instances_create_request_string(
+pub(crate) fn get_instances_create_request_string(
     space: &str,
     node_external_ids: &[&str],
     edge_external_ids: &[&str],
@@ -96,7 +96,7 @@ pub fn get_instances_create_request_string(
     req
 }
 
-pub fn get_instances_create_response_string(
+pub(crate) fn get_instances_create_response_string(
     space: &str,
     node_external_ids: &[&str],
     edge_external_ids: &[&str],
@@ -121,7 +121,7 @@ pub fn get_instances_create_response_string(
     res
 }
 
-pub fn get_mock_instances_delete(
+pub(crate) fn get_mock_instances_delete(
     space: &str,
     node_external_ids: &[&str],
     edge_external_ids: &[&str],
@@ -144,7 +144,7 @@ pub fn get_mock_instances_delete(
     instances
 }
 
-pub fn get_instances_delete_request_string(
+pub(crate) fn get_instances_delete_request_string(
     space: &str,
     node_external_ids: &[&str],
     edge_external_ids: &[&str],
@@ -165,7 +165,7 @@ pub fn get_instances_delete_request_string(
     format!(r#"{{"items": [ {items} ] }}"#)
 }
 
-pub fn get_instances_delete_response_string(
+pub(crate) fn get_instances_delete_response_string(
     space: &str,
     node_external_ids: &[&str],
     edge_external_ids: &[&str],

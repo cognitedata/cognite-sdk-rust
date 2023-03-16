@@ -2,7 +2,7 @@ use cognite::time_series::*;
 use cognite::*;
 
 mod common;
-use common::*;
+pub(crate) use common::*;
 
 async fn create_test_ts(client: &CogniteClient, is_string: bool, idx: i32) -> TimeSerie {
     let ts = AddTimeSerie {

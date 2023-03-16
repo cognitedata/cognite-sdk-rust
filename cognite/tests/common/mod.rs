@@ -39,3 +39,7 @@ pub static PREFIX: Lazy<String> = Lazy::new(|| {
             .collect::<String>()
     )
 });
+
+pub fn get_path(base_url: &str, project: &str, endpoint: &str) -> String {
+    format!("{}/api/v1/projects/{}/{}", base_url, project, endpoint)
+}
