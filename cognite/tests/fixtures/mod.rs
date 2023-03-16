@@ -1,3 +1,4 @@
+#[cfg(test)]
 use std::collections::HashMap;
 
 use cognite::models::{
@@ -12,7 +13,7 @@ fn get_mock_properties() -> HashMap<String, String> {
     properties
 }
 
-pub(crate) fn get_mock_instances(
+pub fn get_mock_instances(
     space: &str,
     node_external_id: &[&str],
     edge_external_id: &[&str],
@@ -69,7 +70,7 @@ pub(crate) fn get_mock_instances(
     mock_instances
 }
 
-pub(crate) fn get_instances_create_request_string(
+pub fn get_instances_create_request_string(
     space: &str,
     node_external_ids: &[&str],
     edge_external_ids: &[&str],
@@ -89,11 +90,13 @@ pub(crate) fn get_instances_create_request_string(
 
     items.pop(); // remove last comma
 
-    let req = format!(r#"{{"items": [{items}] }}"#);
+    let req = format!(
+        r#"{{"items":[{items}], "autoCreateStartNodes":false, "autoCreateEndNodes":false,"skipOnVersionConflict":false, "replace":false}}"#
+    );
     req
 }
 
-pub(crate) fn get_instances_create_response_string(
+pub fn get_instances_create_response_string(
     space: &str,
     node_external_ids: &[&str],
     edge_external_ids: &[&str],
@@ -118,7 +121,7 @@ pub(crate) fn get_instances_create_response_string(
     res
 }
 
-pub(crate) fn get_mock_instances_delete(
+pub fn get_mock_instances_delete(
     space: &str,
     node_external_ids: &[&str],
     edge_external_ids: &[&str],
@@ -139,7 +142,7 @@ pub(crate) fn get_mock_instances_delete(
     instances
 }
 
-pub(crate) fn get_instances_delete_request_string(
+pub fn get_instances_delete_request_string(
     space: &str,
     node_external_ids: &[&str],
     edge_external_ids: &[&str],
@@ -160,7 +163,7 @@ pub(crate) fn get_instances_delete_request_string(
     format!(r#"{{"items": [ {items} ] }}"#)
 }
 
-pub(crate) fn get_instances_delete_response_string(
+pub fn get_instances_delete_response_string(
     space: &str,
     node_external_ids: &[&str],
     edge_external_ids: &[&str],

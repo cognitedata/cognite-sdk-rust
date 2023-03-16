@@ -2,9 +2,7 @@ use serde::de::DeserializeOwned;
 use serde::Serialize;
 
 use crate::dto::data_modeling::instances::{NodeOrEdge, SlimNodeOrEdge};
-use crate::models::{
-    InstanceId, InstancesFilter, NodeAndEdgeCreateCollection, NodeOrEdgeSpecification,
-};
+use crate::models::{InstancesFilter, NodeAndEdgeCreateCollection, NodeOrEdgeSpecification};
 use crate::{
     DeleteWithResponse, Filter, FilterWithRequest, ItemsWithCursor, Retrieve, UpsertCollection,
 };
@@ -34,4 +32,4 @@ where
     TProperties: Serialize + Sync + Send,
 {
 }
-impl DeleteWithResponse<NodeOrEdgeSpecification, InstanceId> for Instances {}
+impl DeleteWithResponse<NodeOrEdgeSpecification, NodeOrEdgeSpecification> for Instances {}

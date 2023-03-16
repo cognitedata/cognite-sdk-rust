@@ -1,3 +1,4 @@
+#[cfg(test)]
 use bytes::Bytes;
 use cognite::files::*;
 use cognite::prelude::*;
@@ -6,7 +7,7 @@ use tokio::fs::File;
 use tokio_util::codec::{BytesCodec, FramedRead};
 
 mod common;
-pub(crate) use common::*;
+pub use common::*;
 
 async fn ensure_test_file(client: &CogniteClient) {
     let id = "rust-sdk-test-file".to_string();

@@ -1,5 +1,6 @@
+#[cfg(test)]
 mod common;
-pub(crate) use common::*;
+pub use common::*;
 
 use cognite::events::*;
 use cognite::*;

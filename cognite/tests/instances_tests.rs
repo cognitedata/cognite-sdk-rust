@@ -1,5 +1,3 @@
-use std::collections::HashMap;
-
 #[cfg(test)]
 use cognite::models::*;
 use cognite::*;
@@ -8,10 +6,10 @@ use wiremock::matchers::{body_json_string, method, path};
 use wiremock::{Mock, MockServer, ResponseTemplate};
 
 mod common;
-pub(crate) use common::*;
+pub use common::*;
 
 mod fixtures;
-pub(crate) use fixtures::*;
+pub use fixtures::*;
 
 #[tokio::test]
 async fn create_and_delete_instances() {
@@ -66,7 +64,27 @@ async fn create_and_delete_instances() {
         .await
         .unwrap();
 
-    assert_eq!(result.len(), mock_instances.len());
+    assert_eq!(
+        result
+            .iter()
+            .filter(|&x| match x {
+                SlimNodeOrEdge::Node(_) => true,
+                _ => false,
+            })
+            .count(),
+        node_external_ids.len()
+    );
+
+    assert_eq!(
+        result
+            .iter()
+            .filter(|&x| match x {
+                SlimNodeOrEdge::Edge(_) => true,
+                _ => false,
+            })
+            .count(),
+        edge_external_ids.len()
+    );
 
     // and delete the instances
     let instances_delete = get_mock_instances_delete(space, &node_external_ids, &edge_external_ids);
@@ -79,5 +97,25 @@ async fn create_and_delete_instances() {
         .unwrap()
         .items;
 
-    assert_eq!(results.len(), instances_delete.len());
+    assert_eq!(
+        results
+            .iter()
+            .filter(|&x| match x {
+                NodeOrEdgeSpecification::Node(_) => true,
+                _ => false,
+            })
+            .count(),
+        node_external_ids.len()
+    );
+
+    assert_eq!(
+        results
+            .iter()
+            .filter(|&x| match x {
+                NodeOrEdgeSpecification::Edge(_) => true,
+                _ => false,
+            })
+            .count(),
+        edge_external_ids.len()
+    );
 }

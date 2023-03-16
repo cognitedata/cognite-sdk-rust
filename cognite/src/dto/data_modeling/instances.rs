@@ -1,9 +1,10 @@
 use derivative::Derivative;
 use serde::{Deserialize, Serialize};
+use serde_with::skip_serializing_none;
 
+#[skip_serializing_none]
 #[derive(Serialize, Deserialize, Derivative, Clone, Debug)]
 #[serde(rename_all = "camelCase")]
-#[serde_with::skip_serializing_none]
 pub struct NodeAndEdgeCreateCollection<TProperties> {
     pub items: Vec<NodeOrEdgeCreate<TProperties>>,
     pub auto_create_start_nodes: Option<bool>,
@@ -31,9 +32,9 @@ pub enum NodeOrEdgeCreate<TProperties> {
     Edge(EdgeWrite<TProperties>),
 }
 
+#[skip_serializing_none]
 #[derive(Serialize, Deserialize, Default, Derivative, Clone, Debug)]
 #[serde(rename_all = "camelCase")]
-#[serde_with::skip_serializing_none]
 pub struct NodeWrite<TProperties> {
     pub space: String,
     pub external_id: String,
@@ -41,9 +42,9 @@ pub struct NodeWrite<TProperties> {
     pub existing_version: Option<i64>,
 }
 
+#[skip_serializing_none]
 #[derive(Serialize, Deserialize, Default, Derivative, Clone, Debug)]
 #[serde(rename_all = "camelCase")]
-#[serde_with::skip_serializing_none]
 pub struct EdgeWrite<TProperties> {
     pub space: String,
     pub r#type: DirectRelationReference,
@@ -72,14 +73,7 @@ pub struct SourceReferenceId {
 #[serde(rename_all = "camelCase", tag = "type")]
 pub enum SourceReference {
     View(SourceReferenceId),
-    Container(SourceReferenceId),
-}
-
-#[derive(Serialize, Deserialize, Clone, Debug)]
-#[serde(rename_all = "lowercase")]
-pub enum SourceReferenceType {
-    View,
-    Container,
+    Container(InstanceId),
 }
 
 #[derive(Serialize, Deserialize, Clone)]
@@ -89,9 +83,9 @@ pub enum SlimNodeOrEdge {
     Edge(SlimEdgeDefinition),
 }
 
+#[skip_serializing_none]
 #[derive(Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
-#[serde_with::skip_serializing_none]
 pub struct SlimNodeDefinition {
     pub space: String,
     pub version: i64,
@@ -100,9 +94,9 @@ pub struct SlimNodeDefinition {
     pub created_time: Option<i64>,
     pub last_updated_time: Option<i64>,
 }
+#[skip_serializing_none]
 #[derive(Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
-#[serde_with::skip_serializing_none]
 pub struct SlimEdgeDefinition {
     pub space: String,
     pub version: i64,
@@ -164,7 +158,7 @@ pub enum NodeOrEdgeSpecification {
     Edge(InstanceId),
 }
 
-#[derive(Serialize, Deserialize, Clone)]
+#[derive(Serialize, Deserialize, Clone, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct InstanceId {
     pub space: String,
@@ -173,7 +167,6 @@ pub struct InstanceId {
 
 #[derive(Serialize, Deserialize, Clone, Debug, Default)]
 #[serde(rename_all = "camelCase")]
-#[serde_with::skip_serializing_none]
 pub struct InstancesFilter {
     // todo
 }
