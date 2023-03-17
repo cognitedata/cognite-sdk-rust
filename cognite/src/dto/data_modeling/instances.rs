@@ -159,10 +159,16 @@ pub struct DirectRelationReference {
 #[derive(Serialize, Deserialize, Derivative, Clone, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct NodeAndEdgeRetrieveRequest {
-    pub sources: Option<Vec<SourceReference>>,
+    pub sources: Option<Vec<SourceReferenceInternal>>,
     pub items: Vec<NodeOrEdgeSpecification>,
     #[derivative(Default(value = "false"))]
     pub include_typing: Option<bool>,
+}
+
+#[derive(Serialize, Deserialize, Derivative, Clone, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct SourceReferenceInternal {
+    pub source: SourceReference,
 }
 
 #[skip_serializing_none]
