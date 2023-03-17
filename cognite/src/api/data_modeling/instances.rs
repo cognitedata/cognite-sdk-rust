@@ -3,8 +3,8 @@ use serde::Serialize;
 
 use crate::dto::data_modeling::instances::{NodeOrEdge, SlimNodeOrEdge};
 use crate::models::{
-    InstancesFilter, NodeAndEdgeCreateCollection, NodeAndEdgeRetrieveResponse,
-    NodeOrEdgeSpecification,
+    InstancesFilter, NodeAndEdgeCreateCollection, NodeAndEdgeRetrieveRequest,
+    NodeAndEdgeRetrieveResponse, NodeOrEdgeSpecification,
 };
 use crate::{
     DeleteWithResponse, Filter, FilterWithRequest, ItemsWithCursor, RetrieveWithRequest,
@@ -28,10 +28,8 @@ where
 }
 
 impl<TProperties>
-    RetrieveWithRequest<
-        NodeAndEdgeRetrieveResponse<TProperties>,
-        NodeAndEdgeRetrieveResponse<TProperties>,
-    > for Instances
+    RetrieveWithRequest<NodeAndEdgeRetrieveRequest, NodeAndEdgeRetrieveResponse<TProperties>>
+    for Instances
 where
     TProperties: Serialize + DeserializeOwned + Send + Sync,
 {
