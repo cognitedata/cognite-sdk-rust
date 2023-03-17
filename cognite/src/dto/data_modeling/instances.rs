@@ -151,11 +151,26 @@ pub struct DirectRelationReference {
     pub external_id: String,
 }
 
+#[skip_serializing_none]
+#[derive(Serialize, Deserialize, Derivative, Clone, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct NodeAndEdgeRetrieveCollection {
+    pub sources: Option<SourceSelectorWithoutProperties>,
+    pub items: Vec<NodeOrEdgeSpecification>,
+    pub include_typing: Option<bool>,
+}
+
 #[derive(Serialize, Deserialize, Clone, Debug)]
 #[serde(rename_all = "camelCase", tag = "instanceType")]
 pub enum NodeOrEdgeSpecification {
     Node(InstanceId),
     Edge(InstanceId),
+}
+
+#[derive(Serialize, Deserialize, Derivative, Clone, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct SourceSelectorWithoutProperties {
+    pub source: Vec<SourceReference>,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]

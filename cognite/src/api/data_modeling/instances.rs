@@ -1,7 +1,8 @@
 use crate::dto::data_modeling::instances::{NodeOrEdge, SlimNodeOrEdge};
 use crate::models::{InstancesFilter, NodeAndEdgeCreateCollection, NodeOrEdgeSpecification};
 use crate::{
-    DeleteWithResponse, Filter, FilterWithRequest, ItemsWithCursor, Retrieve, UpsertCollection,
+    DeleteWithResponse, Filter, FilterWithRequest, ItemsWithCursor, Retrieve, RetrieveWithRequest,
+    UpsertCollection,
 };
 use crate::{Resource, WithBasePath};
 
@@ -13,6 +14,6 @@ impl WithBasePath for Instances {
 }
 
 impl FilterWithRequest<Filter<InstancesFilter>, ItemsWithCursor<NodeOrEdge>> for Instances {}
-impl Retrieve<NodeOrEdgeSpecification, NodeOrEdge> for Instances {}
+impl RetrieveWithRequest<NodeOrEdgeSpecification, NodeOrEdge> for Instances {}
 impl UpsertCollection<NodeAndEdgeCreateCollection, SlimNodeOrEdge> for Instances {}
 impl DeleteWithResponse<NodeOrEdgeSpecification, NodeOrEdgeSpecification> for Instances {}
