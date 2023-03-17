@@ -13,7 +13,7 @@ pub struct NodeAndEdgeCreateCollection {
     pub replace: Option<bool>,
 }
 
-impl<TProperties> Default for NodeAndEdgeCreateCollection<TProperties> {
+impl Default for NodeAndEdgeCreateCollection {
     fn default() -> Self {
         Self {
             items: vec![],
