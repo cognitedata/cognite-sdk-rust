@@ -364,12 +364,12 @@ where
     TResponse: Serialize + DeserializeOwned,
     Self: WithApiClient + WithBasePath,
 {
-    async fn retrieve(&self, req: &TRequest) -> Result<Vec<TResponse>> {
-        let response: ItemsWithoutCursor<TResponse> = self
+    async fn retrieve(&self, req: &TRequest) -> Result<TResponse> {
+        let response: TResponse = self
             .get_client()
             .post(&format!("{}/byids", Self::BASE_PATH), req)
             .await?;
-        Ok(response.items)
+        Ok(response)
     }
 }
 

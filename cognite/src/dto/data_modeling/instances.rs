@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use derivative::Derivative;
 use serde::{Deserialize, Serialize};
 use serde_with::skip_serializing_none;
@@ -5,15 +7,15 @@ use serde_with::skip_serializing_none;
 #[skip_serializing_none]
 #[derive(Serialize, Deserialize, Derivative, Clone, Debug)]
 #[serde(rename_all = "camelCase")]
-pub struct NodeAndEdgeCreateCollection {
-    pub items: Vec<NodeOrEdgeCreate>,
+pub struct NodeAndEdgeCreateCollection<TProperties> {
+    pub items: Vec<NodeOrEdgeCreate<TProperties>>,
     pub auto_create_start_nodes: Option<bool>,
     pub auto_create_end_nodes: Option<bool>,
     pub skip_on_version_conflict: Option<bool>,
     pub replace: Option<bool>,
 }
 
-impl Default for NodeAndEdgeCreateCollection {
+impl<TProperties> Default for NodeAndEdgeCreateCollection<TProperties> {
     fn default() -> Self {
         Self {
             items: vec![],
@@ -27,38 +29,38 @@ impl Default for NodeAndEdgeCreateCollection {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 #[serde(rename_all = "camelCase", tag = "instanceType")]
-pub enum NodeOrEdgeCreate {
-    Node(NodeWrite),
-    Edge(EdgeWrite),
+pub enum NodeOrEdgeCreate<TProperties> {
+    Node(NodeWrite<TProperties>),
+    Edge(EdgeWrite<TProperties>),
 }
 
 #[skip_serializing_none]
 #[derive(Serialize, Deserialize, Default, Derivative, Clone, Debug)]
 #[serde(rename_all = "camelCase")]
-pub struct NodeWrite {
+pub struct NodeWrite<TProperties> {
     pub space: String,
     pub external_id: String,
-    pub sources: Option<Vec<EdgeOrNodeData>>,
+    pub sources: Option<Vec<EdgeOrNodeData<TProperties>>>,
     pub existing_version: Option<i32>,
 }
 
 #[skip_serializing_none]
 #[derive(Serialize, Deserialize, Default, Derivative, Clone, Debug)]
 #[serde(rename_all = "camelCase")]
-pub struct EdgeWrite {
+pub struct EdgeWrite<TProperties> {
     pub space: String,
     pub r#type: DirectRelationReference,
     pub external_id: String,
     pub start_node: DirectRelationReference,
     pub end_node: DirectRelationReference,
-    pub sources: Option<Vec<EdgeOrNodeData>>,
+    pub sources: Option<Vec<EdgeOrNodeData<TProperties>>>,
     pub existing_version: Option<i32>,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
-pub struct EdgeOrNodeData {
+pub struct EdgeOrNodeData<TProperties> {
     pub source: SourceReference,
-    pub properties: serde_json::Value,
+    pub properties: TProperties,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
@@ -106,16 +108,16 @@ pub struct SlimEdgeDefinition {
     pub last_updated_time: Option<i64>,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Clone, Debug)]
 #[serde(rename_all = "camelCase", tag = "instanceType")]
-pub enum NodeOrEdge {
-    Node(NodeDefinition),
-    Edge(EdgeDefinition),
+pub enum NodeOrEdge<T> {
+    Node(NodeDefinition<T>),
+    Edge(EdgeDefinition<T>),
 }
 
 #[derive(Serialize, Deserialize, Derivative, Clone, Debug)]
 #[serde(rename_all = "camelCase")]
-pub struct NodeDefinition {
+pub struct NodeDefinition<T> {
     pub space: String,
     pub version: i32,
     pub external_id: String,
@@ -124,12 +126,12 @@ pub struct NodeDefinition {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub deleted_time: Option<i64>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub properties: Option<serde_json::Value>,
+    pub properties: Option<PropertiesObject<T>>,
 }
 
 #[derive(Serialize, Deserialize, Derivative, Clone, Debug)]
 #[serde(rename_all = "camelCase")]
-pub struct EdgeDefinition {
+pub struct EdgeDefinition<T> {
     pub space: String,
     pub r#type: DirectRelationReference,
     pub version: String,
@@ -141,8 +143,10 @@ pub struct EdgeDefinition {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub deleted_time: Option<i64>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub properties: Option<serde_json::Value>,
+    pub properties: Option<PropertiesObject<T>>,
 }
+
+type PropertiesObject<T> = HashMap<String, HashMap<String, T>>;
 
 #[derive(Serialize, Deserialize, Default, Clone, Debug)]
 #[serde(rename_all = "camelCase")]
@@ -154,10 +158,18 @@ pub struct DirectRelationReference {
 #[skip_serializing_none]
 #[derive(Serialize, Deserialize, Derivative, Clone, Debug)]
 #[serde(rename_all = "camelCase")]
-pub struct NodeAndEdgeRetrieveCollection {
+pub struct NodeAndEdgeRetrieveRequest {
     pub sources: Option<SourceSelectorWithoutProperties>,
     pub items: Vec<NodeOrEdgeSpecification>,
     pub include_typing: Option<bool>,
+}
+
+#[skip_serializing_none]
+#[derive(Serialize, Deserialize, Derivative, Clone, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct NodeAndEdgeRetrieveResponse<T> {
+    pub items: Vec<NodeOrEdge<T>>,
+    pub typing: Option<serde_json::Value>,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
