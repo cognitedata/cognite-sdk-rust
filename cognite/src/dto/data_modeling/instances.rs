@@ -161,6 +161,7 @@ pub struct DirectRelationReference {
 pub struct NodeAndEdgeRetrieveRequest {
     pub sources: Option<Vec<SourceReference>>,
     pub items: Vec<NodeOrEdgeSpecification>,
+    #[derivative(Default(value = "false"))]
     pub include_typing: Option<bool>,
 }
 
