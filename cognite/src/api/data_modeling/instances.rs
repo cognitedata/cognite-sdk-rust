@@ -28,8 +28,10 @@ where
 }
 
 impl<TProperties>
-    RetrieveWithRequest<NodeOrEdgeSpecification, NodeAndEdgeRetrieveResponse<TProperties>>
-    for Instances
+    RetrieveWithRequest<
+        NodeAndEdgeRetrieveResponse<TProperties>,
+        NodeAndEdgeRetrieveResponse<TProperties>,
+    > for Instances
 where
     TProperties: Serialize + DeserializeOwned + Send + Sync,
 {
