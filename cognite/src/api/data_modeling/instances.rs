@@ -18,5 +18,8 @@ impl WithBasePath for Instances {
 
 impl FilterWithRequest<Filter<InstancesFilter>, ItemsWithCursor<NodeOrEdge>> for Instances {}
 impl RetrieveWithRequest<NodeAndEdgeRetrieveRequest, NodeAndEdgeRetrieveResponse> for Instances {}
-impl UpsertCollection<NodeAndEdgeCreateCollection, SlimNodeOrEdge> for Instances {}
+impl<TProperties> UpsertCollection<NodeAndEdgeCreateCollection<TProperties>, SlimNodeOrEdge>
+    for Instances
+{
+}
 impl DeleteWithResponse<NodeOrEdgeSpecification, NodeOrEdgeSpecification> for Instances {}
