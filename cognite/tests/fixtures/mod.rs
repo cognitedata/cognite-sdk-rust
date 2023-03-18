@@ -17,10 +17,10 @@ pub fn get_mock_instances(
     space: &str,
     node_external_id: &[&str],
     edge_external_id: &[&str],
-) -> Vec<NodeOrEdgeCreate<HashMap<String, String>>> {
+) -> Vec<NodeOrEdgeCreate> {
     let properties = get_mock_properties();
 
-    let mut mock_instances: Vec<NodeOrEdgeCreate<HashMap<String, String>>> = Vec::new();
+    let mut mock_instances: Vec<NodeOrEdgeCreate> = Vec::new();
 
     // add nodes
     mock_instances.extend(
@@ -36,7 +36,7 @@ pub fn get_mock_instances(
                             external_id: "some_view".to_string(),
                             version: "1".to_string(),
                         }),
-                        properties: properties.clone(),
+                        properties: serde_json::to_value(&properties.clone()).unwrap(),
                     }]),
                     ..Default::default()
                 })
