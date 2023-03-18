@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use derivative::Derivative;
 use serde::{Deserialize, Serialize};
 use serde_with::skip_serializing_none;
@@ -108,28 +110,28 @@ pub struct SlimEdgeDefinition {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 #[serde(rename_all = "camelCase", tag = "instanceType")]
-pub enum NodeOrEdge {
-    Node(NodeDefinition),
-    Edge(EdgeDefinition),
+pub enum NodeOrEdge<TProperties> {
+    Node(NodeDefinition<TProperties>),
+    Edge(EdgeDefinition<TProperties>),
 }
 
 #[skip_serializing_none]
 #[derive(Serialize, Deserialize, Derivative, Clone, Debug)]
 #[serde(rename_all = "camelCase")]
-pub struct NodeDefinition {
+pub struct NodeDefinition<TProperties> {
     pub space: String,
     pub version: i32,
     pub external_id: String,
     pub created_time: i64,
     pub last_updated_time: i64,
     pub deleted_time: Option<i64>,
-    pub properties: Option<PropertiesObject>,
+    pub properties: Option<PropertiesObject<TProperties>>,
 }
 
 #[skip_serializing_none]
 #[derive(Serialize, Deserialize, Derivative, Clone, Debug)]
 #[serde(rename_all = "camelCase")]
-pub struct EdgeDefinition {
+pub struct EdgeDefinition<TProperties> {
     pub space: String,
     pub r#type: DirectRelationReference,
     pub version: String,
@@ -139,10 +141,10 @@ pub struct EdgeDefinition {
     pub start_node: DirectRelationReference,
     pub end_node: DirectRelationReference,
     pub deleted_time: Option<i64>,
-    pub properties: Option<PropertiesObject>,
+    pub properties: Option<PropertiesObject<TProperties>>,
 }
 
-type PropertiesObject = serde_json::Map<String, serde_json::Value>;
+type PropertiesObject<TProperties> = HashMap<String, HashMap<String, TProperties>>;
 
 #[derive(Serialize, Deserialize, Default, Clone, Debug)]
 #[serde(rename_all = "camelCase")]
@@ -170,8 +172,8 @@ pub struct SourceReferenceInternal {
 #[skip_serializing_none]
 #[derive(Serialize, Deserialize, Derivative, Clone, Debug)]
 #[serde(rename_all = "camelCase")]
-pub struct NodeAndEdgeRetrieveResponse {
-    pub items: Vec<NodeOrEdge>,
+pub struct NodeAndEdgeRetrieveResponse<TProperties> {
+    pub items: Vec<NodeOrEdge<TProperties>>,
     pub typing: Option<serde_json::Value>,
 }
 
