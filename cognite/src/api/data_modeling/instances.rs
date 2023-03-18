@@ -4,7 +4,7 @@ use serde::Serialize;
 use crate::dto::data_modeling::instances::SlimNodeOrEdge;
 use crate::models::{
     InstancesFilter, NodeAndEdgeCreateCollection, NodeAndEdgeRetrieveRequest,
-    NodeAndEdgeRetrieveResponse, NodeOrEdgeFilterResponse, NodeOrEdgeSpecification,
+    NodeAndEdgeRetrieveResponse, NodeOrEdge, NodeOrEdgeFilterResponse, NodeOrEdgeSpecification,
 };
 use crate::{DeleteWithResponse, Filter, FilterWithRequest, RetrieveWithRequest, UpsertCollection};
 use crate::{Resource, WithBasePath};
@@ -16,10 +16,8 @@ impl WithBasePath for Instances {
     const BASE_PATH: &'static str = "models/instances";
 }
 
-impl<TProperties> FilterWithRequest<Filter<InstancesFilter>, NodeOrEdgeFilterResponse<TProperties>>
-    for Instances
-where
-    TProperties: Serialize + DeserializeOwned + Send + Sync,
+impl<TProperties> FilterWithRequest<Filter<InstancesFilter>, NodeOrEdge<TProperties>> for Instances where
+    TProperties: Serialize + DeserializeOwned + Send + Sync
 {
 }
 impl<TProperties>

@@ -196,12 +196,3 @@ pub struct InstanceId {
 pub struct InstancesFilter {
     // todo
 }
-
-#[skip_serializing_none]
-#[derive(Serialize, Deserialize, Derivative, Clone, Debug)]
-#[serde(rename_all = "camelCase")]
-pub struct NodeOrEdgeFilterResponse<TProperties> {
-    pub items: Vec<NodeOrEdge<TProperties>>,
-    pub typing: Option<serde_json::Value>,
-    pub next_cursor: Option<String>,
-}
