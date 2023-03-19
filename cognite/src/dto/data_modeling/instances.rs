@@ -193,6 +193,6 @@ pub struct InstanceId {
 
 #[derive(Serialize, Deserialize, Clone, Debug, Default)]
 #[serde(rename_all = "camelCase")]
-pub struct InstancesFilter {
+pub struct FilterInstancesRequest {
     // todo
 }
