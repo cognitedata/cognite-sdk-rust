@@ -4,9 +4,9 @@ use serde::Serialize;
 use crate::dto::data_modeling::instances::SlimNodeOrEdge;
 use crate::models::{
     InstancesFilter, NodeAndEdgeCreateCollection, NodeAndEdgeRetrieveRequest,
-    NodeAndEdgeRetrieveResponse, NodeOrEdge, NodeOrEdgeFilterResponse, NodeOrEdgeSpecification,
+    NodeAndEdgeRetrieveResponse, NodeOrEdge, NodeOrEdgeSpecification,
 };
-use crate::{DeleteWithResponse, Filter, FilterWithRequest, RetrieveWithRequest, UpsertCollection};
+use crate::{DeleteWithResponse, FilterWithRequest, RetrieveWithRequest, UpsertCollection};
 use crate::{Resource, WithBasePath};
 
 pub struct Instance {}
