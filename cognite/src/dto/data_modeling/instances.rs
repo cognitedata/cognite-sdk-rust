@@ -4,6 +4,8 @@ use derivative::Derivative;
 use serde::{Deserialize, Serialize};
 use serde_with::skip_serializing_none;
 
+use crate::models::{ItemId, SourceReference};
+
 #[skip_serializing_none]
 #[derive(Serialize, Deserialize, Derivative, Clone, Debug)]
 #[serde(rename_all = "camelCase")]
@@ -61,21 +63,6 @@ pub struct EdgeWrite<TProperties> {
 pub struct EdgeOrNodeData<TProperties> {
     pub source: SourceReference,
     pub properties: TProperties,
-}
-
-#[derive(Serialize, Deserialize, Clone, Debug)]
-#[serde(rename_all = "camelCase")]
-pub struct SourceReferenceId {
-    pub space: String,
-    pub external_id: String,
-    pub version: String,
-}
-
-#[derive(Serialize, Deserialize, Clone, Debug)]
-#[serde(rename_all = "camelCase", tag = "type")]
-pub enum SourceReference {
-    View(SourceReferenceId),
-    Container(InstanceId),
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
@@ -180,15 +167,8 @@ pub struct NodeAndEdgeRetrieveResponse<TProperties> {
 #[derive(Serialize, Deserialize, Clone, Debug)]
 #[serde(rename_all = "camelCase", tag = "instanceType")]
 pub enum NodeOrEdgeSpecification {
-    Node(InstanceId),
-    Edge(InstanceId),
-}
-
-#[derive(Serialize, Deserialize, Clone, Debug)]
-#[serde(rename_all = "camelCase")]
-pub struct InstanceId {
-    pub space: String,
-    pub external_id: String,
+    Node(ItemId),
+    Edge(ItemId),
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, Default)]
