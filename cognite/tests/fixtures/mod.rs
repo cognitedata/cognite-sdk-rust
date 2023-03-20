@@ -183,3 +183,68 @@ pub fn get_instances_delete_response_string(
 
     format!(r#"{{"items": [ {items} ] }}"#)
 }
+
+pub fn get_views_list_views_response() -> &'static str {
+    r#"{
+        "items": [
+          {
+            "externalId": "MyView",
+            "space": "MySpace",
+            "version": "1",
+            "createdTime": 1679040460082,
+            "lastUpdatedTime": 1679040460082,
+            "writable": true,
+            "usedFor": "node",
+            "properties": {
+              "name": {
+                "type": {
+                  "type": "text",
+                  "list": false,
+                  "collation": "ucs_basic"
+                },
+                "container": {
+                  "type": "container",
+                  "space": "APM_Config",
+                  "externalId": "InRobotConfiguration"
+                },
+                "containerPropertyIdentifier": "name",
+                "nullable": true,
+                "autoIncrement": false,
+                "name": "name"
+              },
+              "description": {
+                "type": {
+                  "type": "text",
+                  "list": false,
+                  "collation": "ucs_basic"
+                },
+                "container": {
+                  "type": "container",
+                  "space": "APM_Config",
+                  "externalId": "InRobotConfiguration"
+                },
+                "containerPropertyIdentifier": "customerSpaceId",
+                "nullable": false,
+                "autoIncrement": false,
+                "description": "APM / Customer data space connection",
+                "name": "customerSpaceId"
+              }
+            },
+            "name": "MyView",
+            "implements": []
+          }
+        ]
+      }"#
+}
+
+pub fn get_views_retrieve_views_request() -> &'static str {
+    r#"{
+        "items": [
+            {
+                "externalId": "MyView", 
+                "space":"MySpace",
+                "version": "1"
+            }
+        ]
+    }"#
+}
