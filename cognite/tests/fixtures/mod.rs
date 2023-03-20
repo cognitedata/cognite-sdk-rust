@@ -17,7 +17,7 @@ pub fn get_mock_instances(
     space: &str,
     node_external_id: &[&str],
     edge_external_id: &[&str],
-) -> Vec<NodeOrEdgeCreate<HashMap<std::string::String, std::string::String>>> {
+) -> Vec<NodeOrEdgeCreate<HashMap<String, String>>> {
     let properties = get_mock_properties();
 
     let mut mock_instances: Vec<NodeOrEdgeCreate<HashMap<String, String>>> = Vec::new();

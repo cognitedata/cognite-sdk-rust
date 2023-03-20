@@ -1,11 +1,12 @@
 use serde::de::DeserializeOwned;
 use serde::Serialize;
 
-use crate::dto::data_modeling::instances::{NodeOrEdge, SlimNodeOrEdge};
-use crate::models::{InstancesFilter, NodeAndEdgeCreateCollection, NodeOrEdgeSpecification};
-use crate::{
-    DeleteWithResponse, Filter, FilterWithRequest, ItemsWithCursor, Retrieve, UpsertCollection,
+use crate::dto::data_modeling::instances::SlimNodeOrEdge;
+use crate::models::{
+    FilterInstancesRequest, NodeAndEdgeCreateCollection, NodeAndEdgeRetrieveRequest,
+    NodeAndEdgeRetrieveResponse, NodeOrEdge, NodeOrEdgeSpecification,
 };
+use crate::{DeleteWithResponse, FilterWithRequest, RetrieveWithRequest, UpsertCollection};
 use crate::{Resource, WithBasePath};
 
 pub struct Instance {}
@@ -15,21 +16,19 @@ impl WithBasePath for Instances {
     const BASE_PATH: &'static str = "models/instances";
 }
 
-impl<TProperties>
-    FilterWithRequest<Filter<InstancesFilter>, ItemsWithCursor<NodeOrEdge<TProperties>>>
-    for Instances
-where
-    TProperties: Serialize + DeserializeOwned + Sync + Send,
+impl<TProperties> FilterWithRequest<FilterInstancesRequest, NodeOrEdge<TProperties>> for Instances where
+    TProperties: Serialize + DeserializeOwned + Send + Sync
 {
 }
-impl<TProperties> Retrieve<NodeOrEdgeSpecification, NodeOrEdge<TProperties>> for Instances where
-    TProperties: Serialize + DeserializeOwned + Sync + Send
+impl<TProperties>
+    RetrieveWithRequest<NodeAndEdgeRetrieveRequest, NodeAndEdgeRetrieveResponse<TProperties>>
+    for Instances
+where
+    TProperties: Serialize + DeserializeOwned + Send + Sync,
 {
 }
 impl<TProperties> UpsertCollection<NodeAndEdgeCreateCollection<TProperties>, SlimNodeOrEdge>
     for Instances
-where
-    TProperties: Serialize + Sync + Send,
 {
 }
 impl DeleteWithResponse<NodeOrEdgeSpecification, NodeOrEdgeSpecification> for Instances {}
