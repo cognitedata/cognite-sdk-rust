@@ -167,6 +167,27 @@ pub struct NodeAndEdgeRetrieveResponse<TProperties> {
 #[derive(Serialize, Deserialize, Clone, Debug)]
 #[serde(rename_all = "camelCase", tag = "instanceType")]
 pub enum NodeOrEdgeSpecification {
+    Node(InstanceId),
+    Edge(InstanceId),
+}
+
+#[derive(Serialize, Deserialize, Derivative, Clone, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct SourceReferenceInternal {
+    pub source: SourceReference,
+}
+
+#[skip_serializing_none]
+#[derive(Serialize, Deserialize, Derivative, Clone, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct NodeAndEdgeRetrieveResponse<TProperties> {
+    pub items: Vec<NodeOrEdge<TProperties>>,
+    pub typing: Option<serde_json::Value>,
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug)]
+#[serde(rename_all = "camelCase", tag = "instanceType")]
+pub enum NodeOrEdgeSpecification {
     Node(ItemId),
     Edge(ItemId),
 }
