@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use derivative::Derivative;
 use serde::{Deserialize, Serialize};
 use serde_with::skip_serializing_none;
@@ -105,7 +107,7 @@ pub struct ViewDefinition {
     pub last_updated_time: i64,
     pub writable: bool,
     pub used_for: String,
-    pub properties: ViewDefinitionProperties,
+    pub properties: HashMap<String, ViewDefinitionProperties>,
 }
 
 #[skip_serializing_none]
