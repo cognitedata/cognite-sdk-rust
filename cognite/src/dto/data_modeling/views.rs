@@ -59,7 +59,7 @@ pub struct ViewCreateDefinition {
     pub last_updated_time: i64,
     pub writable: bool,
     pub used_for: String,
-    pub properties: CreateViewPropertyOrConnectionDefinition,
+    pub properties: HashMap<String, CreateViewPropertyOrConnectionDefinition>,
 }
 
 #[skip_serializing_none]
