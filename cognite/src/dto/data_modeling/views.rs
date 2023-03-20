@@ -16,7 +16,7 @@ pub struct ViewReference {
 }
 
 #[skip_serializing_none]
-#[derive(Serialize, Deserialize, Clone, Debug)]
+#[derive(Serialize, Deserialize, Default, Clone, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct ViewQuery {
     pub limit: Option<i32>,
