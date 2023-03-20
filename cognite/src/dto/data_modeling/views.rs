@@ -123,7 +123,7 @@ pub struct ViewCorePropertyDefinition {
     #[derivative(Default(value = "true"))]
     pub nullable: Option<bool>,
     pub auto_increment: Option<bool>,
-    // pub default_value: Option<String>,
+    pub default_value: Option<DefaultValue>,
     pub description: Option<String>,
     pub name: Option<String>,
     pub r#type: ViewCorePropertyType,
@@ -152,7 +152,7 @@ pub struct TextProperty {
 #[derive(Serialize, Deserialize, Derivative, Clone, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct PrimitiveProperty {
-    pub r#type: String,
+    pub r#type: PrimitivePropertyType,
     pub list: Option<bool>,
 }
 
@@ -163,4 +163,26 @@ pub struct ViewDirectNodeRelation {
     pub r#type: String,
     pub container: Option<SourceReference>,
     pub source: Option<SourceReference>,
+}
+
+#[derive(Serialize, Deserialize, Derivative, Clone, Debug)]
+#[serde(rename_all = "lowercase")]
+pub enum PrimitivePropertyType {
+    Boolean,
+    Float32,
+    Float64,
+    Int32,
+    Int64,
+    Timestamp,
+    Date,
+    JSON,
+}
+
+#[derive(Serialize, Deserialize, Derivative, Clone, Debug)]
+#[serde(rename_all = "lowercase")]
+pub enum DefaultValue {
+    String,
+    Number,
+    Boolean,
+    Object,
 }
