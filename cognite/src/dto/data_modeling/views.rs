@@ -152,6 +152,7 @@ pub enum ViewCorePropertyType {
 #[derive(Serialize, Deserialize, Derivative, Clone, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct TextProperty {
+    #[derivative(Default(value = "false"))]
     pub list: Option<bool>,
     pub collation: Option<String>,
 }
@@ -160,6 +161,7 @@ pub struct TextProperty {
 #[derive(Serialize, Deserialize, Derivative, Clone, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct PrimitiveProperty {
+    #[derivative(Default(value = "false"))]
     pub list: Option<bool>,
 }
 
