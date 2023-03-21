@@ -212,22 +212,20 @@ pub fn get_views_list_views_response() -> &'static str {
                 "autoIncrement": false,
                 "name": "name"
               },
-              "description": {
+              "roboticsSpaceVersion": {
                 "type": {
-                  "type": "text",
-                  "list": false,
-                  "collation": "ucs_basic"
+                  "type": "int32",
+                  "list": false
                 },
                 "container": {
                   "type": "container",
                   "space": "APM_Config",
                   "externalId": "InRobotConfiguration"
                 },
-                "containerPropertyIdentifier": "customerSpaceId",
+                "containerPropertyIdentifier": "roboticsSpaceVersion",
                 "nullable": false,
                 "autoIncrement": false,
-                "description": "APM / Customer data space connection",
-                "name": "customerSpaceId"
+                "name": "roboticsSpaceVersion"
               }
             },
             "name": "MyView",
