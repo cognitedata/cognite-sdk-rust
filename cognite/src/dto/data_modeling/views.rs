@@ -134,7 +134,7 @@ pub struct ViewCorePropertyDefinition {
 }
 
 #[derive(Serialize, Deserialize, Derivative, Clone, Debug)]
-#[serde(rename_all = "camelCase", tag = "type")]
+#[serde(rename_all = "lowercase", tag = "type")]
 pub enum ViewCorePropertyType {
     Text(TextProperty),
     Boolean(PrimitiveProperty),
