@@ -125,7 +125,7 @@ pub struct ViewCorePropertyDefinition {
     #[derivative(Default(value = "true"))]
     pub nullable: Option<bool>,
     pub auto_increment: Option<bool>,
-    pub default_value: Option<DefaultValue>,
+    pub default_value: Option<serde_json::Value>,
     pub description: Option<String>,
     pub name: Option<String>,
     pub r#type: ViewCorePropertyType,
@@ -134,18 +134,24 @@ pub struct ViewCorePropertyDefinition {
 }
 
 #[derive(Serialize, Deserialize, Derivative, Clone, Debug)]
-#[serde(rename_all = "camelCase", untagged)]
+#[serde(rename_all = "camelCase", tag = "type")]
 pub enum ViewCorePropertyType {
-    TextProperty(TextProperty),
-    PrimitiveProperty(PrimitiveProperty),
-    ViewDirectNodeRelation(ViewDirectNodeRelation),
+    Text(TextProperty),
+    Boolean(PrimitiveProperty),
+    Float32(PrimitiveProperty),
+    Float64(PrimitiveProperty),
+    Int32(PrimitiveProperty),
+    Int64(PrimitiveProperty),
+    Timestamp(PrimitiveProperty),
+    Date(PrimitiveProperty),
+    JSON(PrimitiveProperty),
+    Direct(ViewDirectNodeRelation),
 }
 
 #[skip_serializing_none]
 #[derive(Serialize, Deserialize, Derivative, Clone, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct TextProperty {
-    pub r#type: String,
     pub list: Option<bool>,
     pub collation: Option<String>,
 }
@@ -154,7 +160,6 @@ pub struct TextProperty {
 #[derive(Serialize, Deserialize, Derivative, Clone, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct PrimitiveProperty {
-    pub r#type: PrimitivePropertyType,
     pub list: Option<bool>,
 }
 
@@ -162,29 +167,6 @@ pub struct PrimitiveProperty {
 #[derive(Serialize, Deserialize, Derivative, Clone, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct ViewDirectNodeRelation {
-    pub r#type: String,
     pub container: Option<SourceReference>,
     pub source: Option<SourceReference>,
-}
-
-#[derive(Serialize, Deserialize, Derivative, Clone, Debug)]
-#[serde(rename_all = "lowercase")]
-pub enum PrimitivePropertyType {
-    Boolean,
-    Float32,
-    Float64,
-    Int32,
-    Int64,
-    Timestamp,
-    Date,
-    JSON,
-}
-
-#[derive(Serialize, Deserialize, Derivative, Clone, Debug)]
-#[serde(rename_all = "lowercase")]
-pub enum DefaultValue {
-    String,
-    Number,
-    Boolean,
-    Object,
 }
