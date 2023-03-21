@@ -2,8 +2,8 @@
 use std::collections::HashMap;
 
 use cognite::models::{
-    DirectRelationReference, EdgeOrNodeData, EdgeWrite, InstanceId, NodeOrEdgeCreate,
-    NodeOrEdgeSpecification, NodeWrite, SourceReference, SourceReferenceId,
+    DirectRelationReference, EdgeOrNodeData, EdgeWrite, ItemId, NodeOrEdgeCreate,
+    NodeOrEdgeSpecification, NodeWrite, SourceReference, ViewReference,
 };
 
 fn get_mock_properties() -> HashMap<String, String> {
@@ -31,7 +31,7 @@ pub fn get_mock_instances(
                     space: space.to_owned(),
                     external_id: id.to_string(),
                     sources: Some(vec![EdgeOrNodeData {
-                        source: SourceReference::View(SourceReferenceId {
+                        source: SourceReference::View(ViewReference {
                             space: space.to_owned(),
                             external_id: "some_view".to_string(),
                             version: "1".to_string(),
@@ -128,13 +128,13 @@ pub fn get_mock_instances_delete(
 ) -> Vec<NodeOrEdgeSpecification> {
     let mut instances = Vec::new();
     node_external_ids.iter().for_each(|id| {
-        instances.push(NodeOrEdgeSpecification::Node(InstanceId {
+        instances.push(NodeOrEdgeSpecification::Node(ItemId {
             space: space.to_owned(),
             external_id: id.to_string(),
         }));
     });
     edge_external_ids.iter().for_each(|id| {
-        instances.push(NodeOrEdgeSpecification::Edge(InstanceId {
+        instances.push(NodeOrEdgeSpecification::Edge(ItemId {
             space: space.to_owned(),
             external_id: id.to_string(),
         }));
@@ -182,4 +182,67 @@ pub fn get_instances_delete_response_string(
     items.pop(); // remove last comma
 
     format!(r#"{{"items": [ {items} ] }}"#)
+}
+
+pub fn get_views_list_views_response() -> &'static str {
+    r#"{
+        "items": [
+          {
+            "externalId": "MyView",
+            "space": "MySpace",
+            "version": "1",
+            "createdTime": 1679040460082,
+            "lastUpdatedTime": 1679040460082,
+            "writable": true,
+            "usedFor": "node",
+            "properties": {
+              "name": {
+                "type": {
+                  "type": "text",
+                  "list": false,
+                  "collation": "ucs_basic"
+                },
+                "container": {
+                  "type": "container",
+                  "space": "APM_Config",
+                  "externalId": "InRobotConfiguration"
+                },
+                "containerPropertyIdentifier": "name",
+                "nullable": true,
+                "autoIncrement": false,
+                "name": "name"
+              },
+              "roboticsSpaceVersion": {
+                "type": {
+                  "type": "int32",
+                  "list": false
+                },
+                "container": {
+                  "type": "container",
+                  "space": "APM_Config",
+                  "externalId": "InRobotConfiguration"
+                },
+                "containerPropertyIdentifier": "roboticsSpaceVersion",
+                "nullable": false,
+                "autoIncrement": false,
+                "name": "roboticsSpaceVersion"
+              }
+            },
+            "name": "MyView",
+            "implements": []
+          }
+        ]
+      }"#
+}
+
+pub fn get_views_retrieve_views_request() -> &'static str {
+    r#"{
+        "items": [
+            {
+                "externalId": "MyView", 
+                "space":"MySpace",
+                "version": "1"
+            }
+        ]
+    }"#
 }

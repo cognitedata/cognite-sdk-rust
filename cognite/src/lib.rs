@@ -64,7 +64,9 @@ pub mod sequences {
 
 pub mod models {
     pub use super::api::data_modeling::*;
+    pub use super::dto::data_modeling::common::*;
     pub use super::dto::data_modeling::instances::*;
+    pub use super::dto::data_modeling::views::*;
 }
 
 pub mod iam {
