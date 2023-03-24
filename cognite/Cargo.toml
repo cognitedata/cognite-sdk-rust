@@ -10,7 +10,7 @@ publish = false
 version = "0.2.1"
 
 [dependencies]
-async-trait = "0.1.67"
+async-trait = "0.1.68"
 bytes = "1.4.0"
 derivative = "2.2.0"
 futures = "0.3.27"
