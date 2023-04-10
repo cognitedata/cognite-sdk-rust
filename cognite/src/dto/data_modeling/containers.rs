@@ -5,7 +5,7 @@ use derivative::Derivative;
 use serde::{Deserialize, Serialize};
 use serde_with::skip_serializing_none;
 
-use crate::models::{CorePropertyType, DefaultValue, SourceReference, UsedFor};
+use crate::models::{CorePropertyType, DefaultValue, UsedFor};
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 #[serde(tag = "type", rename = "container")]

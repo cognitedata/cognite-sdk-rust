@@ -4,7 +4,6 @@ use derivative::Derivative;
 use serde::{Deserialize, Serialize};
 use serde_with::skip_serializing_none;
 
-use crate::models::CreateViewPropertyOrConnectionDefinition::{Connection, Property};
 use crate::models::{
     AsReference, ContainerReference, CorePropertyType, DefaultValue, DirectRelationReference,
 };
