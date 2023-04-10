@@ -358,6 +358,24 @@ where
 }
 
 #[async_trait]
+pub trait RetrieveWithQuery<TIdt, TQuery, TResponse>
+where
+    TIdt: Serialize + Sync + Send,
+    TQuery: AsParams + Send + Sync + 'static,
+    TResponse: Serialize + DeserializeOwned,
+    Self: WithApiClient + WithBasePath,
+{
+    async fn retrieve(&self, ids: &[TIdt], query: TQuery) -> Result<Vec<TResponse>> {
+        let items = Items::from(ids);
+        let response: ItemsWithoutCursor<TResponse> = self
+            .get_client()
+            .post_with_query(&format!("{}/byids", Self::BASE_PATH), &items, Some(query))
+            .await?;
+        Ok(response.items)
+    }
+}
+
+#[async_trait]
 pub trait RetrieveWithRequest<TRequest, TResponse>
 where
     TRequest: Serialize + Sync + Send,

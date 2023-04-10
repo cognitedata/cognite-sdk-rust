@@ -4,13 +4,15 @@ use derivative::Derivative;
 use serde::{Deserialize, Serialize};
 use serde_with::skip_serializing_none;
 
-use crate::{
-    models::{ItemId, SourceReference},
-    to_query, AsParams,
+use crate::models::CreateViewPropertyOrConnectionDefinition::{Connection, Property};
+use crate::models::{
+    AsReference, ContainerReference, CorePropertyType, DefaultValue, DirectRelationReference,
 };
+use crate::{models::SourceReference, to_query, AsParams};
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 #[serde(rename_all = "camelCase")]
+#[serde(tag = "type", rename = "view")]
 pub struct ViewReference {
     pub space: String,
     pub external_id: String,
@@ -59,15 +61,26 @@ pub struct ViewCreateDefinition {
     pub last_updated_time: i64,
     pub writable: bool,
     pub used_for: String,
-    pub properties: HashMap<String, CreateViewPropertyOrConnectionDefinition>,
+    pub properties: Option<HashMap<String, CreateViewPropertyOrConnectionDefinition>>,
+}
+
+impl AsReference for ViewCreateDefinition {
+    fn to_reference(&self) -> SourceReference {
+        let view_ref = ViewReference {
+            space: self.space.to_owned(),
+            external_id: self.external_id.to_owned(),
+            version: self.version.to_owned(),
+        };
+        SourceReference::View(view_ref)
+    }
 }
 
 #[skip_serializing_none]
 #[derive(Serialize, Deserialize, Clone, Debug)]
 #[serde(rename_all = "camelCase", untagged)]
 pub enum CreateViewPropertyOrConnectionDefinition {
-    CreateViewProperty(CreateViewProperty),
-    ConnectionDefinition(ConnectionDefinition),
+    Property(CreateViewProperty),
+    Connection(ConnectionDefinition),
 }
 
 #[skip_serializing_none]
@@ -76,9 +89,9 @@ pub enum CreateViewPropertyOrConnectionDefinition {
 pub struct CreateViewProperty {
     pub name: Option<String>,
     pub description: Option<String>,
-    pub container: SourceReference,
+    pub container: ContainerReference,
     pub container_property_identifier: String,
-    pub source: Option<SourceReference>,
+    pub source: Option<ViewReference>,
 }
 
 #[skip_serializing_none]
@@ -87,9 +100,9 @@ pub struct CreateViewProperty {
 pub struct ConnectionDefinition {
     pub name: Option<String>,
     pub description: Option<String>,
-    pub r#type: ItemId,
-    pub direction: Option<String>,
-    pub source: SourceReference,
+    pub r#type: DirectRelationReference,
+    pub direction: Option<ConnectionDirection>,
+    pub source: ViewReference,
 }
 
 #[skip_serializing_none]
@@ -110,6 +123,17 @@ pub struct ViewDefinition {
     pub properties: HashMap<String, ViewDefinitionProperties>,
 }
 
+impl AsReference for ViewDefinition {
+    fn to_reference(&self) -> SourceReference {
+        let view_ref = ViewReference {
+            space: self.space.to_owned(),
+            external_id: self.external_id.to_owned(),
+            version: self.version.to_owned(),
+        };
+        SourceReference::View(view_ref)
+    }
+}
+
 #[skip_serializing_none]
 #[derive(Serialize, Deserialize, Clone, Debug)]
 #[serde(rename_all = "camelCase", untagged)]
@@ -125,50 +149,25 @@ pub struct ViewCorePropertyDefinition {
     #[derivative(Default(value = "true"))]
     pub nullable: Option<bool>,
     pub auto_increment: Option<bool>,
-    pub default_value: Option<serde_json::Value>,
+    pub default_value: Option<DefaultValue>,
     pub description: Option<String>,
     pub name: Option<String>,
-    pub r#type: ViewCorePropertyType,
+    pub r#type: CorePropertyType,
     pub container: SourceReference,
     pub container_property_identifier: String,
 }
 
-#[derive(Serialize, Deserialize, Derivative, Clone, Debug)]
-#[serde(rename_all = "lowercase", tag = "type")]
-pub enum ViewCorePropertyType {
-    Text(TextProperty),
-    Boolean(PrimitiveProperty),
-    Float32(PrimitiveProperty),
-    Float64(PrimitiveProperty),
-    Int32(PrimitiveProperty),
-    Int64(PrimitiveProperty),
-    Timestamp(PrimitiveProperty),
-    Date(PrimitiveProperty),
-    JSON(PrimitiveProperty),
-    Direct(ViewDirectNodeRelation),
-}
-
 #[skip_serializing_none]
 #[derive(Serialize, Deserialize, Derivative, Clone, Debug)]
 #[serde(rename_all = "camelCase")]
-pub struct TextProperty {
-    #[derivative(Default(value = "false"))]
-    pub list: Option<bool>,
-    pub collation: Option<String>,
-}
-
-#[skip_serializing_none]
-#[derive(Serialize, Deserialize, Derivative, Clone, Debug)]
-#[serde(rename_all = "camelCase")]
-pub struct PrimitiveProperty {
-    #[derivative(Default(value = "false"))]
-    pub list: Option<bool>,
-}
-
-#[skip_serializing_none]
-#[derive(Serialize, Deserialize, Derivative, Clone, Debug)]
-#[serde(rename_all = "camelCase")]
-pub struct ViewDirectNodeRelation {
+pub struct DirectNodeRelation {
     pub container: Option<SourceReference>,
     pub source: Option<SourceReference>,
+}
+
+#[derive(Serialize, Deserialize, Derivative, Clone, Debug)]
+#[serde(rename_all = "lowercase")]
+pub enum ConnectionDirection {
+    Outwards,
+    Inwards,
 }
