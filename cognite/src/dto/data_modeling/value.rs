@@ -226,7 +226,7 @@ mod from_impls {
                     .iter()
                     .copied()
                     .map(|v| {
-                        serde_json::Number::from_f64(v.into())
+                        serde_json::Number::from_f64(v)
                             .unwrap_or_else(|| serde_json::Number::from_f64(0.0).unwrap())
                     })
                     .collect(),
@@ -241,7 +241,7 @@ mod from_impls {
                     .iter()
                     .copied()
                     .map(|v| {
-                        serde_json::Number::from_f64(v.into())
+                        serde_json::Number::from_f64(v)
                             .unwrap_or_else(|| serde_json::Number::from_f64(0.0).unwrap())
                     })
                     .collect(),
@@ -255,7 +255,7 @@ mod from_impls {
                 value
                     .into_iter()
                     .map(|v| {
-                        serde_json::Number::from_f64(v.into())
+                        serde_json::Number::from_f64(v)
                             .unwrap_or_else(|| serde_json::Number::from_f64(0.0).unwrap())
                     })
                     .collect(),

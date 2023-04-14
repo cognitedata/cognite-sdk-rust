@@ -74,7 +74,7 @@ impl PropertyIdentifier for &[String] {
 
 impl PropertyIdentifier for &[&str] {
     fn into_identifier(self) -> Vec<String> {
-        self.into_iter().map(|&s| s.to_owned()).collect()
+        self.iter().map(|&s| s.to_owned()).collect()
     }
 }
 
@@ -86,7 +86,7 @@ impl<const N: usize> PropertyIdentifier for &[String; N] {
 
 impl<const N: usize> PropertyIdentifier for &[&str; N] {
     fn into_identifier(self) -> Vec<String> {
-        self.into_iter().map(|&s| s.to_owned()).collect()
+        self.iter().map(|&s| s.to_owned()).collect()
     }
 }
 
@@ -181,6 +181,7 @@ impl FdmFilter {
         Self::HasData(reference)
     }
 
+    #[allow(clippy::should_implement_trait)]
     pub fn not(filter: FdmFilter) -> Self {
         match filter {
             Self::Not(n) => *n,

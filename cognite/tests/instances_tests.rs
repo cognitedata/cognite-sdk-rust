@@ -101,10 +101,7 @@ async fn create_and_delete_instances() {
     assert_eq!(
         results
             .iter()
-            .filter(|&x| match x {
-                NodeOrEdgeSpecification::Node(_) => true,
-                _ => false,
-            })
+            .filter(|&x| matches!(x, NodeOrEdgeSpecification::Node(_)))
             .count(),
         node_external_ids.len()
     );
@@ -112,10 +109,7 @@ async fn create_and_delete_instances() {
     assert_eq!(
         results
             .iter()
-            .filter(|&x| match x {
-                NodeOrEdgeSpecification::Edge(_) => true,
-                _ => false,
-            })
+            .filter(|&x| matches!(x, NodeOrEdgeSpecification::Edge(_)))
             .count(),
         edge_external_ids.len()
     );
