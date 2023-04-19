@@ -24,3 +24,9 @@ pub enum SourceReference {
     View(ViewReference),
     Container(ItemId),
 }
+
+#[derive(Serialize, Deserialize, Clone, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct SpaceId {
+    pub space: String,
+}
