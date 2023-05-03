@@ -88,6 +88,11 @@ pub use self::{
     error::*,
 };
 
+pub mod middleware {
+    pub use crate::auth::AuthenticatorMiddleware;
+    pub use crate::retry::CustomRetryMiddleware;
+}
+
 pub mod prelude {
     pub use super::api::resource::*;
     pub use super::cognite_client::*;
