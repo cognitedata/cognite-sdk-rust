@@ -10,7 +10,7 @@ use cognite::{CogniteClient, Identity, SearchItems};
 
 #[tokio::main]
 async fn main() {
-    let cognite_client = CogniteClient::new(
+    let cognite_client = CogniteClient::new_oidc(
         "TestApp",
         Some(ClientConfig {
             max_retries: 5,
@@ -105,31 +105,10 @@ async fn main() {
         .await
         .unwrap();
     println!("Search found {:?} files", files_search_result.len());
-    // List all service accounts
-    match cognite_client.service_accounts.list_all().await {
-        Ok(service_accounts) => println!("{} service accounts retrieved.", service_accounts.len()),
-        Err(e) => println!("{e:?}"),
-    }
-    // List all api keys
-    match cognite_client.api_keys.list(None).await {
-        Ok(api_keys) => println!("{} api keys retrieved.", api_keys.items.len()),
-        Err(e) => println!("{e:?}"),
-    }
     // List all groups
     match cognite_client.groups.list(None).await {
-        Ok(mut groups) => {
+        Ok(groups) => {
             println!("{} groups retrieved.", groups.items.len());
-            if !groups.items.is_empty() {
-                let group_id = groups.items.pop().unwrap().id;
-                match cognite_client.groups.list_service_accounts(group_id).await {
-                    Ok(service_accounts) => println!(
-                        "{} service accounts in group {} retrieved.",
-                        service_accounts.len(),
-                        group_id
-                    ),
-                    Err(e) => println!("{e:?}"),
-                }
-            }
         }
         Err(e) => println!("{e:?}"),
     }
