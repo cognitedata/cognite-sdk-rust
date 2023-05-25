@@ -4,7 +4,6 @@ pub mod params;
 #[macro_use]
 pub mod patch_item;
 
-pub mod auth;
 pub mod core;
 pub mod data_ingestion;
 pub mod data_modeling;

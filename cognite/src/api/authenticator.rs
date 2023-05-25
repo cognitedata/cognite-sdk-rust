@@ -26,7 +26,6 @@ pub trait CustomAuthenticator {
 
 pub enum AuthHeaderManager {
     OIDCToken(Authenticator),
-    ApiKey(String),
     FixedToken(String),
     AuthTicket(String),
     Custom(Box<CustomAuthCallback>),
@@ -51,15 +50,6 @@ impl AuthHeaderManager {
                         }
                     })?;
                 headers.insert("Authorization", auth_header_value);
-            }
-            AuthHeaderManager::ApiKey(a) => {
-                let api_key_header_value =
-                    HeaderValue::from_str(a).map_err(|e| AuthenticatorError {
-                        error: Some(format!("Failed to set api key: {e}")),
-                        error_description: None,
-                        error_uri: None,
-                    })?;
-                headers.insert("api-key", api_key_header_value);
             }
             AuthHeaderManager::FixedToken(token) => {
                 let auth_header_value =
