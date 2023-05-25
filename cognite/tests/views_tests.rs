@@ -100,7 +100,7 @@ async fn delete_views() {
     let result = &client
         .models
         .views
-        .delete(&[ViewReference {
+        .delete(&[ItemIdWithVersion {
             space: "MySpace".to_string(),
             external_id: "MyView".to_string(),
             version: "1".to_string(),

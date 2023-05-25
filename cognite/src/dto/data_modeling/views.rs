@@ -12,6 +12,7 @@ use crate::{
 #[derive(Serialize, Deserialize, Clone, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct ViewReference {
+    pub r#type: String,
     pub space: String,
     pub external_id: String,
     pub version: String,

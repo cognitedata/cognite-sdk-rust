@@ -1,6 +1,6 @@
 use crate::{
     dto::data_modeling::views::{ViewDefinition, ViewQuery},
-    models::{ItemIdOptionalVersion, ViewCreateDefinition, ViewReference},
+    models::{ItemIdOptionalVersion, ItemIdWithVersion, ViewCreateDefinition, ViewReference},
     Create, DeleteWithResponse, List, Resource, Retrieve, WithBasePath,
 };
 
@@ -14,4 +14,4 @@ impl WithBasePath for Views {
 impl Create<ViewCreateDefinition, ViewDefinition> for Views {}
 impl List<ViewQuery, ViewDefinition> for Views {}
 impl Retrieve<ItemIdOptionalVersion, ViewDefinition> for Views {}
-impl DeleteWithResponse<ViewReference, ViewReference> for Views {}
+impl DeleteWithResponse<ItemIdWithVersion, ItemIdWithVersion> for Views {}
