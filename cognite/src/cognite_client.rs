@@ -7,6 +7,7 @@ use std::time::Duration;
 use super::{ApiClient, Error, Result};
 use crate::api::core::sequences::Sequences;
 use crate::api::data_modeling::Models;
+use crate::api::iam::groups::Groups;
 use crate::api::iam::sessions::Sessions;
 use crate::auth::AuthenticatorMiddleware;
 use crate::error::Kind;
@@ -14,8 +15,7 @@ use crate::retry::CustomRetryMiddleware;
 use crate::AuthHeaderManager;
 use crate::{
     assets::Assets, datasets::DataSets, events::Events, extpipes::ExtPipeRuns, extpipes::ExtPipes,
-    files::Files, iam::ApiKeys, iam::Groups, iam::ServiceAccounts, labels::Labels, login::Login,
-    raw::Raw, relationships::Relationships, time_series::TimeSeries,
+    files::Files, labels::Labels, raw::Raw, relationships::Relationships, time_series::TimeSeries,
 };
 
 use crate::api::authenticator::{Authenticator, AuthenticatorConfig};
@@ -65,8 +65,6 @@ pub struct CogniteClient {
     pub events: Events,
     pub files: Files,
     pub time_series: TimeSeries,
-    pub service_accounts: ServiceAccounts,
-    pub api_keys: ApiKeys,
     pub groups: Groups,
     pub raw: Raw,
     pub data_sets: DataSets,
@@ -79,7 +77,6 @@ pub struct CogniteClient {
     pub models: Models,
 }
 
-static COGNITE_API_KEY: &str = "COGNITE_API_KEY";
 static COGNITE_BASE_URL: &str = "COGNITE_BASE_URL";
 static COGNITE_PROJECT_NAME: &str = "COGNITE_PROJECT";
 static COGNITE_CLIENT_ID: &str = "COGNITE_CLIENT_ID";
@@ -90,14 +87,6 @@ static COGNITE_AUDIENCE: &str = "COGNITE_AUDIENCE";
 static COGNITE_SCOPES: &str = "COGNITE_SCOPES";
 
 impl CogniteClient {
-    pub fn new(app_name: &str, config: Option<ClientConfig>) -> Result<Self> {
-        let api_key = env_or_error!(COGNITE_API_KEY);
-        let api_base_url = env_or!(COGNITE_BASE_URL, "https://api.cognitedata.com/".to_string());
-        let project_name = env_or_error!(COGNITE_PROJECT_NAME);
-
-        CogniteClient::new_from(&api_key, &api_base_url, &project_name, app_name, config)
-    }
-
     pub fn new_oidc(app_name: &str, config: Option<ClientConfig>) -> Result<Self> {
         let api_base_url = env_or!(COGNITE_BASE_URL, "https://api.cognitedata.com/".to_string());
         let project_name = env_or_error!(COGNITE_PROJECT_NAME);
@@ -181,11 +170,9 @@ impl CogniteClient {
             api_client: ac.clone(),
 
             assets: Assets::new(ac.clone()),
-            api_keys: ApiKeys::new(ac.clone()),
             events: Events::new(ac.clone()),
             files: Files::new(ac.clone()),
             groups: Groups::new(ac.clone()),
-            service_accounts: ServiceAccounts::new(ac.clone()),
             time_series: TimeSeries::new(ac.clone()),
             raw: Raw::new(ac.clone()),
             data_sets: DataSets::new(ac.clone()),
@@ -199,30 +186,6 @@ impl CogniteClient {
         })
     }
 
-    pub async fn new_with_login_from(
-        api_key: &str,
-        api_base_url: &str,
-        app_name: &str,
-        config: Option<ClientConfig>,
-    ) -> Result<Self> {
-        // Get project name associated to API KEY
-        let auth = AuthHeaderManager::ApiKey(api_key.to_owned());
-        let login_api_client = ApiClient::new(
-            api_base_url,
-            app_name,
-            Self::get_client(config.clone().unwrap_or_default(), auth, None)?,
-        );
-        let login = Login::new(Arc::new(login_api_client));
-        let login_status = match login.status().await {
-            Ok(status) => status,
-            Err(e) => return Err(e),
-        };
-
-        let project_name = login_status.project;
-
-        CogniteClient::new_from(api_key, api_base_url, &project_name, app_name, config)
-    }
-
     pub fn new_from_oidc(
         api_base_url: &str,
         auth_config: AuthenticatorConfig,
@@ -233,24 +196,6 @@ impl CogniteClient {
         let authenticator = Authenticator::new(auth_config);
         let api_base_path = format!("{}/api/{}/projects/{}", api_base_url, "v1", project_name);
         let auth = AuthHeaderManager::OIDCToken(authenticator);
-        let api_client = ApiClient::new(
-            &api_base_path,
-            app_name,
-            Self::get_client(config.unwrap_or_default(), auth, None)?,
-        );
-
-        Self::new_internal(api_client)
-    }
-
-    pub fn new_from(
-        api_key: &str,
-        api_base_url: &str,
-        project_name: &str,
-        app_name: &str,
-        config: Option<ClientConfig>,
-    ) -> Result<Self> {
-        let api_base_path = format!("{}/api/{}/projects/{}", api_base_url, "v1", project_name);
-        let auth = AuthHeaderManager::ApiKey(api_key.to_owned());
         let api_client = ApiClient::new(
             &api_base_path,
             app_name,
@@ -283,11 +228,6 @@ impl Builder {
 
     pub fn set_oidc_credentials(&mut self, auth: AuthenticatorConfig) -> &mut Self {
         self.auth = Some(AuthHeaderManager::OIDCToken(Authenticator::new(auth)));
-        self
-    }
-
-    pub fn set_api_key(&mut self, api_key: &str) -> &mut Self {
-        self.auth = Some(AuthHeaderManager::ApiKey(api_key.to_owned()));
         self
     }
 

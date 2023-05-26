@@ -42,13 +42,11 @@ impl ApiClient {
     }
 
     async fn handle_error(&self, response: Response) -> Error {
-        let request_id = match response.headers().get("x-request-id") {
-            Some(x) => match x.to_str() {
-                Ok(rid) => Some(rid.to_string()),
-                Err(_) => None,
-            },
-            None => None,
-        };
+        let request_id = response
+            .headers()
+            .get("x-request-id")
+            .and_then(|x| x.to_str().ok())
+            .map(|x| x.to_string());
 
         let status = response.status();
 

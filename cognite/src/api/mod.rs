@@ -1,6 +1,5 @@
 pub mod api_client;
 
-pub mod auth;
 pub mod authenticator;
 pub mod core;
 pub mod data_ingestion;

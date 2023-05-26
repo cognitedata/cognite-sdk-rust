@@ -7,11 +7,6 @@ mod error;
 mod retry;
 pub mod utils;
 
-pub mod login {
-    pub use super::api::auth::login::*;
-    pub use super::dto::auth::login::*;
-}
-
 pub mod assets {
     pub use super::api::core::assets::*;
     pub use super::dto::core::asset::*;
@@ -73,12 +68,8 @@ pub mod models {
 }
 
 pub mod iam {
-    pub use super::api::iam::{
-        api_keys::*, groups::*, security_categories::*, service_accounts::*, sessions::*,
-    };
-    pub use super::dto::iam::{
-        api_key::*, group::*, security_category::*, service_account::*, session::*,
-    };
+    pub use super::api::iam::{groups::*, security_categories::*, sessions::*};
+    pub use super::dto::iam::{group::*, security_category::*, session::*};
 }
 
 pub use self::{
