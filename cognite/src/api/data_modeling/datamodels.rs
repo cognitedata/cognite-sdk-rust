@@ -1,7 +1,7 @@
 use crate::{
     dto::data_modeling::datamodels::{DataModel, DataModelCreate},
-    models::ItemIdWithVersion,
-    Create, DeleteWithResponse, LimitCursorQuery, List, Resource, WithBasePath,
+    models::{ItemIdOptionalVersion, ItemIdWithVersion},
+    Create, DeleteWithResponse, LimitCursorQuery, List, Resource, Retrieve, WithBasePath,
 };
 
 pub struct DataModelResource {}
@@ -13,5 +13,5 @@ impl WithBasePath for DataModels {
 
 impl Create<DataModelCreate, DataModel> for DataModels {}
 impl List<LimitCursorQuery, DataModel> for DataModels {}
-// impl Retrieve<SpaceId, Space> for DataModels {}
+impl Retrieve<ItemIdOptionalVersion, DataModel> for DataModels {}
 impl DeleteWithResponse<ItemIdWithVersion, ItemIdWithVersion> for DataModels {}

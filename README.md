@@ -33,7 +33,6 @@ $ export COGNITE_PROJECT=<your project name>
   - With protobuf support
 - Sequences
 ### IAM
-- ApiKeys
 - Groups
 - SecurityCategories
 - ServiceAccounts
@@ -45,7 +44,10 @@ $ export COGNITE_PROJECT=<your project name>
 - Labels
 - Relationships
 ### Data Modeling
-- Instances (minimal implementation)
+- Instances
+- Spaces
+- Views
+- Datamodels
 
 ## Example
 
