@@ -1,7 +1,5 @@
 use serde::{Deserialize, Serialize};
 
-use crate::models::ViewReference;
-
 #[derive(Serialize, Deserialize, Clone, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct ItemId {
