@@ -12,7 +12,7 @@ async fn create_retrieve_delete_datamodels() {
     let space = &space[0];
 
     // create datamodel
-    let datamodel_id = format!("{}-datamodel-1", PREFIX.as_str());
+    let datamodel_id = "rust_sdk_test_datamodel_1".to_string();
     let datamodel_name = "Test datamodel".to_string();
     let datamodel_version = "1".to_string();
     let datamodelcreate = DataModelCreate {
