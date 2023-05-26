@@ -1,5 +1,7 @@
 use serde::{Deserialize, Serialize};
 
+use crate::{api::data_modeling::views::View, models::ViewReference};
+
 #[derive(Serialize, Deserialize, Clone, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct ItemId {
@@ -26,7 +28,7 @@ pub struct ItemIdOptionalVersion {
 #[derive(Serialize, Deserialize, Clone, Debug)]
 #[serde(rename_all = "camelCase", tag = "type")]
 pub enum SourceReference {
-    View(ItemIdWithVersion),
+    View(ViewReference),
     Container(ItemId),
 }
 
