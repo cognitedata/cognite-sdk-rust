@@ -7,12 +7,8 @@ use common::*;
 async fn create_retrieve_delete_spaces() {
     let space_id = format!("{}-space-1", PREFIX.as_str());
     let client = get_client();
-    let new_space = SpaceCreate {
-        space: space_id.clone(),
-        description: Some("Some description".to_owned()),
-        name: Some("Test space".to_owned()),
-    };
-    let created = client.models.spaces.create(&[new_space]).await.unwrap();
+    let created = create_space(&client, &space_id).await;
+
     assert_eq!(created.len(), 1);
     let space = &created[0];
     assert_eq!(space.name, Some("Test space".to_owned()));
@@ -29,15 +25,8 @@ async fn create_retrieve_delete_spaces() {
     let space = &retrieved[0];
     assert_eq!(space.name, Some("Test space".to_owned()));
 
-    let deleted = client
-        .models
-        .spaces
-        .delete(&[SpaceId {
-            space: space_id.clone(),
-        }])
-        .await
-        .unwrap();
-    assert_eq!(deleted.items.len(), 1);
-    let space = &deleted.items[0];
+    let deleted = delete_space(&client, &space_id).await;
+    assert_eq!(deleted.len(), 1);
+    let space = &deleted[0];
     assert_eq!(space_id, space.space);
 }
