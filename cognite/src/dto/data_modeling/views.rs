@@ -115,8 +115,8 @@ pub struct ViewDefinition {
 #[derive(Serialize, Deserialize, Clone, Debug)]
 #[serde(rename_all = "camelCase", untagged)]
 pub enum ViewDefinitionProperties {
-    ViewCorePropertyDefinition(ViewCorePropertyDefinition),
     ConnectionDefinition(ConnectionDefinition),
+    ViewCorePropertyDefinition(ViewCorePropertyDefinition),
 }
 
 #[skip_serializing_none]
