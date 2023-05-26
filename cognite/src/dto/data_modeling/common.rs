@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use crate::{api::data_modeling::views::View, models::ViewReference};
+use crate::models::ViewReference;
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 #[serde(rename_all = "camelCase")]
