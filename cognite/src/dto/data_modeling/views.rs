@@ -114,6 +114,7 @@ pub struct ViewDefinition {
 #[skip_serializing_none]
 #[derive(Serialize, Deserialize, Clone, Debug)]
 #[serde(rename_all = "camelCase", untagged)]
+#[allow(clippy::large_enum_variant)]
 pub enum ViewDefinitionProperties {
     ConnectionDefinition(ConnectionDefinition),
     ViewCorePropertyDefinition(ViewCorePropertyDefinition),
