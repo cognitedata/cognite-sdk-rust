@@ -12,7 +12,6 @@ use crate::{
 #[derive(Serialize, Deserialize, Clone, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct ViewReference {
-    pub r#type: String,
     pub space: String,
     pub external_id: String,
     pub version: String,
@@ -114,7 +113,6 @@ pub struct ViewDefinition {
 #[skip_serializing_none]
 #[derive(Serialize, Deserialize, Clone, Debug)]
 #[serde(rename_all = "camelCase", untagged)]
-#[allow(clippy::large_enum_variant)]
 pub enum ViewDefinitionProperties {
     ConnectionDefinition(ConnectionDefinition),
     ViewCorePropertyDefinition(ViewCorePropertyDefinition),
