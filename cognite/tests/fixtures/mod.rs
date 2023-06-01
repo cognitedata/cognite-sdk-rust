@@ -2,8 +2,8 @@
 use std::collections::HashMap;
 
 use cognite::models::{
-    views::View, DirectRelationReference, EdgeOrNodeData, EdgeWrite, ItemId, ItemIdWithVersion,
-    NodeOrEdgeCreate, NodeOrEdgeSpecification, NodeWrite, SourceReference, ViewReference,
+    DirectRelationReference, EdgeOrNodeData, EdgeWrite, ItemId, NodeOrEdgeCreate,
+    NodeOrEdgeSpecification, NodeWrite, SourceReference, ViewReference,
 };
 
 fn get_mock_properties() -> HashMap<String, String> {
@@ -32,7 +32,6 @@ pub fn get_mock_instances(
                     external_id: id.to_string(),
                     sources: Some(vec![EdgeOrNodeData {
                         source: SourceReference::View(ViewReference {
-                            r#type: "view".to_string(),
                             space: space.to_owned(),
                             external_id: "some_view".to_string(),
                             version: "1".to_string(),
