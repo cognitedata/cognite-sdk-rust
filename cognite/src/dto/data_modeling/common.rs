@@ -30,3 +30,15 @@ pub enum SourceReference {
 pub struct SpaceId {
     pub space: String,
 }
+
+#[derive(Serialize, Deserialize, Clone, Debug)]
+#[serde(rename_all = "camelCase", tag = "type")]
+pub enum TaggedViewReference {
+    View(ViewReference),
+}
+
+impl From<ViewReference> for TaggedViewReference {
+    fn from(value: ViewReference) -> Self {
+        Self::View(value)
+    }
+}
