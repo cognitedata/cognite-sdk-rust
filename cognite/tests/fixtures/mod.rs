@@ -90,9 +90,7 @@ pub fn get_instances_create_request_string(
 
     items.pop(); // remove last comma
 
-    let req = format!(
-        r#"{{"items":[{items}], "autoCreateStartNodes":false, "autoCreateEndNodes":false,"skipOnVersionConflict":false, "replace":false}}"#
-    );
+    let req = format!(r#"{{"items":[{items}]}}"#);
     req
 }
 
