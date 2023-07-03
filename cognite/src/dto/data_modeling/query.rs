@@ -53,7 +53,7 @@ pub enum FdmFilter {
         lte: Option<QueryValue>,
         lt: Option<QueryValue>,
     },
-    HasData(SourceReference),
+    HasData(Vec<SourceReference>),
     And(Vec<FdmFilter>),
     Or(Vec<FdmFilter>),
     Not(Box<FdmFilter>),
@@ -198,8 +198,8 @@ impl FdmFilter {
         }
     }
 
-    pub fn has_data(reference: SourceReference) -> Self {
-        Self::HasData(reference)
+    pub fn has_data(references: Vec<SourceReference>) -> Self {
+        Self::HasData(references)
     }
 
     #[allow(clippy::should_implement_trait)]
