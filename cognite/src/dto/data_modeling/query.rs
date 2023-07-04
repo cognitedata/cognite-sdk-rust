@@ -1,6 +1,9 @@
-use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
 
-use crate::models::SourceReference;
+use serde::{Deserialize, Serialize};
+use serde_with::skip_serializing_none;
+
+use crate::models::{NodeOrEdge, PropertySort, RawValue, SourceReference, TaggedViewReference};
 
 use super::value::QueryValue;
 
@@ -50,10 +53,16 @@ pub enum FdmFilter {
         lte: Option<QueryValue>,
         lt: Option<QueryValue>,
     },
-    HasData(SourceReference),
+    HasData(Vec<SourceReference>),
     And(Vec<FdmFilter>),
     Or(Vec<FdmFilter>),
     Not(Box<FdmFilter>),
+}
+
+impl Default for FdmFilter {
+    fn default() -> Self {
+        Self::MatchAll {}
+    }
 }
 
 pub trait PropertyIdentifier {
@@ -85,6 +94,18 @@ impl<const N: usize> PropertyIdentifier for &[String; N] {
 }
 
 impl<const N: usize> PropertyIdentifier for &[&str; N] {
+    fn into_identifier(self) -> Vec<String> {
+        self.iter().map(|&s| s.to_owned()).collect()
+    }
+}
+
+impl<const N: usize> PropertyIdentifier for [String; N] {
+    fn into_identifier(self) -> Vec<String> {
+        self.to_vec()
+    }
+}
+
+impl<const N: usize> PropertyIdentifier for [&str; N] {
     fn into_identifier(self) -> Vec<String> {
         self.iter().map(|&s| s.to_owned()).collect()
     }
@@ -177,8 +198,8 @@ impl FdmFilter {
         }
     }
 
-    pub fn has_data(reference: SourceReference) -> Self {
-        Self::HasData(reference)
+    pub fn has_data(references: Vec<SourceReference>) -> Self {
+        Self::HasData(references)
     }
 
     #[allow(clippy::should_implement_trait)]
@@ -208,4 +229,133 @@ impl FdmFilter {
             _ => Self::Or(vec![self, filter]),
         }
     }
+}
+
+#[skip_serializing_none]
+#[derive(Serialize, Deserialize, Clone, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct ViewPropertyReference {
+    pub view: TaggedViewReference,
+    pub identifier: String,
+}
+
+#[skip_serializing_none]
+#[derive(Serialize, Deserialize, Clone, Debug, Default)]
+#[serde(rename_all = "camelCase")]
+pub struct NodesQuery {
+    pub from: Option<String>,
+    pub through: Option<ViewPropertyReference>,
+    pub filter: Option<FdmFilter>,
+}
+
+#[skip_serializing_none]
+#[derive(Serialize, Deserialize, Clone, Debug, Default)]
+#[serde(rename_all = "camelCase")]
+pub struct QueryNodeTableExpression {
+    pub sort: Option<Vec<PropertySort>>,
+    pub limit: Option<i32>,
+    pub nodes: NodesQuery,
+}
+
+#[skip_serializing_none]
+#[derive(Serialize, Deserialize, Clone, Debug, Default)]
+#[serde(rename_all = "camelCase")]
+pub enum EdgeDirection {
+    #[default]
+    Outwards,
+    Inwards,
+}
+
+#[skip_serializing_none]
+#[derive(Serialize, Deserialize, Clone, Debug, Default)]
+#[serde(rename_all = "camelCase")]
+pub struct EdgesQuery {
+    pub from: Option<String>,
+    pub max_distance: Option<i32>,
+    pub direction: Option<EdgeDirection>,
+    pub filter: Option<FdmFilter>,
+    pub node_filter: Option<FdmFilter>,
+    pub termination_filter: Option<FdmFilter>,
+    pub limit_each: Option<i32>,
+}
+
+#[skip_serializing_none]
+#[derive(Serialize, Deserialize, Clone, Debug, Default)]
+#[serde(rename_all = "camelCase")]
+pub struct QueryEdgeTableExpression {
+    pub sort: Option<Vec<PropertySort>>,
+    pub post_sort: Option<Vec<PropertySort>>,
+    pub limit: Option<i32>,
+    pub edges: EdgesQuery,
+}
+
+#[skip_serializing_none]
+#[derive(Serialize, Deserialize, Clone, Debug)]
+#[serde(rename_all = "camelCase", untagged)]
+pub enum QuerySetOperationTableExpression {
+    UnionAll {
+        union_all: Vec<QuerySetOrString>,
+        except: Option<Vec<String>>,
+        limit: Option<i32>,
+    },
+    Union {
+        union: Vec<QuerySetOrString>,
+        except: Option<Vec<String>>,
+        limit: Option<i32>,
+    },
+    Intersection {
+        intersection: Vec<QuerySetOrString>,
+        except: Option<Vec<String>>,
+        limit: Option<i32>,
+    },
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug)]
+#[serde(rename_all = "camelCase", untagged)]
+pub enum QuerySetOrString {
+    QuerySet(Box<QuerySetOperationTableExpression>),
+    String(String),
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug)]
+#[serde(rename_all = "camelCase", untagged)]
+pub enum QueryTableExpression {
+    Node(QueryNodeTableExpression),
+    Edge(QueryEdgeTableExpression),
+    SetOperation(QuerySetOperationTableExpression),
+}
+
+#[skip_serializing_none]
+#[derive(Serialize, Deserialize, Clone, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct SourceSelector {
+    pub source: TaggedViewReference,
+    pub properties: Vec<String>,
+}
+
+#[skip_serializing_none]
+#[derive(Serialize, Deserialize, Clone, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct SelectExpression {
+    pub sources: Vec<SourceSelector>,
+    pub sort: Option<Vec<PropertySort>>,
+    pub limit: Option<i32>,
+}
+
+#[skip_serializing_none]
+#[derive(Serialize, Deserialize, Clone, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct QueryInstancesRequest {
+    pub with: HashMap<String, QueryTableExpression>,
+    pub cursors: Option<HashMap<String, String>>,
+    pub select: HashMap<String, SelectExpression>,
+    pub parameters: Option<HashMap<String, RawValue>>,
+}
+
+#[skip_serializing_none]
+#[derive(Serialize, Deserialize, Clone, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct QueryInstancesResponse<TProperties> {
+    pub items: HashMap<String, Vec<NodeOrEdge<TProperties>>>,
+    pub next_cursor: Option<HashMap<String, String>>,
 }

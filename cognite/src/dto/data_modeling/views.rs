@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 use serde_with::skip_serializing_none;
 
 use crate::{
-    models::{ItemId, SourceReference},
+    models::{ItemId, RawValue, SourceReference},
     to_query, AsParams,
 };
 
@@ -125,7 +125,7 @@ pub struct ViewCorePropertyDefinition {
     #[derivative(Default(value = "true"))]
     pub nullable: Option<bool>,
     pub auto_increment: Option<bool>,
-    pub default_value: Option<serde_json::Value>,
+    pub default_value: Option<RawValue>,
     pub description: Option<String>,
     pub name: Option<String>,
     pub r#type: ViewCorePropertyType,
