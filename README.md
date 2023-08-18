@@ -44,6 +44,8 @@ $ export COGNITE_PROJECT=<your project name>
 - Datasets
 - Labels
 - Relationships
+### Data Modeling
+- Instances (minimal implementation)
 
 ## Example
 

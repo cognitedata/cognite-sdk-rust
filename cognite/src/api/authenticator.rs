@@ -12,16 +12,20 @@ use std::{
 };
 use thiserror::Error;
 
-type CustomAuthCallback = dyn Fn(&mut HeaderMap, &ClientWithMiddleware) + Send + Sync;
+type CustomAuthCallback =
+    dyn Fn(&mut HeaderMap, &ClientWithMiddleware) -> Result<(), AuthenticatorError> + Send + Sync;
 
 #[async_trait]
 pub trait CustomAuthenticator {
-    async fn set_headers(&self, headers: &mut HeaderMap, client: &ClientWithMiddleware);
+    async fn set_headers(
+        &self,
+        headers: &mut HeaderMap,
+        client: &ClientWithMiddleware,
+    ) -> Result<(), AuthenticatorError>;
 }
 
 pub enum AuthHeaderManager {
     OIDCToken(Authenticator),
-    ApiKey(String),
     FixedToken(String),
     AuthTicket(String),
     Custom(Box<CustomAuthCallback>),
@@ -47,15 +51,6 @@ impl AuthHeaderManager {
                     })?;
                 headers.insert("Authorization", auth_header_value);
             }
-            AuthHeaderManager::ApiKey(a) => {
-                let api_key_header_value =
-                    HeaderValue::from_str(a).map_err(|e| AuthenticatorError {
-                        error: Some(format!("Failed to set api key: {e}")),
-                        error_description: None,
-                        error_uri: None,
-                    })?;
-                headers.insert("api-key", api_key_header_value);
-            }
             AuthHeaderManager::FixedToken(token) => {
                 let auth_header_value =
                     HeaderValue::from_str(&format!("Bearer {token}")).map_err(|e| {
@@ -76,8 +71,8 @@ impl AuthHeaderManager {
                     })?;
                 headers.insert("auth-ticket", auth_ticket_header_value);
             }
-            AuthHeaderManager::Custom(c) => c(headers, client),
-            AuthHeaderManager::CustomAsync(c) => c.set_headers(headers, client).await,
+            AuthHeaderManager::Custom(c) => c(headers, client)?,
+            AuthHeaderManager::CustomAsync(c) => c.set_headers(headers, client).await?,
         }
         Ok(())
     }

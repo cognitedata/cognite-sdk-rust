@@ -7,11 +7,6 @@ mod error;
 mod retry;
 pub mod utils;
 
-pub mod login {
-    pub use super::api::auth::login::*;
-    pub use super::dto::auth::login::*;
-}
-
 pub mod assets {
     pub use super::api::core::assets::*;
     pub use super::dto::core::asset::*;
@@ -62,13 +57,19 @@ pub mod sequences {
     pub use super::dto::core::sequences::*;
 }
 
+pub mod models {
+    pub use super::api::data_modeling::*;
+    pub use super::dto::data_modeling::common::*;
+    pub use super::dto::data_modeling::instances::*;
+    pub use super::dto::data_modeling::query::*;
+    pub use super::dto::data_modeling::spaces::*;
+    pub use super::dto::data_modeling::value::*;
+    pub use super::dto::data_modeling::views::*;
+}
+
 pub mod iam {
-    pub use super::api::iam::{
-        api_keys::*, groups::*, security_categories::*, service_accounts::*, sessions::*,
-    };
-    pub use super::dto::iam::{
-        api_key::*, group::*, security_category::*, service_account::*, session::*,
-    };
+    pub use super::api::iam::{groups::*, security_categories::*, sessions::*};
+    pub use super::dto::iam::{group::*, security_category::*, session::*};
 }
 
 pub use self::{
@@ -79,6 +80,11 @@ pub use self::{
     error::*,
     retry::*,
 };
+
+pub mod middleware {
+    pub use crate::auth::AuthenticatorMiddleware;
+    pub use crate::retry::CustomRetryMiddleware;
+}
 
 pub mod prelude {
     pub use super::api::resource::*;
