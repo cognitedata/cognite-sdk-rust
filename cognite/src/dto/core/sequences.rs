@@ -3,9 +3,8 @@ use crate::{EqIdentity, Identity, Patch, Range, UpdateList, UpdateMap, UpdateSet
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
-#[derive(Serialize, Deserialize, Debug, Clone, Copy)]
+#[derive(Serialize, Deserialize, Debug, Clone, Copy, Default)]
 #[serde(rename_all = "camelCase")]
-#[derive(Default)]
 pub enum SequenceValueType {
     #[serde(rename = "DOUBLE")]
     #[default]
