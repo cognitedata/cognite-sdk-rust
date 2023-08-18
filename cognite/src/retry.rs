@@ -73,7 +73,7 @@ impl CustomRetryMiddleware {
 }
 
 #[derive(PartialEq, Eq)]
-pub enum Retryable {
+pub(crate) enum Retryable {
     /// The failure was due to something that might resolve in the future.
     Transient,
     /// Unresolvable error.
