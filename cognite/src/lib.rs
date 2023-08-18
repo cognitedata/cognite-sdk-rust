@@ -76,6 +76,7 @@ pub use self::{
     cognite_client::*,
     dto::{filter_types::*, identity::*, items::*, params::*, patch_item::*},
     error::*,
+    auth::*
 };
 
 pub mod prelude {
