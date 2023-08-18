@@ -74,9 +74,11 @@ pub mod iam {
 
 pub use self::{
     api::{api_client::*, authenticator::*, resource::*, utils::*},
+    auth::*,
     cognite_client::*,
     dto::{filter_types::*, identity::*, items::*, params::*, patch_item::*},
     error::*,
+    retry::*,
 };
 
 pub mod middleware {
