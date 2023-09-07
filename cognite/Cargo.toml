@@ -17,7 +17,7 @@ futures = "0.3.28"
 futures-locks = "0.7.1"
 futures-timer = "3.0.2"
 prost = "0.11.9"
-prost-types = "0.11.9"
+prost-types = "0.12.0"
 reqwest = { version = "0.11.18", features = ["json", "stream"] }
 reqwest-middleware = "0.2.2"
 serde = { version = "1.0.175", features = ["derive"] }
