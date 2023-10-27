@@ -44,6 +44,29 @@ impl AsParams for ViewQuery {
     }
 }
 
+#[derive(Serialize, Deserialize, Clone, Debug)]
+#[serde(rename_all = "camelCase")]
+pub enum ViewCreateOrReference {
+    Create(ViewCreateDefinition),
+    Reference(ViewReference),
+}
+
+impl From<&ViewDefinitionOrReference> for ViewCreateOrReference {
+    fn from(value: &ViewDefinitionOrReference) -> Self {
+        match value {
+            ViewDefinitionOrReference::Definition(x) => Self::Create(x.into()),
+            ViewDefinitionOrReference::Reference(x) => Self::Reference(x.clone()),
+        }
+    }
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug)]
+#[serde(rename_all = "camelCase")]
+pub enum ViewDefinitionOrReference {
+    Definition(ViewDefinition),
+    Reference(ViewReference),
+}
+
 #[skip_serializing_none]
 #[derive(Serialize, Deserialize, Clone, Debug)]
 #[serde(rename_all = "camelCase")]
@@ -55,11 +78,29 @@ pub struct ViewCreateDefinition {
     // pub filter: Option<String>,
     pub implements: Option<Vec<ViewReference>>,
     pub version: String,
-    pub created_time: i64,
-    pub last_updated_time: i64,
     pub writable: bool,
     pub used_for: String,
     pub properties: HashMap<String, CreateViewPropertyOrConnectionDefinition>,
+}
+
+impl From<&ViewDefinition> for ViewCreateDefinition {
+    fn from(value: &ViewDefinition) -> Self {
+        Self {
+            external_id: value.external_id.clone(),
+            space: value.space.clone(),
+            name: value.name.clone(),
+            description: value.description.clone(),
+            implements: value.implements.clone(),
+            version: value.version.clone(),
+            writable: value.writable.clone(),
+            used_for: value.used_for.clone(),
+            properties: value
+                .properties
+                .iter()
+                .map(|(key, val)| (key.clone(), val.into()))
+                .collect(),
+        }
+    }
 }
 
 #[skip_serializing_none]
@@ -68,6 +109,19 @@ pub struct ViewCreateDefinition {
 pub enum CreateViewPropertyOrConnectionDefinition {
     CreateViewProperty(CreateViewProperty),
     ConnectionDefinition(ConnectionDefinition),
+}
+
+impl From<&ViewDefinitionProperties> for CreateViewPropertyOrConnectionDefinition {
+    fn from(value: &ViewDefinitionProperties) -> Self {
+        match value {
+            ViewDefinitionProperties::ViewCorePropertyDefinition(p) => {
+                Self::CreateViewProperty(p.into())
+            }
+            ViewDefinitionProperties::ConnectionDefinition(d) => {
+                Self::ConnectionDefinition(d.clone())
+            }
+        }
+    }
 }
 
 #[skip_serializing_none]
@@ -79,6 +133,18 @@ pub struct CreateViewProperty {
     pub container: SourceReference,
     pub container_property_identifier: String,
     pub source: Option<SourceReference>,
+}
+
+impl From<&ViewCorePropertyDefinition> for CreateViewProperty {
+    fn from(value: &ViewCorePropertyDefinition) -> Self {
+        Self {
+            name: value.name.clone(),
+            description: value.description.clone(),
+            container: value.container.clone(),
+            container_property_identifier: value.container_property_identifier.clone(),
+            source: Some(value.container.clone()),
+        }
+    }
 }
 
 #[skip_serializing_none]
