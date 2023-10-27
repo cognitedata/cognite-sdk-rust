@@ -1,5 +1,6 @@
 use serde::{Deserialize, Serialize};
 use serde_json::json;
+use serde_with::skip_serializing_none;
 
 use crate::{
     CogniteExternalId, Identity, LabelsFilter, Partition, Patch, Range, SetCursor, UpdateList,
@@ -29,6 +30,7 @@ pub enum RelationshipVertex {
     Sequence(()),
 }
 
+#[skip_serializing_none]
 #[derive(Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Relationship {
@@ -37,26 +39,18 @@ pub struct Relationship {
     pub source_type: RelationshipVertexType,
     pub target_external_id: String,
     pub target_type: RelationshipVertexType,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub start_time: Option<i64>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub end_time: Option<i64>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub confidence: Option<f32>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub data_set_id: Option<i64>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub labels: Option<Vec<CogniteExternalId>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub created_time: Option<i64>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub last_updated_time: Option<i64>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub source: Option<RelationshipVertex>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub target: Option<RelationshipVertex>,
 }
 
+#[skip_serializing_none]
 #[derive(Serialize, Deserialize, Default)]
 #[serde(rename_all = "camelCase")]
 pub struct AddRelationship {
@@ -65,91 +59,78 @@ pub struct AddRelationship {
     pub source_type: RelationshipVertexType,
     pub target_external_id: String,
     pub target_type: RelationshipVertexType,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub start_time: Option<i64>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub end_time: Option<i64>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub confidence: Option<f32>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub data_set_id: Option<i64>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub labels: Option<Vec<CogniteExternalId>>,
 }
 
-impl From<&Relationship> for AddRelationship {
-    fn from(rel: &Relationship) -> Self {
+impl From<Relationship> for AddRelationship {
+    fn from(rel: Relationship) -> Self {
         AddRelationship {
-            external_id: rel.external_id.clone(),
-            source_external_id: rel.source_external_id.clone(),
+            external_id: rel.external_id,
+            source_external_id: rel.source_external_id,
             source_type: rel.source_type,
-            target_external_id: rel.target_external_id.clone(),
+            target_external_id: rel.target_external_id,
             target_type: rel.target_type,
             start_time: rel.start_time,
             end_time: rel.end_time,
             confidence: rel.confidence,
             data_set_id: rel.data_set_id,
-            labels: rel.labels.clone(),
+            labels: rel.labels,
         }
     }
 }
 
+#[skip_serializing_none]
 #[derive(Serialize, Deserialize, Default)]
 #[serde(rename_all = "camelCase")]
 pub struct PatchRelationship {
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub source_type: Option<UpdateSet<RelationshipVertexType>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub source_external_id: Option<UpdateSet<String>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub target_type: Option<UpdateSet<RelationshipVertexType>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub target_external_id: Option<UpdateSet<String>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub confidence: Option<UpdateSetNull<f32>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub start_time: Option<UpdateSetNull<i64>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub end_time: Option<UpdateSetNull<i64>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub data_set_id: Option<UpdateSetNull<i64>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub labels: Option<UpdateList<CogniteExternalId, CogniteExternalId>>,
 }
 
-impl From<&Relationship> for Patch<PatchRelationship> {
-    fn from(rel: &Relationship) -> Self {
+impl From<Relationship> for Patch<PatchRelationship> {
+    fn from(rel: Relationship) -> Self {
         Patch::<PatchRelationship> {
             id: Identity::ExternalId {
-                external_id: rel.external_id.clone(),
+                external_id: rel.external_id,
             },
             update: PatchRelationship {
                 source_type: Some(rel.source_type.into()),
-                source_external_id: Some(rel.source_external_id.clone().into()),
+                source_external_id: Some(rel.source_external_id.into()),
                 target_type: Some(rel.target_type.into()),
-                target_external_id: Some(rel.target_external_id.clone().into()),
+                target_external_id: Some(rel.target_external_id.into()),
                 confidence: Some(rel.confidence.into()),
                 start_time: Some(rel.start_time.into()),
                 end_time: Some(rel.end_time.into()),
                 data_set_id: Some(rel.data_set_id.into()),
-                labels: Some(rel.labels.clone().into()),
+                labels: Some(rel.labels.into()),
             },
         }
     }
 }
 
-impl From<&AddRelationship> for PatchRelationship {
-    fn from(rel: &AddRelationship) -> Self {
+impl From<AddRelationship> for PatchRelationship {
+    fn from(rel: AddRelationship) -> Self {
         PatchRelationship {
             source_type: Some(rel.source_type.into()),
-            source_external_id: Some(rel.source_external_id.clone().into()),
+            source_external_id: Some(rel.source_external_id.into()),
             target_type: Some(rel.target_type.into()),
-            target_external_id: Some(rel.target_external_id.clone().into()),
+            target_external_id: Some(rel.target_external_id.into()),
             confidence: Some(rel.confidence.into()),
             start_time: Some(rel.start_time.into()),
             end_time: Some(rel.end_time.into()),
             data_set_id: Some(rel.data_set_id.into()),
-            labels: Some(rel.labels.clone().into()),
+            labels: Some(rel.labels.into()),
         }
     }
 }
@@ -189,48 +170,33 @@ pub struct SourceOrTargetFilter {
     pub external_id: String,
 }
 
+#[skip_serializing_none]
 #[derive(Serialize, Default, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct RelationshipsFilter {
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub source_external_ids: Option<Vec<String>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub source_types: Option<Vec<RelationshipVertexType>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub target_external_ids: Option<Vec<String>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub target_types: Option<Vec<RelationshipVertexType>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub data_set_ids: Option<Vec<Identity>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub start_time: Option<Range<i64>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub end_time: Option<Range<i64>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub confidence: Option<Range<f64>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub last_updated_time: Option<Range<i64>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub created_time: Option<Range<i64>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub active_at_time: Option<Range<i64>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub sources_or_targets: Option<Vec<SourceOrTargetFilter>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub labels: Option<LabelsFilter>,
 }
 
+#[skip_serializing_none]
 #[derive(Serialize, Default, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct FilterRelationshipsQuery {
     pub filter: RelationshipsFilter,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub limit: Option<u32>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub cursor: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub fetch_resources: Option<bool>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub partition: Option<Partition>,
 }
 

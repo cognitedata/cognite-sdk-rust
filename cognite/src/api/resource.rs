@@ -71,10 +71,10 @@ where
 
     async fn create_from<T: 'a, 'a>(&self, creates: &'a [T]) -> Result<Vec<TResponse>>
     where
-        T: std::marker::Sync,
-        TCreate: From<&'a T>,
+        T: std::marker::Sync + Clone,
+        TCreate: From<T>,
     {
-        let to_add: Vec<TCreate> = creates.iter().map(TCreate::from).collect();
+        let to_add: Vec<TCreate> = creates.iter().map(|i| TCreate::from(i.clone())).collect();
         self.create(&to_add).await
     }
 
@@ -113,10 +113,10 @@ where
         creates: &'a [T],
     ) -> Result<Vec<TResponse>>
     where
-        T: std::marker::Sync,
-        TCreate: From<&'a T> + EqIdentity,
+        T: std::marker::Sync + Clone,
+        TCreate: From<T> + EqIdentity,
     {
-        let to_add: Vec<TCreate> = creates.iter().map(TCreate::from).collect();
+        let to_add: Vec<TCreate> = creates.iter().map(|i| TCreate::from(i.clone())).collect();
         self.create_ignore_duplicates(&to_add).await
     }
 }
@@ -128,8 +128,8 @@ pub trait FromDuplicateCreate<'a, TCreate> {
 #[async_trait]
 pub trait Upsert<TCreate, TUpdate, TResponse, 'a>
 where
-    TCreate: Serialize + Sync + Send + EqIdentity + 'a,
-    TUpdate: Serialize + Sync + Send + From<&'a TCreate> + Default,
+    TCreate: Serialize + Sync + Send + EqIdentity + 'a + Clone,
+    TUpdate: Serialize + Sync + Send + From<TCreate> + Default,
     TResponse: Serialize + DeserializeOwned + Sync + Send,
     Self: WithApiClient + WithBasePath,
 {
@@ -148,7 +148,7 @@ where
                 if let Some(idt) = idt {
                     to_update.push(Patch::<TUpdate> {
                         id: idt.clone(),
-                        update: TUpdate::from(it),
+                        update: TUpdate::from(it.clone()),
                     });
                 } else {
                     to_create.push(it);
@@ -184,8 +184,8 @@ where
 impl<'a, T, TCreate, TUpdate, TResponse> Upsert<'a, TCreate, TUpdate, TResponse> for T
 where
     T: Create<TCreate, TResponse> + Update<Patch<TUpdate>, TResponse>,
-    TCreate: Serialize + Sync + Send + EqIdentity + 'a,
-    TUpdate: Serialize + Sync + Send + From<&'a TCreate> + Default,
+    TCreate: Serialize + Sync + Send + EqIdentity + 'a + Clone,
+    TUpdate: Serialize + Sync + Send + From<TCreate> + Default,
     TResponse: Serialize + DeserializeOwned + Sync + Send,
 {
 }
@@ -287,10 +287,10 @@ where
 
     async fn update_from<T: 'a, 'a>(&self, updates: &'a [T]) -> Result<Vec<TResponse>>
     where
-        T: std::marker::Sync,
-        TUpdate: From<&'a T>,
+        T: std::marker::Sync + Clone,
+        TUpdate: From<T>,
     {
-        let to_update: Vec<TUpdate> = updates.iter().map(TUpdate::from).collect();
+        let to_update: Vec<TUpdate> = updates.iter().map(|i| TUpdate::from(i.clone())).collect();
         self.update(&to_update).await
     }
 
@@ -331,11 +331,11 @@ where
         updates: &'a [T],
     ) -> Result<Vec<TResponse>>
     where
-        T: std::marker::Sync,
-        TUpdate: From<&'a T> + EqIdentity,
+        T: std::marker::Sync + Clone,
+        TUpdate: From<T> + EqIdentity,
         TResponse: Send,
     {
-        let to_update: Vec<TUpdate> = updates.iter().map(TUpdate::from).collect();
+        let to_update: Vec<TUpdate> = updates.iter().map(|i| TUpdate::from(i.clone())).collect();
         self.update_ignore_unknown_ids(&to_update).await
     }
 }

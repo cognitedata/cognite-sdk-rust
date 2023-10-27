@@ -1,15 +1,15 @@
 use std::collections::HashMap;
 
 use serde::{Deserialize, Serialize};
+use serde_with::skip_serializing_none;
 
 use crate::{EqIdentity, Identity};
 
-#[derive(Serialize, Deserialize, Debug, Default)]
+#[skip_serializing_none]
+#[derive(Serialize, Deserialize, Debug, Default, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct UpdateSetNull<T> {
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub set: Option<T>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub set_null: Option<bool>,
 }
 
@@ -28,10 +28,10 @@ impl<T> From<Option<T>> for UpdateSetNull<T> {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug, Default)]
+#[skip_serializing_none]
+#[derive(Serialize, Deserialize, Debug, Default, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct UpdateSet<T> {
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub set: Option<T>,
 }
 
@@ -41,14 +41,12 @@ impl<T> From<T> for UpdateSet<T> {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug, Default)]
+#[skip_serializing_none]
+#[derive(Serialize, Deserialize, Debug, Default, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct UpdateList<TAdd, TRemove> {
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub add: Option<Vec<TAdd>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub remove: Option<Vec<TRemove>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub set: Option<Vec<TAdd>>,
 }
 
@@ -75,17 +73,15 @@ impl<TAdd, TRemove> From<Option<Vec<TAdd>>> for UpdateList<TAdd, TRemove> {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug, Default)]
+#[skip_serializing_none]
+#[derive(Serialize, Deserialize, Debug, Default, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct UpdateMap<TKey, TValue>
 where
     TKey: std::hash::Hash + std::cmp::Eq,
 {
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub set: Option<HashMap<TKey, TValue>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub remove: Option<Vec<TKey>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub add: Option<HashMap<TKey, TValue>>,
 }
 

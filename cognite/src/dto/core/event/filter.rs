@@ -3,6 +3,7 @@ use crate::{
     WithPartition,
 };
 use serde::{Deserialize, Serialize};
+use serde_with::skip_serializing_none;
 use std::collections::HashMap;
 
 #[derive(Debug, Default, Clone)]
@@ -111,36 +112,24 @@ impl WithPartition for EventQuery {
     }
 }
 
+#[skip_serializing_none]
 #[derive(Serialize, Deserialize, Debug, Default, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct EventFilter {
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub start_time: Option<Range<i64>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub end_time: Option<Range<i64>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub active_at_time: Option<Range<i64>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub metadata: Option<HashMap<String, String>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub asset_ids: Option<Vec<i64>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub asset_external_ids: Option<Vec<String>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub asset_subtree_ids: Option<Vec<Identity>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub source: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub created_time: Option<Range<i64>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub last_updated_time: Option<Range<i64>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub external_id_prefix: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none", rename = "type")]
+    #[serde(rename = "type")]
     pub r#type: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub subtype: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub data_set_ids: Option<Vec<Identity>>,
 }
 
@@ -150,6 +139,7 @@ impl EventFilter {
     }
 }
 
+#[skip_serializing_none]
 #[derive(Serialize, Debug, Default, Clone)]
 pub struct EventFilterQuery {
     pub filter: EventFilter,
@@ -211,10 +201,10 @@ impl AggregatedEventsListFilter {
     }
 }
 
+#[skip_serializing_none]
 #[derive(Serialize, Deserialize, Debug, Default, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct EventSearch {
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub description: Option<String>,
 }
 

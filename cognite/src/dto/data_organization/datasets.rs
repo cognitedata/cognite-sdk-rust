@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 
 use serde::{Deserialize, Serialize};
+use serde_with::skip_serializing_none;
 
 use crate::{Identity, Patch, Range, UpdateMap, UpdateSet, UpdateSetNull};
 
@@ -17,44 +18,37 @@ pub struct DataSet {
     pub write_protected: bool,
 }
 
+#[skip_serializing_none]
 #[derive(Serialize, Deserialize, Debug, Default)]
 #[serde(rename_all = "camelCase")]
 pub struct AddDataSet {
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub external_id: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub name: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub description: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub metadata: Option<HashMap<String, String>>,
     pub write_protected: bool,
 }
 
-impl From<&DataSet> for AddDataSet {
-    fn from(dataset: &DataSet) -> Self {
+impl From<DataSet> for AddDataSet {
+    fn from(dataset: DataSet) -> Self {
         AddDataSet {
-            external_id: dataset.external_id.clone(),
-            name: dataset.name.clone(),
-            description: dataset.description.clone(),
-            metadata: dataset.metadata.clone(),
+            external_id: dataset.external_id,
+            name: dataset.name,
+            description: dataset.description,
+            metadata: dataset.metadata,
             write_protected: dataset.write_protected,
         }
     }
 }
 
+#[skip_serializing_none]
 #[derive(Serialize, Deserialize, Debug, Default, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct DataSetFilter {
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub metadata: Option<HashMap<String, String>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub created_time: Option<Range<i64>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub last_updated_time: Option<Range<i64>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub external_id_prefix: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub write_protected: Option<bool>,
 }
 
@@ -64,43 +58,39 @@ pub struct DataSetsCount {
     pub count: i64,
 }
 
+#[skip_serializing_none]
 #[derive(Serialize, Deserialize, Debug, Default)]
 #[serde(rename_all = "camelCase")]
 pub struct PatchDataSet {
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub external_id: Option<UpdateSetNull<String>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub name: Option<UpdateSetNull<String>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub description: Option<UpdateSetNull<String>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub metadata: Option<UpdateMap<String, String>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub write_protected: Option<UpdateSet<bool>>,
 }
 
-impl From<&DataSet> for Patch<PatchDataSet> {
-    fn from(data_set: &DataSet) -> Patch<PatchDataSet> {
+impl From<DataSet> for Patch<PatchDataSet> {
+    fn from(data_set: DataSet) -> Patch<PatchDataSet> {
         Patch::<PatchDataSet> {
             id: to_idt!(data_set),
             update: PatchDataSet {
-                external_id: Some(data_set.external_id.clone().into()),
-                name: Some(data_set.name.clone().into()),
-                description: Some(data_set.description.clone().into()),
-                metadata: Some(data_set.metadata.clone().into()),
+                external_id: Some(data_set.external_id.into()),
+                name: Some(data_set.name.into()),
+                description: Some(data_set.description.into()),
+                metadata: Some(data_set.metadata.into()),
                 write_protected: Some(data_set.write_protected.into()),
             },
         }
     }
 }
 
-impl From<&AddDataSet> for PatchDataSet {
-    fn from(data_set: &AddDataSet) -> Self {
+impl From<AddDataSet> for PatchDataSet {
+    fn from(data_set: AddDataSet) -> Self {
         PatchDataSet {
-            external_id: Some(data_set.external_id.clone().into()),
-            name: Some(data_set.name.clone().into()),
-            description: Some(data_set.description.clone().into()),
-            metadata: Some(data_set.metadata.clone().into()),
+            external_id: Some(data_set.external_id.into()),
+            name: Some(data_set.name.into()),
+            description: Some(data_set.description.into()),
+            metadata: Some(data_set.metadata.into()),
             write_protected: Some(data_set.write_protected.into()),
         }
     }

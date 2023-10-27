@@ -1,4 +1,5 @@
 use serde::{Deserialize, Serialize};
+use serde_with::skip_serializing_none;
 
 use crate::Identity;
 
@@ -23,42 +24,31 @@ impl From<&str> for Aggregate {
     }
 }
 
+#[skip_serializing_none]
 #[derive(Serialize, Deserialize, Debug, Default, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct DatapointsFilter {
     pub items: Vec<DatapointsQuery>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub start: Option<i64>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub end: Option<i64>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub limit: Option<u32>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub aggregates: Option<Vec<Aggregate>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub granularity: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub include_outside_points: Option<bool>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub ignore_unknown_ids: Option<bool>,
 }
 
+#[skip_serializing_none]
 #[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct DatapointsQuery {
     #[serde(flatten)]
     pub id: Identity,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub start: Option<i64>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub end: Option<i64>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub limit: Option<u32>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub aggregates: Option<Vec<String>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub granularity: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub include_outside_points: Option<bool>,
 }
 

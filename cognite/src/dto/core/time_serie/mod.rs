@@ -5,9 +5,10 @@ pub use self::filter::*;
 use crate::{EqIdentity, Identity, Patch, UpdateList, UpdateMap, UpdateSet, UpdateSetNull};
 
 use serde::{Deserialize, Serialize};
+use serde_with::skip_serializing_none;
 use std::collections::HashMap;
 
-#[derive(Serialize, Deserialize, Debug, Default)]
+#[derive(Serialize, Deserialize, Debug, Default, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct TimeSerie {
     pub id: i64,
@@ -25,41 +26,34 @@ pub struct TimeSerie {
     pub data_set_id: Option<i64>,
 }
 
-#[derive(Serialize, Deserialize, Debug, Default)]
+#[skip_serializing_none]
+#[derive(Serialize, Deserialize, Debug, Default, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct AddTimeSerie {
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub external_id: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub name: Option<String>,
     pub is_string: bool,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub metadata: Option<HashMap<String, String>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub unit: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub asset_id: Option<i64>,
     pub is_step: bool,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub description: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub security_categories: Option<Vec<i64>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub data_set_id: Option<i64>,
 }
 
-impl From<&TimeSerie> for AddTimeSerie {
-    fn from(time_serie: &TimeSerie) -> AddTimeSerie {
+impl From<TimeSerie> for AddTimeSerie {
+    fn from(time_serie: TimeSerie) -> AddTimeSerie {
         AddTimeSerie {
-            name: time_serie.name.clone(),
-            external_id: time_serie.external_id.clone(),
+            name: time_serie.name,
+            external_id: time_serie.external_id,
             is_string: time_serie.is_string,
-            metadata: time_serie.metadata.clone(),
-            unit: time_serie.unit.clone(),
+            metadata: time_serie.metadata,
+            unit: time_serie.unit,
             asset_id: time_serie.asset_id,
             is_step: time_serie.is_step,
-            description: time_serie.description.clone(),
-            security_categories: time_serie.security_categories.clone(),
+            description: time_serie.description,
+            security_categories: time_serie.security_categories,
             data_set_id: time_serie.data_set_id,
         }
     }
@@ -74,41 +68,33 @@ impl EqIdentity for AddTimeSerie {
     }
 }
 
+#[skip_serializing_none]
 #[derive(Serialize, Deserialize, Debug, Default)]
 #[serde(rename_all = "camelCase")]
 pub struct PatchTimeSerie {
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub name: Option<UpdateSetNull<String>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub external_id: Option<UpdateSetNull<String>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub metadata: Option<UpdateMap<String, String>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub unit: Option<UpdateSetNull<String>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub asset_id: Option<UpdateSetNull<i64>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub description: Option<UpdateSetNull<String>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub security_categories: Option<UpdateList<i64, i64>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub data_set_id: Option<UpdateSetNull<i64>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub is_step: Option<UpdateSet<bool>>,
 }
 
-impl From<&TimeSerie> for Patch<PatchTimeSerie> {
-    fn from(time_serie: &TimeSerie) -> Patch<PatchTimeSerie> {
+impl From<TimeSerie> for Patch<PatchTimeSerie> {
+    fn from(time_serie: TimeSerie) -> Patch<PatchTimeSerie> {
         Patch::<PatchTimeSerie> {
             id: to_idt!(time_serie),
             update: PatchTimeSerie {
-                name: Some(time_serie.name.clone().into()),
-                external_id: Some(time_serie.external_id.clone().into()),
-                metadata: Some(time_serie.metadata.clone().into()),
-                unit: Some(time_serie.unit.clone().into()),
+                name: Some(time_serie.name.into()),
+                external_id: Some(time_serie.external_id.into()),
+                metadata: Some(time_serie.metadata.into()),
+                unit: Some(time_serie.unit.into()),
                 asset_id: Some(time_serie.asset_id.into()),
-                description: Some(time_serie.description.clone().into()),
-                security_categories: Some(time_serie.security_categories.clone().into()),
+                description: Some(time_serie.description.into()),
+                security_categories: Some(time_serie.security_categories.into()),
                 data_set_id: Some(time_serie.data_set_id.into()),
                 is_step: Some(time_serie.is_step.into()),
             },
@@ -116,16 +102,16 @@ impl From<&TimeSerie> for Patch<PatchTimeSerie> {
     }
 }
 
-impl From<&AddTimeSerie> for PatchTimeSerie {
-    fn from(time_serie: &AddTimeSerie) -> Self {
+impl From<AddTimeSerie> for PatchTimeSerie {
+    fn from(time_serie: AddTimeSerie) -> Self {
         PatchTimeSerie {
-            name: Some(time_serie.name.clone().into()),
-            external_id: Some(time_serie.external_id.clone().into()),
-            metadata: Some(time_serie.metadata.clone().into()),
-            unit: Some(time_serie.unit.clone().into()),
+            name: Some(time_serie.name.into()),
+            external_id: Some(time_serie.external_id.into()),
+            metadata: Some(time_serie.metadata.into()),
+            unit: Some(time_serie.unit.into()),
             asset_id: Some(time_serie.asset_id.into()),
-            description: Some(time_serie.description.clone().into()),
-            security_categories: Some(time_serie.security_categories.clone().into()),
+            description: Some(time_serie.description.into()),
+            security_categories: Some(time_serie.security_categories.into()),
             data_set_id: Some(time_serie.data_set_id.into()),
             is_step: Some(time_serie.is_step.into()),
         }

@@ -1,9 +1,11 @@
 use std::fmt::Display;
 
 use serde::{Deserialize, Serialize};
+use serde_with::skip_serializing_none;
 
 use crate::{to_query, AsParams};
 
+#[skip_serializing_none]
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct SecurityCategoryListResponse {
@@ -12,7 +14,8 @@ pub struct SecurityCategoryListResponse {
     next_cursor: Option<String>,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[skip_serializing_none]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct SecurityCategory {
     pub name: String,

@@ -4,8 +4,10 @@ pub use self::filter::*;
 
 use crate::{EqIdentity, Identity, IntegerOrString, Patch, UpdateList, UpdateMap, UpdateSetNull};
 use serde::{Deserialize, Serialize};
+use serde_with::skip_serializing_none;
 use std::collections::HashMap;
 
+#[skip_serializing_none]
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct EventListResponse {
@@ -45,7 +47,8 @@ impl EventCount {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug, Default)]
+#[skip_serializing_none]
+#[derive(Serialize, Deserialize, Debug, Default, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct Event {
     pub id: i64,
@@ -63,7 +66,8 @@ pub struct Event {
     pub last_updated_time: Option<i64>,
 }
 
-#[derive(Serialize, Deserialize, Debug, Default)]
+#[skip_serializing_none]
+#[derive(Serialize, Deserialize, Debug, Default, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct AddEvent {
     pub external_id: Option<String>,
@@ -78,19 +82,19 @@ pub struct AddEvent {
     pub source: Option<String>,
 }
 
-impl From<&Event> for AddEvent {
-    fn from(event: &Event) -> AddEvent {
+impl From<Event> for AddEvent {
+    fn from(event: Event) -> AddEvent {
         AddEvent {
-            external_id: event.external_id.clone(),
+            external_id: event.external_id,
             data_set_id: event.data_set_id,
             start_time: event.start_time,
             end_time: event.end_time,
-            r#type: event.r#type.clone(),
-            subtype: event.subtype.clone(),
-            description: event.description.clone(),
-            metadata: event.metadata.clone(),
-            asset_ids: event.asset_ids.clone(),
-            source: event.source.clone(),
+            r#type: event.r#type,
+            subtype: event.subtype,
+            description: event.description,
+            metadata: event.metadata,
+            asset_ids: event.asset_ids,
+            source: event.source,
         }
     }
 }
@@ -104,64 +108,55 @@ impl EqIdentity for AddEvent {
     }
 }
 
+#[skip_serializing_none]
 #[derive(Serialize, Deserialize, Debug, Default)]
 #[serde(rename_all = "camelCase")]
 pub struct PatchEvent {
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub external_id: Option<UpdateSetNull<String>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub data_set_id: Option<UpdateSetNull<i64>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub start_time: Option<UpdateSetNull<i64>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub end_time: Option<UpdateSetNull<i64>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub description: Option<UpdateSetNull<String>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub metadata: Option<UpdateMap<String, String>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub asset_ids: Option<UpdateList<i64, i64>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub source: Option<UpdateSetNull<String>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub r#type: Option<UpdateSetNull<String>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub subtype: Option<UpdateSetNull<String>>,
 }
 
-impl From<&Event> for Patch<PatchEvent> {
-    fn from(event: &Event) -> Patch<PatchEvent> {
+impl From<Event> for Patch<PatchEvent> {
+    fn from(event: Event) -> Patch<PatchEvent> {
         Patch::<PatchEvent> {
             id: to_idt!(event),
             update: PatchEvent {
-                external_id: Some(event.external_id.clone().into()),
+                external_id: Some(event.external_id.into()),
                 data_set_id: Some(event.data_set_id.into()),
                 start_time: Some(event.start_time.into()),
                 end_time: Some(event.end_time.into()),
-                description: Some(event.description.clone().into()),
-                metadata: Some(event.metadata.clone().into()),
-                asset_ids: Some(event.asset_ids.clone().into()),
-                source: Some(event.source.clone().into()),
-                r#type: Some(event.r#type.clone().into()),
-                subtype: Some(event.subtype.clone().into()),
+                description: Some(event.description.into()),
+                metadata: Some(event.metadata.into()),
+                asset_ids: Some(event.asset_ids.into()),
+                source: Some(event.source.into()),
+                r#type: Some(event.r#type.into()),
+                subtype: Some(event.subtype.into()),
             },
         }
     }
 }
 
-impl From<&AddEvent> for PatchEvent {
-    fn from(event: &AddEvent) -> Self {
+impl From<AddEvent> for PatchEvent {
+    fn from(event: AddEvent) -> Self {
         PatchEvent {
-            external_id: Some(event.external_id.clone().into()),
+            external_id: Some(event.external_id.into()),
             data_set_id: Some(event.data_set_id.into()),
             start_time: Some(event.start_time.into()),
             end_time: Some(event.end_time.into()),
-            description: Some(event.description.clone().into()),
-            metadata: Some(event.metadata.clone().into()),
-            asset_ids: Some(event.asset_ids.clone().into()),
-            source: Some(event.source.clone().into()),
-            r#type: Some(event.r#type.clone().into()),
-            subtype: Some(event.subtype.clone().into()),
+            description: Some(event.description.into()),
+            metadata: Some(event.metadata.into()),
+            asset_ids: Some(event.asset_ids.into()),
+            source: Some(event.source.into()),
+            r#type: Some(event.r#type.into()),
+            subtype: Some(event.subtype.into()),
         }
     }
 }
