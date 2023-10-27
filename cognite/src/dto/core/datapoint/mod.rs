@@ -8,8 +8,9 @@ mod proto {
 }
 
 pub use self::filter::*;
-pub use self::proto::data_point_insertion_item::*;
-pub use self::proto::data_point_list_item::*;
+pub use self::proto::data_point_insertion_item::DatapointType as InsertDatapointType;
+pub use self::proto::data_point_insertion_item::IdOrExternalId;
+pub use self::proto::data_point_list_item::DatapointType as ListDatapointType;
 pub use self::proto::*;
 
 use serde::{Deserialize, Serialize};
