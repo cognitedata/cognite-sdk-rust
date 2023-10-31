@@ -5,8 +5,8 @@ use serde::{Deserialize, Serialize};
 use serde_with::skip_serializing_none;
 
 use crate::{
-    models::{ItemId, RawValue, SourceReference},
-    to_query, AsParams,
+    models::{ItemId, RawValue, SourceReference, UsedFor},
+    to_query, AsParams, SetCursor,
 };
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
@@ -17,9 +17,7 @@ pub struct ViewReference {
     pub version: String,
 }
 
-#[skip_serializing_none]
-#[derive(Serialize, Deserialize, Default, Clone, Debug)]
-#[serde(rename_all = "camelCase")]
+#[derive(Default, Clone, Debug)]
 pub struct ViewQuery {
     pub limit: Option<i32>,
     pub cursor: Option<String>,
@@ -44,6 +42,12 @@ impl AsParams for ViewQuery {
     }
 }
 
+impl SetCursor for ViewQuery {
+    fn set_cursor(&mut self, cursor: Option<String>) {
+        self.cursor = cursor;
+    }
+}
+
 #[derive(Serialize, Deserialize, Clone, Debug)]
 #[serde(rename_all = "camelCase")]
 pub enum ViewCreateOrReference {
@@ -51,11 +55,11 @@ pub enum ViewCreateOrReference {
     Reference(ViewReference),
 }
 
-impl From<&ViewDefinitionOrReference> for ViewCreateOrReference {
-    fn from(value: &ViewDefinitionOrReference) -> Self {
+impl From<ViewDefinitionOrReference> for ViewCreateOrReference {
+    fn from(value: ViewDefinitionOrReference) -> Self {
         match value {
             ViewDefinitionOrReference::Definition(x) => Self::Create(x.into()),
-            ViewDefinitionOrReference::Reference(x) => Self::Reference(x.clone()),
+            ViewDefinitionOrReference::Reference(x) => Self::Reference(x),
         }
     }
 }
@@ -79,25 +83,25 @@ pub struct ViewCreateDefinition {
     pub implements: Option<Vec<ViewReference>>,
     pub version: String,
     pub writable: bool,
-    pub used_for: String,
+    pub used_for: Option<UsedFor>,
     pub properties: HashMap<String, CreateViewPropertyOrConnectionDefinition>,
 }
 
-impl From<&ViewDefinition> for ViewCreateDefinition {
-    fn from(value: &ViewDefinition) -> Self {
+impl From<ViewDefinition> for ViewCreateDefinition {
+    fn from(value: ViewDefinition) -> Self {
         Self {
-            external_id: value.external_id.clone(),
-            space: value.space.clone(),
-            name: value.name.clone(),
-            description: value.description.clone(),
-            implements: value.implements.clone(),
-            version: value.version.clone(),
-            writable: value.writable.clone(),
-            used_for: value.used_for.clone(),
+            external_id: value.external_id,
+            space: value.space,
+            name: value.name,
+            description: value.description,
+            implements: value.implements,
+            version: value.version,
+            writable: value.writable,
+            used_for: Some(value.used_for),
             properties: value
                 .properties
-                .iter()
-                .map(|(key, val)| (key.clone(), val.into()))
+                .into_iter()
+                .map(|(key, val)| (key, val.into()))
                 .collect(),
         }
     }
@@ -111,8 +115,8 @@ pub enum CreateViewPropertyOrConnectionDefinition {
     ConnectionDefinition(ConnectionDefinition),
 }
 
-impl From<&ViewDefinitionProperties> for CreateViewPropertyOrConnectionDefinition {
-    fn from(value: &ViewDefinitionProperties) -> Self {
+impl From<ViewDefinitionProperties> for CreateViewPropertyOrConnectionDefinition {
+    fn from(value: ViewDefinitionProperties) -> Self {
         match value {
             ViewDefinitionProperties::ViewCorePropertyDefinition(p) => {
                 Self::CreateViewProperty(p.into())
@@ -135,14 +139,14 @@ pub struct CreateViewProperty {
     pub source: Option<SourceReference>,
 }
 
-impl From<&ViewCorePropertyDefinition> for CreateViewProperty {
-    fn from(value: &ViewCorePropertyDefinition) -> Self {
+impl From<ViewCorePropertyDefinition> for CreateViewProperty {
+    fn from(value: ViewCorePropertyDefinition) -> Self {
         Self {
-            name: value.name.clone(),
-            description: value.description.clone(),
+            name: value.name,
+            description: value.description,
             container: value.container.clone(),
-            container_property_identifier: value.container_property_identifier.clone(),
-            source: Some(value.container.clone()),
+            container_property_identifier: value.container_property_identifier,
+            source: None,
         }
     }
 }
@@ -172,7 +176,7 @@ pub struct ViewDefinition {
     pub created_time: i64,
     pub last_updated_time: i64,
     pub writable: bool,
-    pub used_for: String,
+    pub used_for: UsedFor,
     pub properties: HashMap<String, ViewDefinitionProperties>,
 }
 
@@ -210,7 +214,10 @@ pub enum ViewCorePropertyType {
     Int64(PrimitiveProperty),
     Timestamp(PrimitiveProperty),
     Date(PrimitiveProperty),
-    JSON(PrimitiveProperty),
+    Json(PrimitiveProperty),
+    Timeseries(CDFExternalIdReference),
+    File(CDFExternalIdReference),
+    Sequence(CDFExternalIdReference),
     Direct(ViewDirectNodeRelation),
 }
 
@@ -227,6 +234,14 @@ pub struct TextProperty {
 #[derive(Serialize, Deserialize, Derivative, Clone, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct PrimitiveProperty {
+    #[derivative(Default(value = "false"))]
+    pub list: Option<bool>,
+}
+
+#[skip_serializing_none]
+#[derive(Serialize, Deserialize, Derivative, Clone, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct CDFExternalIdReference {
     #[derivative(Default(value = "false"))]
     pub list: Option<bool>,
 }

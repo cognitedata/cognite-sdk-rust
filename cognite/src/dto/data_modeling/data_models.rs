@@ -18,18 +18,17 @@ pub struct DataModelCreate {
     pub views: Option<Vec<ViewCreateOrReference>>,
 }
 
-impl From<&DataModel> for DataModelCreate {
-    fn from(value: &DataModel) -> Self {
+impl From<DataModel> for DataModelCreate {
+    fn from(value: DataModel) -> Self {
         DataModelCreate {
-            space: value.space.clone(),
-            external_id: value.external_id.clone(),
-            name: value.name.clone(),
-            description: value.description.clone(),
-            version: value.version.clone(),
+            space: value.space,
+            external_id: value.external_id,
+            name: value.name,
+            description: value.description,
+            version: value.version,
             views: value
                 .views
-                .as_ref()
-                .map(|views| views.iter().map(|v| v.into()).collect()),
+                .map(|views| views.into_iter().map(|v| v.into()).collect()),
         }
     }
 }
