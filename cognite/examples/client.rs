@@ -24,7 +24,7 @@ async fn main() {
     match cognite_client
         .assets
         .filter(FilterAssetsRequest {
-            filter,
+            filter: Some(filter),
             ..Default::default()
         })
         .await
@@ -56,7 +56,7 @@ async fn main() {
     let events: Vec<Event> = cognite_client
         .events
         .filter(EventFilterQuery {
-            filter: event_filter,
+            filter: Some(event_filter),
             ..Default::default()
         })
         .await

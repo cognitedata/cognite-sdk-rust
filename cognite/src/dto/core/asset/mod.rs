@@ -10,6 +10,8 @@ use serde_json::json;
 use serde_with::skip_serializing_none;
 use std::collections::HashMap;
 
+use super::GeoLocation;
+
 #[skip_serializing_none]
 #[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
@@ -37,6 +39,7 @@ pub struct Asset {
     pub aggregates: Option<AssetAggregate>,
     pub data_set_id: Option<i64>,
     pub labels: Option<Vec<CogniteExternalId>>,
+    pub geo_location: Option<GeoLocation>,
 }
 
 impl Asset {
@@ -63,6 +66,7 @@ impl Asset {
             data_set_id: None,
             parent_external_id: None,
             labels: None,
+            geo_location: None,
         }
     }
 }
@@ -80,6 +84,7 @@ pub struct AddAsset {
     pub parent_external_id: Option<String>,
     pub data_set_id: Option<i64>,
     pub labels: Option<Vec<CogniteExternalId>>,
+    pub geo_location: Option<GeoLocation>,
 }
 
 impl From<Asset> for AddAsset {
@@ -98,6 +103,7 @@ impl From<Asset> for AddAsset {
             },
             data_set_id: asset.data_set_id,
             labels: asset.labels,
+            geo_location: asset.geo_location,
         }
     }
 }
@@ -124,6 +130,7 @@ pub struct PatchAsset {
     pub parent_id: Option<UpdateSet<i64>>,
     pub parent_external_id: Option<UpdateSet<String>>,
     pub labels: Option<UpdateList<CogniteExternalId, CogniteExternalId>>,
+    pub geo_location: Option<UpdateSetNull<GeoLocation>>,
 }
 
 impl From<Asset> for Patch<PatchAsset> {
@@ -140,6 +147,7 @@ impl From<Asset> for Patch<PatchAsset> {
                 parent_external_id: None,
                 labels: Some(asset.labels.into()),
                 data_set_id: Some(asset.data_set_id.into()),
+                geo_location: Some(asset.geo_location.into()),
             },
         }
     }
@@ -157,6 +165,7 @@ impl From<AddAsset> for PatchAsset {
             parent_external_id: None,
             labels: Some(asset.labels.into()),
             data_set_id: Some(asset.data_set_id.into()),
+            geo_location: Some(asset.geo_location.into()),
         }
     }
 }

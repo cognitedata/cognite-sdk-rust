@@ -1,8 +1,13 @@
-use crate::{EqIdentity, Identity, Patch, Range, UpdateList, UpdateMap, UpdateSet, UpdateSetNull};
+use crate::{
+    models::FdmFilter, EqIdentity, Identity, Partition, Patch, Range, SetCursor, UpdateList,
+    UpdateMap, UpdateSet, UpdateSetNull, WithPartition,
+};
 
 use serde::{Deserialize, Serialize};
 use serde_with::skip_serializing_none;
 use std::collections::HashMap;
+
+use super::CoreSortItem;
 
 #[derive(Serialize, Deserialize, Debug, Clone, Copy, Default)]
 #[serde(rename_all = "camelCase")]
@@ -169,6 +174,32 @@ pub struct SequenceFilter {
     pub created_time: Option<Range<i64>>,
     pub last_updated_time: Option<Range<i64>>,
     pub data_set_ids: Option<Vec<Identity>>,
+}
+
+#[skip_serializing_none]
+#[derive(Serialize, Deserialize, Debug, Default, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct SequenceFilterRequest {
+    pub filter: Option<SequenceFilter>,
+    pub advanced_filter: Option<FdmFilter>,
+    pub limit: Option<i32>,
+    pub cursor: Option<String>,
+    pub partition: Option<Partition>,
+    pub sort: Option<Vec<CoreSortItem>>,
+}
+
+impl SetCursor for SequenceFilterRequest {
+    fn set_cursor(&mut self, cursor: Option<String>) {
+        self.cursor = cursor;
+    }
+}
+
+impl WithPartition for SequenceFilterRequest {
+    fn with_partition(&self, partition: Partition) -> Self {
+        let mut copy = self.clone();
+        copy.partition = Some(partition);
+        copy
+    }
 }
 
 #[skip_serializing_none]

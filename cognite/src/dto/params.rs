@@ -1,5 +1,7 @@
 use std::fmt::Display;
 
+use crate::Partition;
+
 pub trait AsParams {
     fn to_tuples(self) -> Vec<(String, String)>;
 }
@@ -63,7 +65,7 @@ impl AsParams for LimitCursorQuery {
 pub struct LimitCursorPartitionQuery {
     pub limit: Option<i32>,
     pub cursor: Option<String>,
-    pub partition: Option<String>,
+    pub partition: Option<Partition>,
 }
 
 impl AsParams for LimitCursorPartitionQuery {

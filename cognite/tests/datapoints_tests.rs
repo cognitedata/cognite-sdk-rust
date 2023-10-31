@@ -68,8 +68,8 @@ async fn create_retrieve_delete_double_datapoints() {
                 id: Identity::Id { id: ts.id },
                 ..Default::default()
             }],
-            start: Some(start + 5000),
-            end: Some(start + 95000),
+            start: Some((start + 5000).into()),
+            end: Some((start + 95000).into()),
             limit: Some(1000),
             ..Default::default()
         })
@@ -99,8 +99,8 @@ async fn create_retrieve_delete_double_datapoints() {
                 id: Identity::Id { id: ts.id },
                 ..Default::default()
             }],
-            start: Some(start + 5000),
-            end: Some(start + 95000),
+            start: Some((start + 5000).into()),
+            end: Some((start + 95000).into()),
             limit: Some(1000),
             ..Default::default()
         })
@@ -151,8 +151,8 @@ async fn create_retrieve_delete_string_datapoints() {
                 id: Identity::Id { id: ts.id },
                 ..Default::default()
             }],
-            start: Some(start + 5000),
-            end: Some(start + 95000),
+            start: Some((start + 5000).into()),
+            end: Some((start + 95000).into()),
             limit: Some(1000),
             ..Default::default()
         })
@@ -182,8 +182,8 @@ async fn create_retrieve_delete_string_datapoints() {
                 id: Identity::Id { id: ts.id },
                 ..Default::default()
             }],
-            start: Some(start + 5000),
-            end: Some(start + 95000),
+            start: Some((start + 5000).into()),
+            end: Some((start + 95000).into()),
             limit: Some(1000),
             ..Default::default()
         })

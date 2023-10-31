@@ -9,6 +9,7 @@ use crate::get_missing_from_result;
 use crate::Identity;
 use crate::Items;
 use crate::ItemsWithIgnoreUnknownIds;
+use crate::ItemsWithoutCursor;
 use crate::Patch;
 
 pub type TimeSeries = Resource<TimeSerie>;
@@ -20,6 +21,7 @@ impl WithBasePath for TimeSeries {
 impl List<TimeSerieQuery, TimeSerie> for TimeSeries {}
 impl Create<AddTimeSerie, TimeSerie> for TimeSeries {}
 impl FilterItems<TimeSerieFilter, TimeSerie> for TimeSeries {}
+impl FilterWithRequest<TimeSeriesFilterRequest, TimeSerie> for TimeSeries {}
 impl<'a> SearchItems<'a, TimeSerieFilter, TimeSerieSearch, TimeSerie> for TimeSeries {}
 impl RetrieveWithIgnoreUnknownIds<Identity, TimeSerie> for TimeSeries {}
 impl Update<Patch<PatchTimeSerie>, TimeSerie> for TimeSeries {}
@@ -152,5 +154,16 @@ impl TimeSeries {
             .post::<::serde_json::Value, Items>("timeseries/data/delete", &items)
             .await?;
         Ok(())
+    }
+
+    pub async fn query_synthetic_timeseries(
+        &self,
+        query: &[SyntheticTimeSeriesQuery],
+    ) -> Result<Vec<SyntheticQueryResponse>> {
+        let res: ItemsWithoutCursor<SyntheticQueryResponse> = self
+            .api_client
+            .post("timeseries/synthetic/query", &Items::from(query))
+            .await?;
+        Ok(res.items)
     }
 }

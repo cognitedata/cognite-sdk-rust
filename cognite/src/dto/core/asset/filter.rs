@@ -1,5 +1,6 @@
 use crate::{
-    to_query, AsParams, Identity, LabelsFilter, Partition, Range, SetCursor, WithPartition,
+    dto::core::CoreSortItem, models::FdmFilter, to_query, AsParams, Identity, LabelsFilter,
+    Partition, Range, SetCursor, WithPartition,
 };
 use serde::{Deserialize, Serialize};
 use serde_with::skip_serializing_none;
@@ -49,11 +50,27 @@ impl AssetSearch {
 #[derive(Serialize, Deserialize, Debug, Default, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct FilterAssetsRequest {
-    pub filter: AssetFilter,
+    pub filter: Option<AssetFilter>,
+    pub advanced_filter: Option<FdmFilter>,
     pub limit: Option<i32>,
     pub cursor: Option<String>,
     pub aggregated_properties: Option<Vec<String>>,
-    pub partition: Option<String>,
+    pub partition: Option<Partition>,
+    pub sort: Option<Vec<CoreSortItem>>,
+}
+
+impl SetCursor for FilterAssetsRequest {
+    fn set_cursor(&mut self, cursor: Option<String>) {
+        self.cursor = cursor;
+    }
+}
+
+impl WithPartition for FilterAssetsRequest {
+    fn with_partition(&self, partition: Partition) -> Self {
+        let mut copy = self.clone();
+        copy.partition = Some(partition);
+        copy
+    }
 }
 
 #[derive(Debug, Default, Clone)]
