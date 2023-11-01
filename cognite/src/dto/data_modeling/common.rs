@@ -57,7 +57,7 @@ impl From<ItemId> for TaggedContainerReference {
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
-#[serde(rename_all = "camelCase", tag = "type")]
+#[serde(rename_all = "camelCase")]
 pub enum UsedFor {
     Node,
     Edge,
