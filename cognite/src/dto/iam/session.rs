@@ -1,10 +1,11 @@
 use std::fmt::Display;
 
 use serde::{Deserialize, Serialize};
+use serde_with::skip_serializing_none;
 
 use crate::{to_query, AsParams, SetCursor};
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Clone, Copy, Debug)]
 #[serde(rename_all = "snake_case")]
 pub enum SessionStatus {
     Ready,
@@ -48,7 +49,8 @@ impl AsParams for SessionQuery {
     }
 }
 
-#[derive(Serialize, Deserialize)]
+#[skip_serializing_none]
+#[derive(Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct Session {
     pub id: i64,

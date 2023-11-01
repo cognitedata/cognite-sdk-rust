@@ -2,36 +2,25 @@ use crate::{
     to_query, AsParams, Identity, LabelsFilter, Partition, Range, SetCursor, WithPartition,
 };
 use serde::{Deserialize, Serialize};
+use serde_with::skip_serializing_none;
 use std::collections::HashMap;
 
+#[skip_serializing_none]
 #[derive(Serialize, Deserialize, Debug, Default, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct AssetFilter {
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub name: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub parent_ids: Option<Vec<i64>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub parent_external_ids: Option<Vec<String>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub root_ids: Option<Vec<Identity>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub asset_subtree_ids: Option<Vec<Identity>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub data_set_ids: Option<Vec<Identity>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub metadata: Option<HashMap<String, String>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub source: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub created_time: Option<Range<i64>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub last_updated_time: Option<Range<i64>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub external_id_prefix: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub root: Option<bool>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub labels: Option<LabelsFilter>,
 }
 
@@ -41,14 +30,12 @@ impl AssetFilter {
     }
 }
 
+#[skip_serializing_none]
 #[derive(Serialize, Deserialize, Debug, Default, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct AssetSearch {
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub name: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub description: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub query: Option<String>,
 }
 
@@ -58,17 +45,14 @@ impl AssetSearch {
     }
 }
 
+#[skip_serializing_none]
 #[derive(Serialize, Deserialize, Debug, Default, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct FilterAssetsRequest {
     pub filter: AssetFilter,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub limit: Option<i32>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub cursor: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub aggregated_properties: Option<Vec<String>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub partition: Option<String>,
 }
 

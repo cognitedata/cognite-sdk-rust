@@ -1,4 +1,5 @@
 use serde::{Deserialize, Serialize};
+use serde_with::skip_serializing_none;
 
 use crate::{to_query, AsParams, SetCursor};
 
@@ -21,7 +22,7 @@ pub struct Table {
     pub name: String,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct RawRow {
     pub key: String,
@@ -29,13 +30,13 @@ pub struct RawRow {
     pub last_updated_time: i64,
 }
 
-#[derive(Serialize, Deserialize, Debug, Default)]
+#[derive(Serialize, Deserialize, Debug, Default, Clone)]
 pub struct RawRowCreate {
     pub key: String,
     pub columns: ::serde_json::Value,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct DeleteRow {
     pub key: String,
 }
@@ -65,17 +66,13 @@ impl AsParams for RetrieveCursorsQuery {
     }
 }
 
+#[skip_serializing_none]
 #[derive(Debug, Default, Serialize, Clone)]
 pub struct RetrieveRowsQuery {
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub limit: Option<i32>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub columns: Option<Vec<String>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub cursor: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub min_last_updated_time: Option<i64>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub max_last_updated_time: Option<i64>,
 }
 

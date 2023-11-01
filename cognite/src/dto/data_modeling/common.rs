@@ -1,4 +1,5 @@
 use serde::{Deserialize, Serialize};
+use serde_with::skip_serializing_none;
 
 use crate::models::ViewReference;
 
@@ -9,12 +10,12 @@ pub struct ItemId {
     pub external_id: String,
 }
 
+#[skip_serializing_none]
 #[derive(Serialize, Deserialize, Clone, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct ItemIdOptionalVersion {
     pub space: String,
     pub external_id: String,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub version: Option<String>,
 }
 

@@ -1,30 +1,29 @@
 use std::collections::HashMap;
 
 use serde::{Deserialize, Serialize};
+use serde_with::skip_serializing_none;
 
 use crate::{Identity, Patch, Range, UpdateList, UpdateMap, UpdateSet};
 
-#[derive(Serialize, Deserialize, Clone, Default)]
+#[derive(Serialize, Deserialize, Clone, Default, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct ExtPipeRawTable {
     pub db_name: String,
     pub table_name: String,
 }
 
-#[derive(Serialize, Deserialize, Clone, Default)]
+#[skip_serializing_none]
+#[derive(Serialize, Deserialize, Clone, Default, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct ExtPipeContact {
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub name: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub email: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub role: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub send_notification: Option<bool>,
 }
 
-#[derive(Serialize, Deserialize)]
+#[skip_serializing_none]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct ExtPipe {
     pub id: i64,
@@ -47,105 +46,90 @@ pub struct ExtPipe {
     pub created_by: Option<String>,
 }
 
-#[derive(Serialize, Deserialize, Default)]
+#[skip_serializing_none]
+#[derive(Debug, Serialize, Deserialize, Default, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct AddExtPipe {
     pub external_id: String,
     pub name: String,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub description: Option<String>,
     pub data_set_id: i64,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub raw_tables: Option<Vec<ExtPipeRawTable>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub schedule: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub contacts: Option<Vec<ExtPipeContact>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub metadata: Option<HashMap<String, String>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub source: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub documentation: Option<String>,
 }
 
-impl From<&ExtPipe> for AddExtPipe {
-    fn from(pipe: &ExtPipe) -> Self {
+impl From<ExtPipe> for AddExtPipe {
+    fn from(pipe: ExtPipe) -> Self {
         AddExtPipe {
-            external_id: pipe.external_id.clone(),
-            name: pipe.name.clone(),
-            description: pipe.description.clone(),
+            external_id: pipe.external_id,
+            name: pipe.name,
+            description: pipe.description,
             data_set_id: pipe.data_set_id,
-            raw_tables: pipe.raw_tables.clone(),
-            schedule: pipe.schedule.clone(),
-            contacts: pipe.contacts.clone(),
-            metadata: pipe.metadata.clone(),
-            source: pipe.source.clone(),
-            documentation: pipe.documentation.clone(),
+            raw_tables: pipe.raw_tables,
+            schedule: pipe.schedule,
+            contacts: pipe.contacts,
+            metadata: pipe.metadata,
+            source: pipe.source,
+            documentation: pipe.documentation,
         }
     }
 }
 
+#[skip_serializing_none]
 #[derive(Serialize, Deserialize, Default)]
 #[serde(rename_all = "camelCase")]
 pub struct PatchExtPipe {
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub external_id: Option<UpdateSet<String>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub name: Option<UpdateSet<String>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub description: Option<UpdateSet<Option<String>>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub data_set_id: Option<UpdateSet<i64>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub schedule: Option<UpdateSet<Option<String>>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub raw_tables: Option<UpdateList<ExtPipeRawTable, ExtPipeRawTable>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub contacts: Option<UpdateList<ExtPipeContact, ExtPipeContact>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub metadata: Option<UpdateMap<String, String>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub source: Option<UpdateSet<Option<String>>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub documentation: Option<UpdateSet<Option<String>>>,
 }
 
-impl From<&ExtPipe> for Patch<PatchExtPipe> {
-    fn from(pipe: &ExtPipe) -> Self {
+impl From<ExtPipe> for Patch<PatchExtPipe> {
+    fn from(pipe: ExtPipe) -> Self {
         Patch::<PatchExtPipe> {
             id: Identity::ExternalId {
                 external_id: pipe.external_id.clone(),
             },
             update: PatchExtPipe {
-                external_id: Some(pipe.external_id.clone().into()),
-                name: Some(pipe.name.clone().into()),
-                description: Some(pipe.description.clone().into()),
+                external_id: Some(pipe.external_id.into()),
+                name: Some(pipe.name.into()),
+                description: Some(pipe.description.into()),
                 data_set_id: Some(pipe.data_set_id.into()),
-                schedule: Some(pipe.schedule.clone().into()),
-                raw_tables: Some(pipe.raw_tables.clone().into()),
-                contacts: Some(pipe.contacts.clone().into()),
-                metadata: Some(pipe.metadata.clone().into()),
-                source: Some(pipe.source.clone().into()),
-                documentation: Some(pipe.documentation.clone().into()),
+                schedule: Some(pipe.schedule.into()),
+                raw_tables: Some(pipe.raw_tables.into()),
+                contacts: Some(pipe.contacts.into()),
+                metadata: Some(pipe.metadata.into()),
+                source: Some(pipe.source.into()),
+                documentation: Some(pipe.documentation.into()),
             },
         }
     }
 }
 
-impl From<&AddExtPipe> for PatchExtPipe {
-    fn from(pipe: &AddExtPipe) -> Self {
+impl From<AddExtPipe> for PatchExtPipe {
+    fn from(pipe: AddExtPipe) -> Self {
         PatchExtPipe {
-            external_id: Some(pipe.external_id.clone().into()),
-            name: Some(pipe.name.clone().into()),
-            description: Some(pipe.description.clone().into()),
+            external_id: Some(pipe.external_id.into()),
+            name: Some(pipe.name.into()),
+            description: Some(pipe.description.into()),
             data_set_id: Some(pipe.data_set_id.into()),
-            schedule: Some(pipe.schedule.clone().into()),
-            raw_tables: Some(pipe.raw_tables.clone().into()),
-            contacts: Some(pipe.contacts.clone().into()),
-            metadata: Some(pipe.metadata.clone().into()),
-            source: Some(pipe.source.clone().into()),
-            documentation: Some(pipe.documentation.clone().into()),
+            schedule: Some(pipe.schedule.into()),
+            raw_tables: Some(pipe.raw_tables.into()),
+            contacts: Some(pipe.contacts.into()),
+            metadata: Some(pipe.metadata.into()),
+            source: Some(pipe.source.into()),
+            documentation: Some(pipe.documentation.into()),
         }
     }
 }
@@ -164,36 +148,25 @@ impl Default for ExtPipeRunStatus {
     }
 }
 
+#[skip_serializing_none]
 #[derive(Serialize, Deserialize, Default, Clone)]
 pub struct ExtPipeFilter {
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub external_id_prefix: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub name: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub description: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub data_set_ids: Option<Vec<Identity>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub schedule: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub contacts: Option<Vec<ExtPipeContact>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub raw_tables: Option<Vec<ExtPipeRawTable>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub metadata: Option<HashMap<String, String>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub source: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub documentation: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub created_by: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub created_time: Option<Range<i64>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub last_updated_time: Option<Range<i64>>,
 }
 
+#[skip_serializing_none]
 #[derive(Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ExtPipeRun {
@@ -204,13 +177,12 @@ pub struct ExtPipeRun {
     pub external_id: Option<String>,
 }
 
+#[skip_serializing_none]
 #[derive(Serialize, Deserialize, Default)]
 #[serde(rename_all = "camelCase")]
 pub struct AddExtPipeRun {
     pub status: ExtPipeRunStatus,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub message: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub created_time: Option<i64>,
     pub external_id: String,
 }
@@ -221,14 +193,12 @@ pub struct ExtPipeStringFilter {
     pub substring: String,
 }
 
+#[skip_serializing_none]
 #[derive(Serialize, Deserialize, Default, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct ExtPipeRunFilter {
     pub external_id: String,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub statuses: Option<Vec<ExtPipeRunStatus>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub created_time: Option<Range<i64>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub message: Option<ExtPipeStringFilter>,
 }

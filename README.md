@@ -28,15 +28,13 @@ $ export COGNITE_PROJECT=<your project name>
 - Assets
 - Events
 - Files
-  - Without upload/download
 - TimeSeries
   - With protobuf support
 - Sequences
 ### IAM
-- ApiKeys
 - Groups
 - SecurityCategories
-- ServiceAccounts
+- Sessions
 ### Data Ingestion
 - Extraction pipelines
 - Raw
@@ -45,7 +43,9 @@ $ export COGNITE_PROJECT=<your project name>
 - Labels
 - Relationships
 ### Data Modeling
-- Instances (minimal implementation)
+- Instances 
+- Spaces
+- Views
 
 ## Example
 
@@ -65,11 +65,12 @@ use cognite::{Asset, AssetFilter, AssetSearch, CogniteClient};
 
 #[tokio::main]
 fn main() {
-    let cognite_client = CogniteClient::new("TestApp").unwrap();
+    // Create a client from environment variables
+    let cognite_client = CogniteClient::new("TestApp", None).unwrap();
 
     // List all assets
     let mut filter: AssetFilter = AssetFilter::new();
-    filter.name.replace("Aker".to_string());
+    filter.name = Some("Aker".to_string());
     let assets = cognite_client
         .assets
         .filter(FilterAssetsRequest {

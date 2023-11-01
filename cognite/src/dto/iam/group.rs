@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 
 use serde::{Deserialize, Serialize};
+use serde_with::skip_serializing_none;
 
 use crate::{to_query, AsParams};
 
@@ -12,7 +13,8 @@ pub struct GroupListResponse {
     next_cursor: Option<String>,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[skip_serializing_none]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct Group {
     pub id: u64,
@@ -24,7 +26,8 @@ pub struct Group {
     pub metadata: Option<HashMap<String, String>>,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[skip_serializing_none]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct AddGroup {
     pub name: String,
@@ -33,13 +36,13 @@ pub struct AddGroup {
     pub metadata: Option<HashMap<String, String>>,
 }
 
-impl From<&Group> for AddGroup {
-    fn from(value: &Group) -> Self {
+impl From<Group> for AddGroup {
+    fn from(value: Group) -> Self {
         Self {
-            name: value.name.clone(),
-            source_id: value.source_id.clone(),
-            capabilities: value.capabilities.clone(),
-            metadata: value.metadata.clone(),
+            name: value.name,
+            source_id: value.source_id,
+            capabilities: value.capabilities,
+            metadata: value.metadata,
         }
     }
 }

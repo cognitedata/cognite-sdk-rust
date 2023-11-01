@@ -7,9 +7,11 @@ use crate::{CogniteExternalId, CogniteId, EqIdentity, UpdateList};
 use crate::{Patch, UpdateMap, UpdateSet, UpdateSetNull};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
+use serde_with::skip_serializing_none;
 use std::collections::HashMap;
 
-#[derive(Serialize, Deserialize, Debug)]
+#[skip_serializing_none]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct AssetAggregate {
     pub child_count: Option<i32>,
@@ -17,7 +19,8 @@ pub struct AssetAggregate {
     pub path: Option<Vec<CogniteId>>,
 }
 
-#[derive(Serialize, Deserialize, Debug, Default)]
+#[skip_serializing_none]
+#[derive(Serialize, Deserialize, Debug, Default, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct Asset {
     pub id: i64,
@@ -64,44 +67,37 @@ impl Asset {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug, Default)]
+#[skip_serializing_none]
+#[derive(Serialize, Deserialize, Debug, Default, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct AddAsset {
     pub name: String,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub external_id: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub parent_id: Option<i64>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub description: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub metadata: Option<HashMap<String, String>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub source: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub parent_external_id: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub data_set_id: Option<i64>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub labels: Option<Vec<CogniteExternalId>>,
 }
 
-impl From<&Asset> for AddAsset {
-    fn from(asset: &Asset) -> AddAsset {
+impl From<Asset> for AddAsset {
+    fn from(asset: Asset) -> AddAsset {
         AddAsset {
-            name: asset.name.clone(),
-            external_id: asset.external_id.clone(),
+            name: asset.name,
+            external_id: asset.external_id,
             parent_id: asset.parent_id,
-            description: asset.description.clone(),
-            metadata: asset.metadata.clone(),
-            source: asset.source.clone(),
+            description: asset.description,
+            metadata: asset.metadata,
+            source: asset.source,
             parent_external_id: if asset.parent_id.is_none() {
-                asset.parent_external_id.clone()
+                asset.parent_external_id
             } else {
                 None
             },
             data_set_id: asset.data_set_id,
-            labels: asset.labels.clone(),
+            labels: asset.labels,
         }
     }
 }
@@ -115,64 +111,57 @@ impl EqIdentity for AddAsset {
     }
 }
 
+#[skip_serializing_none]
 #[derive(Serialize, Deserialize, Debug, Default)]
 #[serde(rename_all = "camelCase")]
 pub struct PatchAsset {
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub external_id: Option<UpdateSetNull<String>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub name: Option<UpdateSet<String>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub description: Option<UpdateSetNull<String>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub data_set_id: Option<UpdateSetNull<i64>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub metadata: Option<UpdateMap<String, String>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub source: Option<UpdateSetNull<String>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub parent_id: Option<UpdateSet<i64>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub parent_external_id: Option<UpdateSet<String>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub labels: Option<UpdateList<CogniteExternalId, CogniteExternalId>>,
 }
 
-impl From<&Asset> for Patch<PatchAsset> {
-    fn from(asset: &Asset) -> Patch<PatchAsset> {
+impl From<Asset> for Patch<PatchAsset> {
+    fn from(asset: Asset) -> Patch<PatchAsset> {
         Patch::<PatchAsset> {
             id: to_idt!(asset),
             update: PatchAsset {
-                name: Some(asset.name.clone().into()),
-                external_id: Some(asset.external_id.clone().into()),
-                description: Some(asset.description.clone().into()),
-                metadata: Some(asset.metadata.clone().into()),
-                source: Some(asset.source.clone().into()),
+                name: Some(asset.name.into()),
+                external_id: Some(asset.external_id.into()),
+                description: Some(asset.description.into()),
+                metadata: Some(asset.metadata.into()),
+                source: Some(asset.source.into()),
                 parent_id: asset.parent_id.map(|p| p.into()),
                 parent_external_id: None,
-                labels: Some(asset.labels.clone().into()),
+                labels: Some(asset.labels.into()),
                 data_set_id: Some(asset.data_set_id.into()),
             },
         }
     }
 }
 
-impl From<&AddAsset> for PatchAsset {
-    fn from(asset: &AddAsset) -> Self {
+impl From<AddAsset> for PatchAsset {
+    fn from(asset: AddAsset) -> Self {
         PatchAsset {
-            name: Some(asset.name.clone().into()),
-            external_id: Some(asset.external_id.clone().into()),
-            description: Some(asset.description.clone().into()),
-            metadata: Some(asset.metadata.clone().into()),
-            source: Some(asset.source.clone().into()),
+            name: Some(asset.name.into()),
+            external_id: Some(asset.external_id.into()),
+            description: Some(asset.description.into()),
+            metadata: Some(asset.metadata.into()),
+            source: Some(asset.source.into()),
             parent_id: asset.parent_id.map(|p| p.into()),
             parent_external_id: None,
-            labels: Some(asset.labels.clone().into()),
+            labels: Some(asset.labels.into()),
             data_set_id: Some(asset.data_set_id.into()),
         }
     }
 }
 
+#[skip_serializing_none]
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct RetrieveAssetsRequest {

@@ -1,6 +1,7 @@
 use crate::{EqIdentity, Identity, Patch, Range, UpdateList, UpdateMap, UpdateSet, UpdateSetNull};
 
 use serde::{Deserialize, Serialize};
+use serde_with::skip_serializing_none;
 use std::collections::HashMap;
 
 #[derive(Serialize, Deserialize, Debug, Clone, Copy, Default)]
@@ -15,6 +16,7 @@ pub enum SequenceValueType {
     Long,
 }
 
+#[skip_serializing_none]
 #[derive(Serialize, Deserialize, Debug, Clone, Default)]
 #[serde(rename_all = "camelCase")]
 pub struct SequenceColumn {
@@ -29,7 +31,8 @@ pub struct SequenceColumn {
     pub last_updated_time: Option<i64>,
 }
 
-#[derive(Serialize, Deserialize, Debug, Default)]
+#[skip_serializing_none]
+#[derive(Serialize, Deserialize, Debug, Default, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct Sequence {
     pub id: i64,
@@ -44,33 +47,28 @@ pub struct Sequence {
     pub data_set_id: Option<i64>,
 }
 
-#[derive(Serialize, Deserialize, Debug, Default)]
+#[skip_serializing_none]
+#[derive(Serialize, Deserialize, Debug, Default, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct AddSequence {
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub external_id: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub name: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub description: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub asset_id: Option<i64>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub metadata: Option<HashMap<String, String>>,
     pub columns: Vec<SequenceColumn>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub data_set_id: Option<i64>,
 }
 
-impl From<&Sequence> for AddSequence {
-    fn from(sequence: &Sequence) -> Self {
+impl From<Sequence> for AddSequence {
+    fn from(sequence: Sequence) -> Self {
         AddSequence {
-            external_id: sequence.external_id.clone(),
-            name: sequence.name.clone(),
-            description: sequence.description.clone(),
+            external_id: sequence.external_id,
+            name: sequence.name,
+            description: sequence.description,
             asset_id: sequence.asset_id,
-            metadata: sequence.metadata.clone(),
-            columns: sequence.columns.clone(),
+            metadata: sequence.metadata,
+            columns: sequence.columns,
             data_set_id: sequence.data_set_id,
         }
     }
@@ -85,14 +83,12 @@ impl EqIdentity for AddSequence {
     }
 }
 
+#[skip_serializing_none]
 #[derive(Serialize, Deserialize, Debug, Default)]
 #[serde(rename_all = "camelCase")]
 pub struct UpdateSequenceColumns {
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub modify: Option<Vec<Patch<PatchSequenceColumn>>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub add: Option<Vec<SequenceColumn>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub remove: Option<Vec<String>>,
 }
 
@@ -106,48 +102,39 @@ impl From<UpdateList<SequenceColumn, String>> for UpdateSequenceColumns {
     }
 }
 
+#[skip_serializing_none]
 #[derive(Serialize, Deserialize, Debug, Default)]
 #[serde(rename_all = "camelCase")]
 pub struct PatchSequenceColumn {
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub description: Option<UpdateSetNull<String>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub external_id: Option<UpdateSet<String>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub name: Option<UpdateSetNull<String>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub metadata: Option<UpdateMap<String, String>>,
 }
 
+#[skip_serializing_none]
 #[derive(Serialize, Deserialize, Debug, Default)]
 #[serde(rename_all = "camelCase")]
 pub struct PatchSequence {
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub name: Option<UpdateSetNull<String>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub description: Option<UpdateSetNull<String>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub asset_id: Option<UpdateSetNull<i64>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub external_id: Option<UpdateSetNull<String>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub metadata: Option<UpdateMap<String, String>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub data_set_id: Option<UpdateSetNull<i64>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub columns: Option<UpdateSequenceColumns>,
 }
 
-impl From<&Sequence> for Patch<PatchSequence> {
-    fn from(sequence: &Sequence) -> Self {
+impl From<Sequence> for Patch<PatchSequence> {
+    fn from(sequence: Sequence) -> Self {
         Self {
             id: Identity::Id { id: sequence.id },
             update: PatchSequence {
-                name: Some(sequence.name.clone().into()),
-                description: Some(sequence.description.clone().into()),
+                name: Some(sequence.name.into()),
+                description: Some(sequence.description.into()),
                 asset_id: Some(sequence.asset_id.into()),
-                external_id: Some(sequence.external_id.clone().into()),
-                metadata: Some(sequence.metadata.clone().into()),
+                external_id: Some(sequence.external_id.into()),
+                metadata: Some(sequence.metadata.into()),
                 data_set_id: Some(sequence.data_set_id.into()),
                 columns: None,
             },
@@ -155,51 +142,41 @@ impl From<&Sequence> for Patch<PatchSequence> {
     }
 }
 
-impl From<&AddSequence> for PatchSequence {
-    fn from(sequence: &AddSequence) -> Self {
+impl From<AddSequence> for PatchSequence {
+    fn from(sequence: AddSequence) -> Self {
         PatchSequence {
-            name: Some(sequence.name.clone().into()),
-            description: Some(sequence.description.clone().into()),
+            name: Some(sequence.name.into()),
+            description: Some(sequence.description.into()),
             asset_id: Some(sequence.asset_id.into()),
-            external_id: Some(sequence.external_id.clone().into()),
-            metadata: Some(sequence.metadata.clone().into()),
+            external_id: Some(sequence.external_id.into()),
+            metadata: Some(sequence.metadata.into()),
             data_set_id: Some(sequence.data_set_id.into()),
             columns: None,
         }
     }
 }
 
+#[skip_serializing_none]
 #[derive(Serialize, Deserialize, Debug, Default, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct SequenceFilter {
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub name: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub external_id_prefix: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub metadata: Option<HashMap<String, String>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub asset_ids: Option<Vec<i64>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub root_asset_ids: Option<Vec<i64>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub asset_subtree_ids: Option<Vec<Identity>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub created_time: Option<Range<i64>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub last_updated_time: Option<Range<i64>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub data_set_ids: Option<Vec<Identity>>,
 }
 
+#[skip_serializing_none]
 #[derive(Serialize, Deserialize, Debug, Default, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct SequenceSearch {
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub name: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub description: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub query: Option<String>,
 }
 
@@ -226,15 +203,16 @@ pub struct SequenceRow {
     pub values: Vec<SequenceRowValue>,
 }
 
+#[skip_serializing_none]
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct BasicSequenceColumn {
     pub external_id: String,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub name: Option<String>,
     pub value_type: SequenceValueType,
 }
 
+#[skip_serializing_none]
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct RetrieveSequenceRowsResponse {
@@ -254,29 +232,24 @@ pub struct InsertSequenceRows {
     pub id: Identity,
 }
 
+#[skip_serializing_none]
 #[derive(Serialize, Deserialize, Debug, Default, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct RetrieveSequenceRows {
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub start: Option<i64>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub end: Option<i64>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub limit: Option<i32>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub cursor: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub columns: Option<Vec<String>>,
     #[serde(flatten)]
     pub id: Identity,
 }
 
+#[skip_serializing_none]
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct RetrieveLatestSequenceRow {
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub columns: Option<Vec<String>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub before: Option<i64>,
     #[serde(flatten)]
     pub id: Identity,

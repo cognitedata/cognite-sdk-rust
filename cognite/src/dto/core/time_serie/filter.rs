@@ -1,36 +1,25 @@
 use crate::{to_query, Identity, Partition, SetCursor, WithPartition};
 use crate::{AsParams, Range};
 use serde::{Deserialize, Serialize};
+use serde_with::skip_serializing_none;
 use std::collections::HashMap;
 
+#[skip_serializing_none]
 #[derive(Serialize, Deserialize, Debug, Default, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct TimeSerieFilter {
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub name: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub unit: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub is_string: Option<bool>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub is_step: Option<bool>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub metadata: Option<HashMap<String, String>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub asset_ids: Option<Vec<i64>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub asset_external_ids: Option<Vec<String>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub root_asset_ids: Option<Vec<String>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub asset_subtree_ids: Option<Vec<Identity>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub data_set_ids: Option<Vec<Identity>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub external_id_prefix: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub created_time: Option<Range<i64>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub last_updated_time: Option<Range<i64>>,
 }
 
@@ -40,14 +29,12 @@ impl TimeSerieFilter {
     }
 }
 
+#[skip_serializing_none]
 #[derive(Serialize, Deserialize, Debug, Default, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct TimeSerieSearch {
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub name: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub description: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub query: Option<String>,
 }
 

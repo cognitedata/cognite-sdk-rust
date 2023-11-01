@@ -1,15 +1,15 @@
 use std::fmt::Display;
 
 use serde::{Deserialize, Serialize};
+use serde_with::skip_serializing_none;
 
 use crate::CogniteExternalId;
 
+#[skip_serializing_none]
 #[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct Range<T> {
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub max: Option<T>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub min: Option<T>,
 }
 
@@ -19,13 +19,12 @@ impl<T> Range<T> {
     }
 }
 
+#[skip_serializing_none]
 #[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct Filter<T> {
     pub filter: T,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub cursor: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub limit: Option<u32>,
 }
 
@@ -45,12 +44,12 @@ impl<T> SetCursor for Filter<T> {
     }
 }
 
+#[skip_serializing_none]
 #[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct Search<TFilter, TSearch> {
     pub filter: TFilter,
     pub search: TSearch,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub limit: Option<u32>,
 }
 
@@ -101,15 +100,13 @@ impl Serialize for Partition {
     }
 }
 
+#[skip_serializing_none]
 #[derive(Serialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct PartitionedFilter<T> {
     pub filter: T,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub cursor: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub limit: Option<u32>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub partition: Option<Partition>,
 }
 
