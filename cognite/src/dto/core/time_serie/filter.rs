@@ -1,3 +1,5 @@
+use crate::dto::core::CoreSortItem;
+use crate::models::FdmFilter;
 use crate::{to_query, Identity, Partition, SetCursor, WithPartition};
 use crate::{AsParams, Range};
 use serde::{Deserialize, Serialize};
@@ -80,5 +82,31 @@ impl WithPartition for TimeSerieQuery {
             partition: Some(partition),
             external_id_prefix: self.external_id_prefix.clone(),
         }
+    }
+}
+
+#[skip_serializing_none]
+#[derive(Serialize, Debug, Default, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct TimeSeriesFilterRequest {
+    pub filter: Option<TimeSerieFilter>,
+    pub advanced_filter: Option<FdmFilter>,
+    pub limit: Option<i32>,
+    pub cursor: Option<String>,
+    pub partition: Option<Partition>,
+    pub sort: Option<Vec<CoreSortItem>>,
+}
+
+impl SetCursor for TimeSeriesFilterRequest {
+    fn set_cursor(&mut self, cursor: Option<String>) {
+        self.cursor = cursor;
+    }
+}
+
+impl WithPartition for TimeSeriesFilterRequest {
+    fn with_partition(&self, partition: Partition) -> Self {
+        let mut copy = self.clone();
+        copy.partition = Some(partition);
+        copy
     }
 }

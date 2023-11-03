@@ -1,6 +1,6 @@
 use crate::{
-    to_query, to_query_vec, to_query_vec_i64, AsParams, Identity, Partition, Range, SetCursor,
-    WithPartition,
+    dto::core::CoreSortItem, models::FdmFilter, to_query, to_query_vec, to_query_vec_i64, AsParams,
+    Identity, Partition, Range, SetCursor, WithPartition,
 };
 use serde::{Deserialize, Serialize};
 use serde_with::skip_serializing_none;
@@ -142,9 +142,10 @@ impl EventFilter {
 #[skip_serializing_none]
 #[derive(Serialize, Debug, Default, Clone)]
 pub struct EventFilterQuery {
-    pub filter: EventFilter,
+    pub filter: Option<EventFilter>,
+    pub advanced_filter: Option<FdmFilter>,
     pub limit: Option<i32>,
-    pub sort: Option<Vec<String>>,
+    pub sort: Option<Vec<CoreSortItem>>,
     pub cursor: Option<String>,
     pub partition: Option<Partition>,
 }
@@ -159,6 +160,7 @@ impl WithPartition for EventFilterQuery {
     fn with_partition(&self, partition: Partition) -> Self {
         Self {
             filter: self.filter.clone(),
+            advanced_filter: self.advanced_filter.clone(),
             limit: self.limit,
             sort: self.sort.clone(),
             cursor: None,

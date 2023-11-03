@@ -18,6 +18,25 @@ pub enum Aggregate {
     DiscreteVariance,
 }
 
+#[derive(Serialize, Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase", untagged)]
+pub enum TimestampOrRelative {
+    Timestamp(i64),
+    Relative(String),
+}
+
+impl From<&str> for TimestampOrRelative {
+    fn from(value: &str) -> Self {
+        Self::Relative(value.to_owned())
+    }
+}
+
+impl From<i64> for TimestampOrRelative {
+    fn from(value: i64) -> Self {
+        Self::Timestamp(value)
+    }
+}
+
 impl From<&str> for Aggregate {
     fn from(val: &str) -> Aggregate {
         serde_json::from_str(val).unwrap()
@@ -29,8 +48,8 @@ impl From<&str> for Aggregate {
 #[serde(rename_all = "camelCase")]
 pub struct DatapointsFilter {
     pub items: Vec<DatapointsQuery>,
-    pub start: Option<i64>,
-    pub end: Option<i64>,
+    pub start: Option<TimestampOrRelative>,
+    pub end: Option<TimestampOrRelative>,
     pub limit: Option<u32>,
     pub aggregates: Option<Vec<Aggregate>>,
     pub granularity: Option<String>,
@@ -44,8 +63,8 @@ pub struct DatapointsFilter {
 pub struct DatapointsQuery {
     #[serde(flatten)]
     pub id: Identity,
-    pub start: Option<i64>,
-    pub end: Option<i64>,
+    pub start: Option<TimestampOrRelative>,
+    pub end: Option<TimestampOrRelative>,
     pub limit: Option<u32>,
     pub aggregates: Option<Vec<String>>,
     pub granularity: Option<String>,

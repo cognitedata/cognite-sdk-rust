@@ -1,7 +1,7 @@
 use crate::api::resource::*;
 use crate::dto::core::sequences::*;
 use crate::error::Result;
-use crate::{Identity, Items, LimitCursorPartitionQuery, PartitionedFilter, Patch};
+use crate::{Identity, Items, LimitCursorPartitionQuery, Patch};
 
 pub type Sequences = Resource<Sequence>;
 
@@ -15,7 +15,7 @@ impl<'a> SearchItems<'a, SequenceFilter, SequenceSearch, Sequence> for Sequences
 impl Update<Patch<PatchSequence>, Sequence> for Sequences {}
 impl DeleteWithIgnoreUnknownIds<Identity> for Sequences {}
 impl RetrieveWithIgnoreUnknownIds<Identity, Sequence> for Sequences {}
-impl FilterWithRequest<PartitionedFilter<SequenceFilter>, Sequence> for Sequences {}
+impl FilterWithRequest<SequenceFilterRequest, Sequence> for Sequences {}
 
 impl Sequences {
     pub async fn insert_rows(&self, rows: &[InsertSequenceRows]) -> Result<()> {

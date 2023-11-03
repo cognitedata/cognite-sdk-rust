@@ -1,6 +1,6 @@
 use std::fmt::Display;
 
-use serde::{Deserialize, Serialize};
+use serde::{de::Visitor, Deserialize, Serialize};
 use serde_with::skip_serializing_none;
 
 use crate::CogniteExternalId;
@@ -97,6 +97,49 @@ impl Serialize for Partition {
         S: serde::Serializer,
     {
         serializer.serialize_str(&self.to_string())
+    }
+}
+
+struct PartitionVisitor;
+
+impl<'de> Visitor<'de> for PartitionVisitor {
+    type Value = Partition;
+    fn visit_str<E>(self, v: &str) -> Result<Self::Value, E>
+    where
+        E: serde::de::Error,
+    {
+        let pair = v.split('/').collect::<Vec<_>>();
+        if pair.len() != 2 {
+            Err(E::custom("Expect a string on the form N/M"))
+        } else {
+            let lh = pair[0];
+            let rh = pair[1];
+
+            let lh_v = lh
+                .parse()
+                .map_err(|_| E::custom("Expected a string on the form u32/u32"))?;
+            let rh_v = rh
+                .parse()
+                .map_err(|_| E::custom("Expected a string on the form u32/u32"))?;
+
+            Ok(Partition {
+                num_partitions: lh_v,
+                partition_number: rh_v,
+            })
+        }
+    }
+
+    fn expecting(&self, formatter: &mut std::fmt::Formatter) -> std::fmt::Result {
+        formatter.write_str("a string on the form N/M")
+    }
+}
+
+impl<'de> Deserialize<'de> for Partition {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        deserializer.deserialize_str(PartitionVisitor)
     }
 }
 

@@ -1,6 +1,8 @@
 mod filter;
+mod synthetic;
 
 pub use self::filter::*;
+pub use self::synthetic::*;
 
 use crate::{EqIdentity, Identity, Patch, UpdateList, UpdateMap, UpdateSet, UpdateSetNull};
 
