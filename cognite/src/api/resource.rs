@@ -53,6 +53,28 @@ where
             .get_with_params(Self::BASE_PATH, params)
             .await?)
     }
+
+    async fn list_all(&self, mut params: TParams) -> Result<Vec<TResponse>>
+    where
+        TParams: SetCursor + Clone,
+        TResponse: Send,
+    {
+        let mut result = vec![];
+        loop {
+            let lparams = params.clone();
+            let response: ItemsWithCursor<TResponse> = self
+                .get_client()
+                .get_with_params(Self::BASE_PATH, Some(lparams))
+                .await?;
+            for it in response.items {
+                result.push(it);
+            }
+            match response.next_cursor {
+                Some(cursor) => params.set_cursor(Some(cursor)),
+                None => return Ok(result),
+            }
+        }
+    }
 }
 
 #[async_trait]

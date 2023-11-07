@@ -43,3 +43,23 @@ impl From<ViewReference> for TaggedViewReference {
         Self::View(value)
     }
 }
+
+#[derive(Serialize, Deserialize, Clone, Debug)]
+#[serde(rename_all = "camelCase", tag = "type")]
+pub enum TaggedContainerReference {
+    Container(ItemId),
+}
+
+impl From<ItemId> for TaggedContainerReference {
+    fn from(value: ItemId) -> Self {
+        Self::Container(value)
+    }
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug)]
+#[serde(rename_all = "camelCase")]
+pub enum UsedFor {
+    Node,
+    Edge,
+    All,
+}
