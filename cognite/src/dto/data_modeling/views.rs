@@ -49,7 +49,7 @@ impl SetCursor for ViewQuery {
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
-#[serde(rename_all = "camelCase")]
+#[serde(rename_all = "camelCase", untagged)]
 pub enum ViewCreateOrReference {
     Create(ViewCreateDefinition),
     Reference(ViewReference),
@@ -65,7 +65,7 @@ impl From<ViewDefinitionOrReference> for ViewCreateOrReference {
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
-#[serde(rename_all = "camelCase")]
+#[serde(rename_all = "camelCase", untagged)]
 pub enum ViewDefinitionOrReference {
     Definition(ViewDefinition),
     Reference(ViewReference),
