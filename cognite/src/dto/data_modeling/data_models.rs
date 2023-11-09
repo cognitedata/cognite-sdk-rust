@@ -57,7 +57,7 @@ pub struct DataModelId {
 }
 
 #[skip_serializing_none]
-#[derive(Serialize, Deserialize, Clone, Debug)]
+#[derive(Serialize, Deserialize, Clone, Debug, Default)]
 #[serde(rename_all = "camelCase")]
 pub struct DataModelFilter {
     pub cursor: Option<String>,
@@ -73,7 +73,7 @@ impl SetCursor for DataModelFilter {
     }
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Default)]
 pub struct DataModelQuery {
     pub cursor: Option<String>,
     pub limit: Option<i32>,
@@ -94,10 +94,10 @@ impl AsParams for DataModelQuery {
         let mut params = Vec::new();
         to_query("cursor", &self.cursor, &mut params);
         to_query("limit", &self.limit, &mut params);
-        to_query("inline_views", &self.inline_views, &mut params);
+        to_query("inlineViews", &self.inline_views, &mut params);
         to_query("space", &self.space, &mut params);
-        to_query("all_versions", &self.all_versions, &mut params);
-        to_query("include_global", &self.include_global, &mut params);
+        to_query("allVersions", &self.all_versions, &mut params);
+        to_query("includeGlobal", &self.include_global, &mut params);
         params
     }
 }
