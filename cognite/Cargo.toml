@@ -28,7 +28,7 @@ thiserror = "1.0.50"
 wiremock = "0.5.21"
 
 [target.'cfg(not(target_arch = "wasm32"))'.dev-dependencies]
-tokio = { version = "1.33.0", features = ["macros", "rt-multi-thread"] }
+tokio = { version = "1.34.0", features = ["macros", "rt-multi-thread"] }
 tokio-util = { version = "0.7.10" }
 
 [dev-dependencies]
