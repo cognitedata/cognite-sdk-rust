@@ -37,4 +37,4 @@ rand = "0.8.5"
 wiremock = "0.5.21"
 
 [build-dependencies]
-prost-build = "0.12.1"
+prost-build = "0.12.2"
