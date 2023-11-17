@@ -12,8 +12,8 @@ use crate::Result;
 use crate::{DeleteWithResponse, FilterWithRequest, RetrieveWithRequest, UpsertCollection};
 use crate::{Resource, WithBasePath};
 
-pub struct Instance {}
-pub type Instances = Resource<Instance>;
+/// Instances are nodes and edges in a data model. These contain the actual data in the data model.
+pub type Instances = Resource<SlimNodeOrEdge>;
 
 impl WithBasePath for Instances {
     const BASE_PATH: &'static str = "models/instances";
@@ -37,6 +37,7 @@ impl<TProperties> UpsertCollection<NodeAndEdgeCreateCollection<TProperties>, Sli
 impl DeleteWithResponse<NodeOrEdgeSpecification, NodeOrEdgeSpecification> for Instances {}
 
 impl Instances {
+    /// Filter instances optionally returning type information.
     pub async fn filter_with_type_info<TProperties: DeserializeOwned + Send + Sync + 'static>(
         &self,
         req: FilterInstancesRequest,
@@ -46,6 +47,7 @@ impl Instances {
             .await
     }
 
+    /// Perform a complex query against data models.
     pub async fn query<TProperties: DeserializeOwned + Send + Sync + 'static>(
         &self,
         query: QueryInstancesRequest,
@@ -55,6 +57,8 @@ impl Instances {
             .await
     }
 
+    /// Perform a complex query against data models. This always returns cursors,
+    /// so you can keep querying to get any changes since the last query.
     pub async fn sync<TProperties: DeserializeOwned + Send + Sync + 'static>(
         &self,
         query: QueryInstancesRequest,
@@ -64,6 +68,7 @@ impl Instances {
             .await
     }
 
+    /// Aggregate nodes and edges.
     pub async fn aggregate(
         &self,
         req: AggregateInstancesRequest,
@@ -73,6 +78,7 @@ impl Instances {
             .await
     }
 
+    /// Search nodes and edges.
     pub async fn search<TProperties: DeserializeOwned + Send + Sync + 'static>(
         &self,
         req: SearchInstancesRequest,

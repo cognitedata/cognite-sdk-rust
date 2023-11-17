@@ -4,6 +4,7 @@ use serde_with::skip_serializing_none;
 
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
+/// A wrapper around a list of items.
 pub struct Items {
     pub items: ::serde_json::Value,
 }
@@ -35,6 +36,7 @@ impl<T: Serialize> From<&[T]> for Items {
 #[skip_serializing_none]
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
+/// A wrapper around a list of items, with cursor.
 pub struct ItemsWithCursor<T>
 where
     T: Serialize,
@@ -45,6 +47,7 @@ where
 
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
+/// A wrapper around a list of items, without cursor.
 pub struct ItemsWithoutCursor<T>
 where
     T: Serialize,
@@ -54,6 +57,7 @@ where
 
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
+/// A wrapper around a list of items, with ignore unknown ids.
 pub struct ItemsWithIgnoreUnknownIds {
     pub items: ::serde_json::Value,
     pub ignore_unknown_ids: bool,

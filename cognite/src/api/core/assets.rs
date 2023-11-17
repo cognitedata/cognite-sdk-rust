@@ -4,20 +4,26 @@ use crate::dto::items::ItemsWithCursor;
 use crate::error::Result;
 use crate::{Identity, Patch};
 
-pub type Assets = Resource<Asset>;
+/// Assets represent objects or groups of objects from the physical world.
+/// Assets are organized in hierarchies. For example, a water pump asset can
+/// be part of a subsystem asset on an oil platform asset.
+pub type AssetsResource = Resource<Asset>;
 
-impl WithBasePath for Assets {
+impl WithBasePath for AssetsResource {
     const BASE_PATH: &'static str = "assets";
 }
 
-impl List<AssetQuery, Asset> for Assets {}
-impl Create<AddAsset, Asset> for Assets {}
-impl<'a> SearchItems<'a, AssetFilter, AssetSearch, Asset> for Assets {}
-impl Update<Patch<PatchAsset>, Asset> for Assets {}
-impl DeleteWithRequest<DeleteAssetsRequest> for Assets {}
-impl FilterWithRequest<FilterAssetsRequest, Asset> for Assets {}
+impl List<AssetQuery, Asset> for AssetsResource {}
+impl Create<AddAsset, Asset> for AssetsResource {}
+impl<'a> SearchItems<'a, AssetFilter, AssetSearch, Asset> for AssetsResource {}
+impl Update<Patch<PatchAsset>, Asset> for AssetsResource {}
+impl DeleteWithRequest<DeleteAssetsRequest> for AssetsResource {}
+impl FilterWithRequest<FilterAssetsRequest, Asset> for AssetsResource {}
 
-impl Assets {
+impl AssetsResource {
+    /// Retrieve a list of assets by their IDs.
+    ///
+    /// Will fail if `ignore_unknown_ids` is false and the assets are not present in CDF.
     pub async fn retrieve(
         &self,
         asset_ids: &[Identity],

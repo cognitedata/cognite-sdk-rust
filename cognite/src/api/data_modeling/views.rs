@@ -4,14 +4,15 @@ use crate::{
     Create, DeleteWithResponse, List, Resource, Retrieve, WithBasePath,
 };
 
-pub struct View {}
-pub type Views = Resource<View>;
+/// A view is a logical view on the stored data. Views organize
+/// and describe properties defined in various containers, making them easier to query.
+pub type ViewsResource = Resource<ViewDefinition>;
 
-impl WithBasePath for Views {
+impl WithBasePath for ViewsResource {
     const BASE_PATH: &'static str = "models/views";
 }
 
-impl Create<ViewCreateDefinition, ViewDefinition> for Views {}
-impl List<ViewQuery, ViewDefinition> for Views {}
-impl Retrieve<ItemIdOptionalVersion, ViewDefinition> for Views {}
-impl DeleteWithResponse<ViewReference, ViewReference> for Views {}
+impl Create<ViewCreateDefinition, ViewDefinition> for ViewsResource {}
+impl List<ViewQuery, ViewDefinition> for ViewsResource {}
+impl Retrieve<ItemIdOptionalVersion, ViewDefinition> for ViewsResource {}
+impl DeleteWithResponse<ViewReference, ViewReference> for ViewsResource {}

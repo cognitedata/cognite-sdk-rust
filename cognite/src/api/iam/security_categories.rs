@@ -3,9 +3,13 @@ use crate::dto::iam::security_category::*;
 use crate::dto::items::Items;
 use crate::error::Result;
 
-pub type SecurityCategories = Resource<SecurityCategory>;
+/// Manage security categories for a specific project. Security categories can be used to
+/// restrict access to a resource. Applying a security category to a resource means that
+/// only principals (users or service accounts) that also have this security category
+/// can access the resource.
+pub type SecurityCategoriesResource = Resource<SecurityCategory>;
 
-impl SecurityCategories {
+impl SecurityCategoriesResource {
     pub async fn list_all(
         &self,
         params: Option<SecurityCategoryQuery>,

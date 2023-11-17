@@ -2,10 +2,13 @@ use std::fmt::Display;
 
 use crate::Partition;
 
+/// Trait for query parameters.
 pub trait AsParams {
+    /// Convert self to a list of query parameter tuples.
     fn to_tuples(self) -> Vec<(String, String)>;
 }
 
+/// Push the item given in `item` to the query with name `name` if it is Some.
 pub fn to_query<T>(name: &str, item: &Option<T>, params: &mut Vec<(String, String)>)
 where
     T: Display,
@@ -16,6 +19,7 @@ where
     }
 }
 
+/// Push a list of items to the query with name `name` if `item` is `Some`.
 pub fn to_query_vec(name: &str, item: &Option<Vec<String>>, params: &mut Vec<(String, String)>) {
     match item {
         Some(it) => params.push((
@@ -32,6 +36,7 @@ pub fn to_query_vec(name: &str, item: &Option<Vec<String>>, params: &mut Vec<(St
     }
 }
 
+/// Push a list of numbers to the query with name `name` if `item` is `Some`.
 pub fn to_query_vec_i64(name: &str, item: &Option<Vec<i64>>, params: &mut Vec<(String, String)>) {
     match item {
         Some(it) => params.push((
@@ -48,6 +53,7 @@ pub fn to_query_vec_i64(name: &str, item: &Option<Vec<i64>>, params: &mut Vec<(S
     }
 }
 
+/// Simple query with limit and cursor.
 pub struct LimitCursorQuery {
     pub limit: Option<i32>,
     pub cursor: Option<String>,
@@ -62,6 +68,7 @@ impl AsParams for LimitCursorQuery {
     }
 }
 
+/// Query with limt, cursor, and partition.
 pub struct LimitCursorPartitionQuery {
     pub limit: Option<i32>,
     pub cursor: Option<String>,

@@ -5,6 +5,10 @@ use task_local_extensions::Extensions;
 
 use crate::AuthHeaderManager;
 
+/// Middleware for token authentication.
+///
+/// Note that in order to use this, you need to add `ClientWithMiddleware` as an extension
+/// to your requests.
 pub struct AuthenticatorMiddleware {
     authenticator: AuthHeaderManager,
 }

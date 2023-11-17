@@ -19,6 +19,7 @@ pub struct ApiClient {
 const SDK_VERSION: &str = concat!("rust-sdk-v", env!("CARGO_PKG_VERSION"));
 
 impl ApiClient {
+    /// Create a new api client.
     pub fn new(api_base_url: &str, app_name: &str, client: ClientWithMiddleware) -> ApiClient {
         ApiClient {
             api_base_url: String::from(api_base_url),
@@ -111,6 +112,7 @@ impl ApiClient {
         }
     }
 
+    /// Perform a get request to the given path, deserializing the result from JSON.
     pub async fn get<T: DeserializeOwned>(&self, path: &str) -> Result<T> {
         let url = format!("{}/{}", self.api_base_url, path);
         let headers: HeaderMap = self.get_headers();
@@ -118,6 +120,8 @@ impl ApiClient {
         self.send_request(request_builder).await
     }
 
+    /// Perform a get request to the given path, with a query given by `params`,
+    /// then deserialize the result from JSON.
     pub async fn get_with_params<T: DeserializeOwned, R: AsParams>(
         &self,
         path: &str,
@@ -134,6 +138,7 @@ impl ApiClient {
         self.send_request(request_builder).await
     }
 
+    /// Perform a get request to the given URL, returning a stream.
     pub async fn get_stream(
         &self,
         url: &str,
@@ -157,6 +162,8 @@ impl ApiClient {
         }
     }
 
+    /// Perform a post request to the given path, serializing `object` to JSON and sending it
+    /// as the body, then deserialize the response from JSON.
     pub async fn post<D, S>(&self, path: &str, object: &S) -> Result<D>
     where
         D: DeserializeOwned,
@@ -169,6 +176,8 @@ impl ApiClient {
         self.post_json(path, json).await
     }
 
+    /// Perform a post request to the given path, assuming `body` is valid JSON, then
+    /// deserialize the response from JSON.
     pub async fn post_json<T: DeserializeOwned>(&self, path: &str, body: String) -> Result<T> {
         let url = format!("{}/{}", self.api_base_url, path);
         let headers: HeaderMap = self.get_headers();
@@ -176,6 +185,8 @@ impl ApiClient {
         self.send_request(request_builder).await
     }
 
+    /// Perform a post request to the given path, with query parameters given by `params`.
+    /// Deserialize the response from JSON.
     pub async fn post_with_query<D: DeserializeOwned, S: Serialize, R: AsParams>(
         &self,
         path: &str,
@@ -201,6 +212,8 @@ impl ApiClient {
         self.send_request(request_builder).await
     }
 
+    /// Perform a post request to the given path, posting `value` as protobuf.
+    /// Expects JSON as response.
     pub async fn post_protobuf<D: DeserializeOwned, T: Message>(
         &self,
         path: &str,
@@ -220,6 +233,8 @@ impl ApiClient {
         self.send_request(request_builder).await
     }
 
+    /// Perform a post request to the given path, send `object` as JSON in the body,
+    /// then expect protobuf as response.
     pub async fn post_expect_protobuf<D: Message + Default, S: Serialize>(
         &self,
         path: &str,
@@ -237,6 +252,7 @@ impl ApiClient {
         self.send_request_proto(request_builder).await
     }
 
+    /// Perform a put request with the data in `data`.
     pub async fn put_blob(&self, url: &str, mime_type: &str, data: Vec<u8>) -> Result<()> {
         let mut headers: HeaderMap = self.get_headers();
         headers.insert(CONTENT_TYPE, HeaderValue::from_str(mime_type)?);
@@ -248,6 +264,18 @@ impl ApiClient {
         Ok(())
     }
 
+    /// Perform a put request, streaming data to `url`.
+    ///
+    /// If `stream_chunked` is true, use streaming semantics to upload the data.
+    /// If `known_size` is None, this may fail if the destination does not support
+    /// chunked streams.
+    ///
+    /// If `stream_chunked` is true and `known_size` is Some, this will include a content length header,
+    /// it is highly recommended to set this whenever possible.
+    ///
+    /// # Warning
+    /// If `stream_chunked` is false, this will collect the input stream into a memory, which can
+    /// be _very_ expensive.
     pub async fn put_stream<S>(
         &self,
         url: &str,
@@ -290,6 +318,7 @@ impl ApiClient {
         Ok(())
     }
 
+    /// Perform a put request to `path` with `object` as JSON, expecting JSON in return.
     pub async fn put<D, S>(&self, path: &str, object: &S) -> Result<D>
     where
         D: DeserializeOwned,
@@ -302,6 +331,7 @@ impl ApiClient {
         self.put_json(path, &json).await
     }
 
+    /// Perform a put request to `path`, assuming `body` is JSON.
     pub async fn put_json<T: DeserializeOwned>(&self, path: &str, body: &str) -> Result<T> {
         let url = format!("{}/{}", self.api_base_url, path);
         let headers: HeaderMap = self.get_headers();
@@ -313,6 +343,7 @@ impl ApiClient {
         self.send_request(request_builder).await
     }
 
+    /// Perform a delete request to `path`, expecting JSON as response.
     pub async fn delete<T: DeserializeOwned>(&self, path: &str) -> Result<T> {
         let url = format!("{}/{}", self.api_base_url, path);
         let headers: HeaderMap = self.get_headers();
@@ -320,6 +351,7 @@ impl ApiClient {
         self.send_request::<T>(request_builder).await
     }
 
+    /// Perform a delete request to `path`, with query parameters given by `params`.
     pub async fn delete_with_params<T: DeserializeOwned, R: AsParams>(
         &self,
         path: &str,

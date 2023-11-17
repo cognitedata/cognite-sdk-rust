@@ -99,10 +99,17 @@ pub struct UpdateSequenceColumns {
 
 impl From<UpdateList<SequenceColumn, String>> for UpdateSequenceColumns {
     fn from(upd: UpdateList<SequenceColumn, String>) -> Self {
-        Self {
-            modify: None,
-            add: upd.add,
-            remove: upd.remove,
+        match upd {
+            UpdateList::AddRemove { add, remove } => Self {
+                modify: None,
+                add,
+                remove,
+            },
+            UpdateList::Set { set } => Self {
+                add: Some(set),
+                modify: None,
+                remove: None,
+            },
         }
     }
 }
@@ -279,7 +286,7 @@ pub struct RetrieveSequenceRows {
 #[skip_serializing_none]
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
-pub struct RetrieveLatestSequenceRow {
+pub struct RetrieveLastSequenceRow {
     pub columns: Option<Vec<String>>,
     pub before: Option<i64>,
     #[serde(flatten)]

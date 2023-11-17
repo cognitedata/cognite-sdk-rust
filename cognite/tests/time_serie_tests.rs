@@ -8,7 +8,7 @@ use cognite::*;
 #[tokio::test]
 async fn create_and_delete_time_series() {
     let id = format!("{}-ts1", PREFIX.as_str());
-    let time_serie = TimeSerie {
+    let time_serie = TimeSeries {
         name: Some("name".to_string()),
         external_id: Some(id),
         is_string: false,

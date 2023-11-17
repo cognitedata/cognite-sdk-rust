@@ -7,19 +7,20 @@ use crate::{
     WithBasePath,
 };
 
-pub struct Container {}
-pub type Containers = Resource<Container>;
+/// A container represents a bag of properties, each property has a type.
+/// Containers can have indexes, constraints, and default values.
+pub type ContainersResource = Resource<ContainerDefinition>;
 
-impl WithBasePath for Containers {
+impl WithBasePath for ContainersResource {
     const BASE_PATH: &'static str = "models/containers";
 }
 
-impl Create<ContainerCreate, ContainerDefinition> for Containers {}
-impl DeleteWithResponse<ItemId, ItemId> for Containers {}
-impl List<ContainerQuery, ContainerDefinition> for Containers {}
-impl Retrieve<ItemId, ContainerDefinition> for Containers {}
+impl Create<ContainerCreate, ContainerDefinition> for ContainersResource {}
+impl DeleteWithResponse<ItemId, ItemId> for ContainersResource {}
+impl List<ContainerQuery, ContainerDefinition> for ContainersResource {}
+impl Retrieve<ItemId, ContainerDefinition> for ContainersResource {}
 
-impl Containers {
+impl ContainersResource {
     pub async fn delete_constraints(
         &self,
         items: &[ContainerComponentId],

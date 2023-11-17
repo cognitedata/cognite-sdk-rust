@@ -8,6 +8,7 @@ use thiserror::Error;
 
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
+/// Wrapper around an error from CDF.
 pub struct ApiErrorWrapper {
     pub error: ApiErrorMessage,
 }
@@ -38,10 +39,12 @@ impl IntegerOrString {
 
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
+/// Details about API errors.
 pub struct ApiErrorDetail(Vec<HashMap<String, IntegerOrString>>);
 
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
+/// CDF error message.
 pub struct ApiErrorMessage {
     pub code: u32,
     pub message: String,
@@ -50,6 +53,7 @@ pub struct ApiErrorMessage {
 }
 
 impl ApiErrorDetail {
+    /// Get a list of identites, assuming each entry here contains `id` or `externalId`
     pub fn get_identities(&self) -> impl Iterator<Item = Identity> + '_ {
         self.iter().filter_map(|m| {
             Self::get_integer(m, "id")
@@ -61,15 +65,15 @@ impl ApiErrorDetail {
                 })
         })
     }
-    fn get_integer(map: &HashMap<String, IntegerOrString>, key: &'static str) -> Option<i64> {
+    /// Get a value from `map` as integer.
+    fn get_integer(map: &HashMap<String, IntegerOrString>, key: &str) -> Option<i64> {
         map.get(key).and_then(|f| f.integer())
     }
-    fn get_string<'a>(
-        map: &'a HashMap<String, IntegerOrString>,
-        key: &'static str,
-    ) -> Option<&'a String> {
+    /// Get a value from `map` as string.
+    fn get_string<'a>(map: &'a HashMap<String, IntegerOrString>, key: &str) -> Option<&'a String> {
         map.get(key).and_then(|f| f.string())
     }
+    /// Iterate over elements.
     pub fn iter(&self) -> impl Iterator<Item = &HashMap<String, IntegerOrString>> + '_ {
         self.0.iter()
     }

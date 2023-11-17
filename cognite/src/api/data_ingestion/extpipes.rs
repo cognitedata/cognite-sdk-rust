@@ -5,23 +5,29 @@ use crate::{
 
 use crate::extpipes::*;
 
-pub type ExtPipes = Resource<ExtPipe>;
+/// Extraction pipelines represent applications and software running outside CDF.
+pub type ExtPipesResource = Resource<ExtPipe>;
 
-impl WithBasePath for ExtPipes {
+impl WithBasePath for ExtPipesResource {
     const BASE_PATH: &'static str = "extpipes";
 }
 
-impl Create<AddExtPipe, ExtPipe> for ExtPipes {}
-impl DeleteWithIgnoreUnknownIds<Identity> for ExtPipes {}
-impl Update<Patch<PatchExtPipe>, ExtPipe> for ExtPipes {}
-impl RetrieveWithIgnoreUnknownIds<Identity, ExtPipe> for ExtPipes {}
-impl FilterItems<ExtPipeFilter, ExtPipe> for ExtPipes {}
+impl Create<AddExtPipe, ExtPipe> for ExtPipesResource {}
+impl DeleteWithIgnoreUnknownIds<Identity> for ExtPipesResource {}
+impl Update<Patch<PatchExtPipe>, ExtPipe> for ExtPipesResource {}
+impl RetrieveWithIgnoreUnknownIds<Identity, ExtPipe> for ExtPipesResource {}
+impl FilterItems<ExtPipeFilter, ExtPipe> for ExtPipesResource {}
 
-pub type ExtPipeRuns = Resource<ExtPipeRun>;
+/// Extraction pipeline runs represent statuses related to an extraction pipeline.
+/// The supported statuses are: `success`, `failure`, and `seen`.
+///
+/// An extraction pipeline can be configured to create notifications when
+/// the state of the extraction pipeline changes.
+pub type ExtPipeRunsResource = Resource<ExtPipeRun>;
 
-impl WithBasePath for ExtPipeRuns {
+impl WithBasePath for ExtPipeRunsResource {
     const BASE_PATH: &'static str = "extpipes/runs";
 }
 
-impl Create<AddExtPipeRun, ExtPipeRun> for ExtPipeRuns {}
-impl FilterItems<ExtPipeRunFilter, ExtPipeRun> for ExtPipeRuns {}
+impl Create<AddExtPipeRun, ExtPipeRun> for ExtPipeRunsResource {}
+impl FilterItems<ExtPipeRunFilter, ExtPipeRun> for ExtPipeRunsResource {}

@@ -2,12 +2,13 @@ use serde::{Deserialize, Serialize};
 use serde_json::json;
 use serde_with::skip_serializing_none;
 
+use crate::time_series::TimeSeries;
 use crate::{
     CogniteExternalId, Identity, LabelsFilter, Partition, Patch, Range, SetCursor, UpdateList,
     UpdateSet, UpdateSetNull, WithPartition,
 };
 
-use crate::{assets::Asset, events::Event, files::FileMetadata, time_series::TimeSerie};
+use crate::{assets::Asset, events::Event, files::FileMetadata};
 
 #[derive(Serialize, Deserialize, Clone, Copy, Debug, Default)]
 #[serde(rename_all = "camelCase")]
@@ -24,7 +25,7 @@ pub enum RelationshipVertexType {
 #[serde(rename_all = "camelCase", untagged)]
 pub enum RelationshipVertex {
     Asset(Asset),
-    TimeSeries(TimeSerie),
+    TimeSeries(TimeSeries),
     File(FileMetadata),
     Event(Event),
     Sequence(()),
