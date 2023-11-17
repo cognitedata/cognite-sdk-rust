@@ -10,8 +10,13 @@ use crate::{EqIdentity, Identity};
 #[serde(rename_all = "camelCase", untagged)]
 /// Update the value of an item, or set it to null.
 pub enum UpdateSetNull<T> {
-    Set { set: T },
-    SetNull { set_null: bool },
+    Set {
+        set: T,
+    },
+    #[serde(rename_all = "camelCase")]
+    SetNull {
+        set_null: bool,
+    },
 }
 
 impl<T> Default for UpdateSetNull<T> {
@@ -228,6 +233,7 @@ where
     }
 }
 
+/// Macro to extract the identity from a resource.
 macro_rules! to_idt {
     ($it:ident) => {
         if $it.id > 0 {
