@@ -1,7 +1,11 @@
+use std::collections::VecDeque;
+use std::pin::Pin;
 use std::{marker::PhantomData, sync::Arc};
 
 use async_trait::async_trait;
 use futures::future::try_join_all;
+use futures::stream::try_unfold;
+use futures::TryStream;
 use serde::{de::DeserializeOwned, Serialize};
 
 use crate::dto::items::*;
@@ -85,6 +89,56 @@ where
                 None => return Ok(result),
             }
         }
+    }
+
+    /// List resources, following cursors. This returns a stream, you can abort the stream whenever you
+    /// want and only resources retrieved up to that point will be returned.
+    ///
+    /// Each item in the stream will be a result, after the first error is returned the
+    /// stream will end.
+    fn list_all_stream<'a>(
+        &'a self,
+        params: TParams,
+    ) -> Pin<Box<dyn TryStream<Ok = TResponse, Error = crate::Error, Item = Result<TResponse>> + 'a>>
+    where
+        TParams: SetCursor + Clone,
+        TResponse: Send + 'static,
+    {
+        let state = CursorStreamState {
+            req: params,
+            responses: VecDeque::new(),
+            next_cursor: CursorState::Initial,
+        };
+
+        Box::pin(try_unfold(state, move |mut state| async move {
+            if let Some(next) = state.responses.pop_front() {
+                Ok(Some((next, state)))
+            } else {
+                let cursor = match std::mem::take(&mut state.next_cursor) {
+                    CursorState::Initial => None,
+                    CursorState::Some(x) => Some(x),
+                    CursorState::End => {
+                        return Ok(None);
+                    }
+                };
+                state.req.set_cursor(cursor);
+                let response: ItemsWithCursor<TResponse> = self
+                    .get_client()
+                    .get_with_params(Self::BASE_PATH, Some(state.req.clone()))
+                    .await?;
+
+                state.responses.extend(response.items.into_iter());
+                state.next_cursor = match response.next_cursor {
+                    Some(x) => CursorState::Some(x),
+                    None => CursorState::End,
+                };
+                if let Some(next) = state.responses.pop_front() {
+                    Ok(Some((next, state)))
+                } else {
+                    Ok(None)
+                }
+            }
+        }))
     }
 }
 
@@ -486,6 +540,20 @@ where
 {
 }
 
+#[derive(Debug, Default)]
+enum CursorState {
+    Initial,
+    Some(String),
+    #[default]
+    End,
+}
+
+struct CursorStreamState<TFilter, TResponse> {
+    req: TFilter,
+    responses: VecDeque<TResponse>,
+    next_cursor: CursorState,
+}
+
 #[async_trait]
 /// Trait for resource types that allow filtering with a more complex request.
 pub trait FilterWithRequest<TFilter, TResponse>
@@ -523,6 +591,56 @@ where
                 None => return Ok(result),
             }
         }
+    }
+
+    /// Filter resources, following cursors. This returns a stream, you can abort the stream whenever you
+    /// want and only resources retrieved up to that point will be returned.
+    ///
+    /// Each item in the stream will be a result, after the first error is returned the
+    /// stream will end.
+    fn filter_all_stream<'a>(
+        &'a self,
+        filter: TFilter,
+    ) -> Pin<Box<dyn TryStream<Ok = TResponse, Error = crate::Error, Item = Result<TResponse>> + 'a>>
+    where
+        TFilter: SetCursor,
+        TResponse: Send + 'static,
+    {
+        let state = CursorStreamState {
+            req: filter,
+            responses: VecDeque::new(),
+            next_cursor: CursorState::Initial,
+        };
+
+        Box::pin(try_unfold(state, move |mut state| async move {
+            if let Some(next) = state.responses.pop_front() {
+                Ok(Some((next, state)))
+            } else {
+                let cursor = match std::mem::take(&mut state.next_cursor) {
+                    CursorState::Initial => None,
+                    CursorState::Some(x) => Some(x),
+                    CursorState::End => {
+                        return Ok(None);
+                    }
+                };
+                state.req.set_cursor(cursor);
+                let response: ItemsWithCursor<TResponse> = self
+                    .get_client()
+                    .post(&format!("{}/list", Self::BASE_PATH), &state.req)
+                    .await?;
+
+                state.responses.extend(response.items.into_iter());
+                state.next_cursor = match response.next_cursor {
+                    Some(x) => CursorState::Some(x),
+                    None => CursorState::End,
+                };
+                if let Some(next) = state.responses.pop_front() {
+                    Ok(Some((next, state)))
+                } else {
+                    Ok(None)
+                }
+            }
+        }))
     }
 
     /// Filter resources using partitioned reads, following cursors until all partitions are
