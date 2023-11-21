@@ -1,5 +1,5 @@
 use reqwest::Client;
-use reqwest_middleware::{ClientBuilder, ClientWithMiddleware};
+use reqwest_middleware::{ClientBuilder, ClientWithMiddleware, Middleware};
 use std::env;
 use std::sync::Arc;
 use std::time::Duration;
@@ -113,7 +113,7 @@ impl CogniteClient {
         let api_client = ApiClient::new(
             &api_base_path,
             app_name,
-            Self::get_client(config.unwrap_or_default(), auth, None)?,
+            Self::get_client(config.unwrap_or_default(), auth, None, None)?,
         );
 
         Self::new_internal(api_client)
@@ -123,6 +123,7 @@ impl CogniteClient {
         config: ClientConfig,
         authenticator: AuthHeaderManager,
         client: Option<Client>,
+        middleware: Option<Vec<Arc<dyn Middleware>>>,
     ) -> Result<ClientWithMiddleware> {
         let client = if let Some(client) = client {
             client
@@ -144,6 +145,11 @@ impl CogniteClient {
             ));
         }
         builder = builder.with(AuthenticatorMiddleware::new(authenticator)?);
+        if let Some(mw) = middleware {
+            for ware in mw {
+                builder = builder.with_arc(ware);
+            }
+        }
         Ok(builder.build())
     }
 
@@ -154,12 +160,13 @@ impl CogniteClient {
         app_name: String,
         project: String,
         base_url: String,
+        middleware: Option<Vec<Arc<dyn Middleware>>>,
     ) -> Result<Self> {
         let api_base_path = format!("{}/api/{}/projects/{}", base_url, "v1", project);
         let api_client = ApiClient::new(
             &api_base_path,
             &app_name,
-            Self::get_client(config, auth, client)?,
+            Self::get_client(config, auth, client, middleware)?,
         );
         Self::new_internal(api_client)
     }
@@ -199,7 +206,7 @@ impl CogniteClient {
         let api_client = ApiClient::new(
             &api_base_path,
             app_name,
-            Self::get_client(config.unwrap_or_default(), auth, None)?,
+            Self::get_client(config.unwrap_or_default(), auth, None, None)?,
         );
 
         Self::new_internal(api_client)
@@ -218,6 +225,7 @@ pub struct Builder {
     app_name: Option<String>,
     project: Option<String>,
     base_url: Option<String>,
+    custom_middleware: Option<Vec<Arc<dyn Middleware>>>,
 }
 
 impl Builder {
@@ -256,6 +264,14 @@ impl Builder {
         self
     }
 
+    pub fn with_custom_middleware(&mut self, middleware: Arc<dyn Middleware>) -> &mut Self {
+        match &mut self.custom_middleware {
+            Some(x) => x.push(middleware),
+            None => self.custom_middleware = Some(vec![middleware]),
+        }
+        self
+    }
+
     pub fn build(self) -> Result<CogniteClient> {
         let auth = self
             .auth
@@ -272,6 +288,14 @@ impl Builder {
             .base_url
             .unwrap_or_else(|| "https://api.cognitedata.com/".to_owned());
 
-        CogniteClient::new_from_builder(auth, config, client, app_name, project, base_url)
+        CogniteClient::new_from_builder(
+            auth,
+            config,
+            client,
+            app_name,
+            project,
+            base_url,
+            self.custom_middleware,
+        )
     }
 }
