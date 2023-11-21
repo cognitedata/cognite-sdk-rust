@@ -9,7 +9,7 @@ use std::collections::HashMap;
 #[skip_serializing_none]
 #[derive(Serialize, Deserialize, Debug, Default, Clone)]
 #[serde(rename_all = "camelCase")]
-pub struct TimeSerieFilter {
+pub struct TimeSeriesFilter {
     pub name: Option<String>,
     pub unit: Option<String>,
     pub is_string: Option<bool>,
@@ -25,29 +25,29 @@ pub struct TimeSerieFilter {
     pub last_updated_time: Option<Range<i64>>,
 }
 
-impl TimeSerieFilter {
-    pub fn new() -> TimeSerieFilter {
-        TimeSerieFilter::default()
+impl TimeSeriesFilter {
+    pub fn new() -> TimeSeriesFilter {
+        TimeSeriesFilter::default()
     }
 }
 
 #[skip_serializing_none]
 #[derive(Serialize, Deserialize, Debug, Default, Clone)]
 #[serde(rename_all = "camelCase")]
-pub struct TimeSerieSearch {
+pub struct TimeSeriesSearch {
     pub name: Option<String>,
     pub description: Option<String>,
     pub query: Option<String>,
 }
 
-impl TimeSerieSearch {
-    pub fn new() -> TimeSerieSearch {
-        TimeSerieSearch::default()
+impl TimeSeriesSearch {
+    pub fn new() -> TimeSeriesSearch {
+        TimeSeriesSearch::default()
     }
 }
 
 #[derive(Debug, Default, Clone)]
-pub struct TimeSerieQuery {
+pub struct TimeSeriesQuery {
     pub limit: Option<i32>,
     pub include_metadata: Option<bool>,
     pub cursor: Option<String>,
@@ -55,7 +55,7 @@ pub struct TimeSerieQuery {
     pub external_id_prefix: Option<String>,
 }
 
-impl AsParams for TimeSerieQuery {
+impl AsParams for TimeSeriesQuery {
     fn to_tuples(self) -> Vec<(String, String)> {
         let mut params = Vec::<(String, String)>::new();
         to_query("limit", &self.limit, &mut params);
@@ -67,13 +67,13 @@ impl AsParams for TimeSerieQuery {
     }
 }
 
-impl SetCursor for TimeSerieQuery {
+impl SetCursor for TimeSeriesQuery {
     fn set_cursor(&mut self, cursor: Option<String>) {
         self.cursor = cursor;
     }
 }
 
-impl WithPartition for TimeSerieQuery {
+impl WithPartition for TimeSeriesQuery {
     fn with_partition(&self, partition: crate::Partition) -> Self {
         Self {
             limit: self.limit,
@@ -89,7 +89,7 @@ impl WithPartition for TimeSerieQuery {
 #[derive(Serialize, Debug, Default, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct TimeSeriesFilterRequest {
-    pub filter: Option<TimeSerieFilter>,
+    pub filter: Option<TimeSeriesFilter>,
     pub advanced_filter: Option<FdmFilter>,
     pub limit: Option<i32>,
     pub cursor: Option<String>,

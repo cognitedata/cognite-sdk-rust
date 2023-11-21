@@ -5,8 +5,8 @@ use cognite::*;
 mod common;
 pub use common::*;
 
-async fn create_test_ts(client: &CogniteClient, is_string: bool, idx: i32) -> TimeSerie {
-    let ts = AddTimeSerie {
+async fn create_test_ts(client: &CogniteClient, is_string: bool, idx: i32) -> TimeSeries {
+    let ts = AddTimeSeries {
         external_id: Some(format!("{}-ts-{}", PREFIX.as_str(), idx)),
         is_string,
         name: Some(format!("Test ts {idx}")),

@@ -6,57 +6,112 @@ use serde_with::skip_serializing_none;
 use crate::{EqIdentity, Identity};
 
 #[skip_serializing_none]
-#[derive(Serialize, Deserialize, Debug, Default, Clone)]
-#[serde(rename_all = "camelCase")]
-pub struct UpdateSetNull<T> {
-    pub set: Option<T>,
-    pub set_null: Option<bool>,
+#[derive(Serialize, Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase", untagged)]
+/// Update the value of an item, or set it to null.
+pub enum UpdateSetNull<T> {
+    Set {
+        set: T,
+    },
+    #[serde(rename_all = "camelCase")]
+    SetNull {
+        set_null: bool,
+    },
+}
+
+impl<T> Default for UpdateSetNull<T> {
+    fn default() -> Self {
+        Self::SetNull { set_null: false }
+    }
 }
 
 impl<T> From<Option<T>> for UpdateSetNull<T> {
     fn from(el: Option<T>) -> Self {
         match el {
-            Some(x) => UpdateSetNull {
-                set: Some(x),
-                set_null: None,
-            },
-            None => UpdateSetNull {
-                set: None,
-                set_null: Some(true),
-            },
+            Some(x) => UpdateSetNull::Set { set: x },
+            None => UpdateSetNull::SetNull { set_null: true },
         }
     }
 }
 
+impl<T> UpdateSetNull<T> {
+    pub fn set(value: T) -> Self {
+        Self::Set { set: value }
+    }
+
+    pub fn set_null(set_null: bool) -> Self {
+        Self::SetNull { set_null }
+    }
+}
+
 #[skip_serializing_none]
-#[derive(Serialize, Deserialize, Debug, Default, Clone)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
+/// Update the value of an item.
 pub struct UpdateSet<T> {
-    pub set: Option<T>,
+    pub set: T,
+}
+
+impl<T> UpdateSet<T> {
+    pub fn set(value: T) -> Self {
+        Self { set: value }
+    }
 }
 
 impl<T> From<T> for UpdateSet<T> {
     fn from(el: T) -> Self {
-        UpdateSet { set: Some(el) }
+        UpdateSet { set: el }
     }
 }
 
 #[skip_serializing_none]
-#[derive(Serialize, Deserialize, Debug, Default, Clone)]
-#[serde(rename_all = "camelCase")]
-pub struct UpdateList<TAdd, TRemove> {
-    pub add: Option<Vec<TAdd>>,
-    pub remove: Option<Vec<TRemove>>,
-    pub set: Option<Vec<TAdd>>,
+#[derive(Serialize, Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase", untagged)]
+/// Update the value of a list item, adding and removing or setting the values.
+pub enum UpdateList<TAdd, TRemove> {
+    AddRemove {
+        add: Option<Vec<TAdd>>,
+        remove: Option<Vec<TRemove>>,
+    },
+    Set {
+        set: Vec<TAdd>,
+    },
+}
+
+impl<TAdd, TRemove> UpdateList<TAdd, TRemove> {
+    /// Add items given by `add` and remove any given by `remove`
+    pub fn add_remove(add: Vec<TAdd>, remove: Vec<TRemove>) -> Self {
+        Self::AddRemove {
+            add: Some(add),
+            remove: Some(remove),
+        }
+    }
+
+    /// Add items given by `add`, overwriting any that already exist.
+    pub fn add(add: Vec<TAdd>) -> Self {
+        Self::AddRemove {
+            add: Some(add),
+            remove: None,
+        }
+    }
+
+    /// Remove items given by `remove`, if they exist.
+    pub fn remove(remove: Vec<TRemove>) -> Self {
+        Self::AddRemove {
+            add: None,
+            remove: Some(remove),
+        }
+    }
+
+    /// Set the list to `set`.
+    pub fn set(set: Vec<TAdd>) -> Self {
+        Self::Set { set }
+    }
 }
 
 impl<TAdd, TRemove> From<Vec<TAdd>> for UpdateList<TAdd, TRemove> {
     fn from(el: Vec<TAdd>) -> Self {
-        UpdateList::<TAdd, TRemove> {
-            set: Some(el),
-            remove: None,
-            add: None,
-        }
+        Self::Set { set: el }
     }
 }
 
@@ -64,25 +119,62 @@ impl<TAdd, TRemove> From<Option<Vec<TAdd>>> for UpdateList<TAdd, TRemove> {
     fn from(el: Option<Vec<TAdd>>) -> Self {
         match el {
             Some(x) => x.into(),
-            None => UpdateList::<TAdd, TRemove> {
-                set: Some(Vec::<TAdd>::new()),
-                remove: None,
-                add: None,
+            None => UpdateList::<TAdd, TRemove>::Set {
+                set: Vec::<TAdd>::new(),
             },
         }
     }
 }
 
 #[skip_serializing_none]
-#[derive(Serialize, Deserialize, Debug, Default, Clone)]
-#[serde(rename_all = "camelCase")]
-pub struct UpdateMap<TKey, TValue>
+#[derive(Serialize, Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase", untagged)]
+/// Update a map from `TKey` to `TValue`, adding and removing or setting the values.
+pub enum UpdateMap<TKey, TValue>
 where
     TKey: std::hash::Hash + std::cmp::Eq,
 {
-    pub set: Option<HashMap<TKey, TValue>>,
-    pub remove: Option<Vec<TKey>>,
-    pub add: Option<HashMap<TKey, TValue>>,
+    AddRemove {
+        add: Option<HashMap<TKey, TValue>>,
+        remove: Option<Vec<TKey>>,
+    },
+    Set {
+        set: HashMap<TKey, TValue>,
+    },
+}
+
+impl<TKey, TValue> UpdateMap<TKey, TValue>
+where
+    TKey: std::hash::Hash + std::cmp::Eq,
+{
+    /// Add items given by `add` and remove any given by `remove`
+    pub fn add_remove(add: HashMap<TKey, TValue>, remove: Vec<TKey>) -> Self {
+        Self::AddRemove {
+            add: Some(add),
+            remove: Some(remove),
+        }
+    }
+
+    /// Add items given by `add`, overwriting any that already exist.
+    pub fn add(add: HashMap<TKey, TValue>) -> Self {
+        Self::AddRemove {
+            add: Some(add),
+            remove: None,
+        }
+    }
+
+    /// Remove items given by `remove`, if they exist.
+    pub fn remove(remove: Vec<TKey>) -> Self {
+        Self::AddRemove {
+            add: None,
+            remove: Some(remove),
+        }
+    }
+
+    /// Set the list to `set`.
+    pub fn set(set: HashMap<TKey, TValue>) -> Self {
+        Self::Set { set }
+    }
 }
 
 impl<TKey, TValue> From<HashMap<TKey, TValue>> for UpdateMap<TKey, TValue>
@@ -90,11 +182,7 @@ where
     TKey: std::hash::Hash + std::cmp::Eq,
 {
     fn from(el: HashMap<TKey, TValue>) -> Self {
-        UpdateMap {
-            set: Some(el),
-            remove: None,
-            add: None,
-        }
+        UpdateMap::Set { set: el }
     }
 }
 
@@ -105,10 +193,8 @@ where
     fn from(el: Option<HashMap<TKey, TValue>>) -> Self {
         match el {
             Some(x) => x.into(),
-            None => UpdateMap {
-                set: Some(HashMap::new()),
-                remove: None,
-                add: None,
+            None => UpdateMap::Set {
+                set: HashMap::new(),
             },
         }
     }
@@ -116,6 +202,7 @@ where
 
 #[derive(Serialize, Deserialize, Debug, Default)]
 #[serde(rename_all = "camelCase")]
+/// Wrapper around a patch update.
 pub struct Patch<T>
 where
     T: Default,
@@ -146,6 +233,7 @@ where
     }
 }
 
+/// Macro to extract the identity from a resource.
 macro_rules! to_idt {
     ($it:ident) => {
         if $it.id > 0 {

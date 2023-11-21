@@ -5,17 +5,19 @@ use std::sync::Arc;
 use std::time::Duration;
 
 use super::{ApiClient, Error, Result};
-use crate::api::core::sequences::Sequences;
+use crate::api::core::sequences::SequencesResource;
 use crate::api::data_modeling::Models;
-use crate::api::iam::groups::Groups;
-use crate::api::iam::sessions::Sessions;
+use crate::api::iam::groups::GroupsResource;
+use crate::api::iam::sessions::SessionsResource;
 use crate::auth::AuthenticatorMiddleware;
 use crate::error::Kind;
 use crate::retry::CustomRetryMiddleware;
 use crate::AuthHeaderManager;
 use crate::{
-    assets::Assets, datasets::DataSets, events::Events, extpipes::ExtPipeRuns, extpipes::ExtPipes,
-    files::Files, labels::Labels, raw::Raw, relationships::Relationships, time_series::TimeSeries,
+    assets::AssetsResource, datasets::DataSetsResource, events::EventsResource,
+    extpipes::ExtPipeRunsResource, extpipes::ExtPipesResource, files::Files,
+    labels::LabelsResource, raw::RawResource, relationships::RelationshipsResource,
+    time_series::TimeSeriesResource,
 };
 
 use crate::api::authenticator::{Authenticator, AuthenticatorConfig};
@@ -61,19 +63,19 @@ pub struct ClientConfig {
 pub struct CogniteClient {
     pub api_client: Arc<ApiClient>,
 
-    pub assets: Assets,
-    pub events: Events,
+    pub assets: AssetsResource,
+    pub events: EventsResource,
     pub files: Files,
-    pub time_series: TimeSeries,
-    pub groups: Groups,
-    pub raw: Raw,
-    pub data_sets: DataSets,
-    pub labels: Labels,
-    pub relationships: Relationships,
-    pub ext_pipes: ExtPipes,
-    pub ext_pipe_runs: ExtPipeRuns,
-    pub sequences: Sequences,
-    pub sessions: Sessions,
+    pub time_series: TimeSeriesResource,
+    pub groups: GroupsResource,
+    pub raw: RawResource,
+    pub data_sets: DataSetsResource,
+    pub labels: LabelsResource,
+    pub relationships: RelationshipsResource,
+    pub ext_pipes: ExtPipesResource,
+    pub ext_pipe_runs: ExtPipeRunsResource,
+    pub sequences: SequencesResource,
+    pub sessions: SessionsResource,
     pub models: Models,
 }
 
@@ -176,19 +178,19 @@ impl CogniteClient {
         Ok(CogniteClient {
             api_client: ac.clone(),
 
-            assets: Assets::new(ac.clone()),
-            events: Events::new(ac.clone()),
+            assets: AssetsResource::new(ac.clone()),
+            events: EventsResource::new(ac.clone()),
             files: Files::new(ac.clone()),
-            groups: Groups::new(ac.clone()),
-            time_series: TimeSeries::new(ac.clone()),
-            raw: Raw::new(ac.clone()),
-            data_sets: DataSets::new(ac.clone()),
-            labels: Labels::new(ac.clone()),
-            relationships: Relationships::new(ac.clone()),
-            ext_pipes: ExtPipes::new(ac.clone()),
-            ext_pipe_runs: ExtPipeRuns::new(ac.clone()),
-            sequences: Sequences::new(ac.clone()),
-            sessions: Sessions::new(ac.clone()),
+            groups: GroupsResource::new(ac.clone()),
+            time_series: TimeSeriesResource::new(ac.clone()),
+            raw: RawResource::new(ac.clone()),
+            data_sets: DataSetsResource::new(ac.clone()),
+            labels: LabelsResource::new(ac.clone()),
+            relationships: RelationshipsResource::new(ac.clone()),
+            ext_pipes: ExtPipesResource::new(ac.clone()),
+            ext_pipe_runs: ExtPipeRunsResource::new(ac.clone()),
+            sequences: SequencesResource::new(ac.clone()),
+            sessions: SessionsResource::new(ac.clone()),
             models: Models::new(ac),
         })
     }

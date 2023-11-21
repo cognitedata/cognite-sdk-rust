@@ -3,17 +3,18 @@ use crate::dto::iam::session::*;
 use crate::{CogniteId, Create, Items, List, Retrieve, WithBasePath};
 use crate::{ItemsWithoutCursor, Result};
 
-pub type Sessions = Resource<Session>;
+/// Sessions are used to maintain access to CDF resources for an extended period of time.
+pub type SessionsResource = Resource<Session>;
 
-impl WithBasePath for Sessions {
+impl WithBasePath for SessionsResource {
     const BASE_PATH: &'static str = "sessions";
 }
 
-impl List<SessionQuery, Session> for Sessions {}
-impl Create<AddSession, Session> for Sessions {}
-impl Retrieve<CogniteId, Session> for Sessions {}
+impl List<SessionQuery, Session> for SessionsResource {}
+impl Create<AddSession, Session> for SessionsResource {}
+impl Retrieve<CogniteId, Session> for SessionsResource {}
 
-impl Sessions {
+impl SessionsResource {
     pub async fn revoke(&self, session_ids: &[CogniteId]) -> Result<Vec<Session>> {
         let items = Items::from(session_ids);
         let response: ItemsWithoutCursor<Session> =

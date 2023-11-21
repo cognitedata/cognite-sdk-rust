@@ -7,6 +7,7 @@ use reqwest_middleware::{Middleware, Next, Result};
 use std::time::Duration;
 use task_local_extensions::Extensions;
 
+/// Middleware for retrying requests.
 pub struct CustomRetryMiddleware {
     max_retries: u32,
     max_delay_ms: u64,
@@ -25,6 +26,7 @@ impl Middleware for CustomRetryMiddleware {
 }
 
 impl CustomRetryMiddleware {
+    /// Create a new retry middleware instance.
     pub fn new(max_retries: u32, max_delay_ms: u64) -> Self {
         Self {
             max_retries: max_retries.min(10),

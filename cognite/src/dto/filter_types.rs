@@ -8,6 +8,7 @@ use crate::CogniteExternalId;
 #[skip_serializing_none]
 #[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
+/// A range between two points.
 pub struct Range<T> {
     pub max: Option<T>,
     pub min: Option<T>,
@@ -22,6 +23,7 @@ impl<T> Range<T> {
 #[skip_serializing_none]
 #[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
+/// A type wrapping a CDF filter, with cursor and limit.
 pub struct Filter<T> {
     pub filter: T,
     pub cursor: Option<String>,
@@ -47,6 +49,7 @@ impl<T> SetCursor for Filter<T> {
 #[skip_serializing_none]
 #[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
+/// A type warpping a CDf filter and search, with limit.
 pub struct Search<TFilter, TSearch> {
     pub filter: TFilter,
     pub search: TSearch,
@@ -71,6 +74,8 @@ pub enum LabelsFilter {
 }
 
 #[derive(Debug, Clone)]
+/// A wrapper around a partition, with custom serializer and deserializer
+/// for converting to the [a]/[b] format used by CDF.
 pub struct Partition {
     pub num_partitions: u32,
     pub partition_number: u32,
@@ -146,6 +151,7 @@ impl<'de> Deserialize<'de> for Partition {
 #[skip_serializing_none]
 #[derive(Serialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
+/// A wrapper around a filter, with cursor, limit, and partition.
 pub struct PartitionedFilter<T> {
     pub filter: T,
     pub cursor: Option<String>,
@@ -169,7 +175,9 @@ impl<T> PartitionedFilter<T> {
     }
 }
 
+/// Trait implemented by types with a cursor, to allow automatic pagination.
 pub trait SetCursor {
+    /// Set cursor to the given value.
     fn set_cursor(&mut self, cursor: Option<String>);
 }
 
@@ -179,7 +187,9 @@ impl<T> SetCursor for PartitionedFilter<T> {
     }
 }
 
+/// Trait implemented by types with a partition, to allow automatic handling of partitions.
 pub trait WithPartition {
+    /// Create a clone of self with given partition.
     fn with_partition(&self, partition: Partition) -> Self;
 }
 

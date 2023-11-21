@@ -3,18 +3,19 @@ use crate::dto::{data_organization::relationships::*, items::ItemsWithCursor};
 use crate::error::Result;
 use crate::{CogniteExternalId, Patch};
 
-pub type Relationships = Resource<Relationship>;
+/// Relationships lets you create custom links between different resources.
+pub type RelationshipsResource = Resource<Relationship>;
 
-impl WithBasePath for Relationships {
+impl WithBasePath for RelationshipsResource {
     const BASE_PATH: &'static str = "relationships";
 }
 
-impl Create<AddRelationship, Relationship> for Relationships {}
-impl Update<Patch<PatchRelationship>, Relationship> for Relationships {}
-impl DeleteWithIgnoreUnknownIds<CogniteExternalId> for Relationships {}
-impl FilterWithRequest<FilterRelationshipsQuery, Relationship> for Relationships {}
+impl Create<AddRelationship, Relationship> for RelationshipsResource {}
+impl Update<Patch<PatchRelationship>, Relationship> for RelationshipsResource {}
+impl DeleteWithIgnoreUnknownIds<CogniteExternalId> for RelationshipsResource {}
+impl FilterWithRequest<FilterRelationshipsQuery, Relationship> for RelationshipsResource {}
 
-impl Relationships {
+impl RelationshipsResource {
     pub async fn retrieve(
         &self,
         relationship_ids: &[CogniteExternalId],

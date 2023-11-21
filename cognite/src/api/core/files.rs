@@ -7,6 +7,7 @@ use crate::error::Result;
 use crate::PartitionedFilter;
 use crate::{Identity, ItemsWithoutCursor, Patch};
 
+/// Files store documents, binary blobs, and other file data and relate it to assets.
 pub type Files = Resource<FileMetadata>;
 
 impl WithBasePath for Files {
@@ -85,16 +86,21 @@ impl Files {
             .await
     }
 
+    /// Upload a binary blob to `url`.
     pub async fn upload_blob(&self, mime_type: &str, url: &str, blob: Vec<u8>) -> Result<()> {
         self.api_client.put_blob(url, mime_type, blob).await
     }
 
+    /// Create a file, optionally overwriting an existing file.
+    ///
+    /// The result will contain an upload URL that can be used to upload a file.
     pub async fn upload(&self, overwrite: bool, item: &AddFile) -> Result<FileMetadata> {
         self.api_client
             .post_with_query("files", item, Some(FileUploadQuery::new(overwrite)))
             .await
     }
 
+    /// Get download links for a list of files.
     pub async fn download_link(&self, ids: &[Identity]) -> Result<Vec<FileDownloadUrl>> {
         let items = Items::from(ids);
         let file_links_response: ItemsWithoutCursor<FileDownloadUrl> =
@@ -102,6 +108,7 @@ impl Files {
         Ok(file_links_response.items)
     }
 
+    /// Stream a file from `url`.
     pub async fn download(
         &self,
         url: &str,
@@ -109,6 +116,7 @@ impl Files {
         self.api_client.get_stream(url).await
     }
 
+    /// Stream a file given by `id`.
     pub async fn download_file(
         &self,
         id: Identity,

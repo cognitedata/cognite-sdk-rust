@@ -12,10 +12,13 @@ use std::{
 };
 use thiserror::Error;
 
+/// Type of closure for a synchronous auth callback.
 type CustomAuthCallback =
     dyn Fn(&mut HeaderMap, &ClientWithMiddleware) -> Result<(), AuthenticatorError> + Send + Sync;
 
 #[async_trait]
+/// Trait for a custom authenticator. This should set the necessary headers in `headers` before each
+/// request. Note that this may be called from multiple places in parallel.
 pub trait CustomAuthenticator {
     async fn set_headers(
         &self,
@@ -24,15 +27,22 @@ pub trait CustomAuthenticator {
     ) -> Result<(), AuthenticatorError>;
 }
 
+/// Enumeration of the possible authentication methods available.
 pub enum AuthHeaderManager {
+    /// Authenticator that makes OIDC requests to obtain tokens.
     OIDCToken(Authenticator),
+    /// A fixed OIDC token
     FixedToken(String),
+    /// An internal auth ticket.
     AuthTicket(String),
+    /// A synchronous authentication method.
     Custom(Box<CustomAuthCallback>),
+    /// An async authentication method.
     CustomAsync(Box<dyn CustomAuthenticator + Send + Sync>),
 }
 
 impl AuthHeaderManager {
+    /// Set necesary headers in `headers`.
     pub async fn set_headers(
         &self,
         headers: &mut HeaderMap,
@@ -78,12 +88,19 @@ impl AuthHeaderManager {
     }
 }
 
+/// Configuration for authentication using the OIDC authenticator
 pub struct AuthenticatorConfig {
+    /// Service principal client ID.
     pub client_id: String,
+    /// IdP token URL.
     pub token_url: String,
+    /// Service principal client secret.
     pub secret: String,
+    /// Optional resource.
     pub resource: Option<String>,
+    /// Optional audience.
     pub audience: Option<String>,
+    /// Optional space separate list of scopes.
     pub scopes: Option<String>,
 }
 
@@ -117,6 +134,7 @@ struct AuthenticatorResponse {
 }
 
 #[derive(Serialize, Deserialize, Debug, Error)]
+/// Error from an authenticator request.
 pub struct AuthenticatorError {
     pub error: Option<String>,
     pub error_description: Option<String>,
@@ -157,6 +175,7 @@ pub struct Authenticator {
 }
 
 impl Authenticator {
+    /// Create a new authenticator with given config.
     pub fn new(config: AuthenticatorConfig) -> Authenticator {
         Authenticator {
             token_url: config.token_url.clone(),
@@ -204,6 +223,8 @@ impl Authenticator {
         }
     }
 
+    /// Get a token. This will only fetch a new token if it is about
+    /// to expire (will expire in the next 60 seconds).
     pub async fn get_token(
         &self,
         client: &ClientWithMiddleware,

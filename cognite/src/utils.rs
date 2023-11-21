@@ -1,6 +1,8 @@
 use std::collections::HashMap;
 use std::hash::Hash;
 
+/// Chunk a map of lists both by the maximum number of keys per map,
+/// and the number of total values.
 pub fn chunk_map<'a, TKey: Hash + Eq + 'a + Clone, TValue: 'a>(
     inp: HashMap<TKey, Vec<TValue>>,
     max_total: usize,

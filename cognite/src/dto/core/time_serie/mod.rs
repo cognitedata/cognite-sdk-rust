@@ -12,7 +12,7 @@ use std::collections::HashMap;
 
 #[derive(Serialize, Deserialize, Debug, Default, Clone)]
 #[serde(rename_all = "camelCase")]
-pub struct TimeSerie {
+pub struct TimeSeries {
     pub id: i64,
     pub external_id: Option<String>,
     pub name: Option<String>,
@@ -31,7 +31,7 @@ pub struct TimeSerie {
 #[skip_serializing_none]
 #[derive(Serialize, Deserialize, Debug, Default, Clone)]
 #[serde(rename_all = "camelCase")]
-pub struct AddTimeSerie {
+pub struct AddTimeSeries {
     pub external_id: Option<String>,
     pub name: Option<String>,
     pub is_string: bool,
@@ -44,9 +44,9 @@ pub struct AddTimeSerie {
     pub data_set_id: Option<i64>,
 }
 
-impl From<TimeSerie> for AddTimeSerie {
-    fn from(time_serie: TimeSerie) -> AddTimeSerie {
-        AddTimeSerie {
+impl From<TimeSeries> for AddTimeSeries {
+    fn from(time_serie: TimeSeries) -> AddTimeSeries {
+        AddTimeSeries {
             name: time_serie.name,
             external_id: time_serie.external_id,
             is_string: time_serie.is_string,
@@ -61,7 +61,7 @@ impl From<TimeSerie> for AddTimeSerie {
     }
 }
 
-impl EqIdentity for AddTimeSerie {
+impl EqIdentity for AddTimeSeries {
     fn eq(&self, id: &Identity) -> bool {
         match id {
             Identity::Id { id: _ } => false,
@@ -85,8 +85,8 @@ pub struct PatchTimeSerie {
     pub is_step: Option<UpdateSet<bool>>,
 }
 
-impl From<TimeSerie> for Patch<PatchTimeSerie> {
-    fn from(time_serie: TimeSerie) -> Patch<PatchTimeSerie> {
+impl From<TimeSeries> for Patch<PatchTimeSerie> {
+    fn from(time_serie: TimeSeries) -> Patch<PatchTimeSerie> {
         Patch::<PatchTimeSerie> {
             id: to_idt!(time_serie),
             update: PatchTimeSerie {
@@ -104,8 +104,8 @@ impl From<TimeSerie> for Patch<PatchTimeSerie> {
     }
 }
 
-impl From<AddTimeSerie> for PatchTimeSerie {
-    fn from(time_serie: AddTimeSerie) -> Self {
+impl From<AddTimeSeries> for PatchTimeSerie {
+    fn from(time_serie: AddTimeSeries) -> Self {
         PatchTimeSerie {
             name: Some(time_serie.name.into()),
             external_id: Some(time_serie.external_id.into()),
