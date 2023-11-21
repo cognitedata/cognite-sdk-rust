@@ -6,8 +6,8 @@ use serde::{de::DeserializeOwned, Serialize};
 
 use crate::dto::items::*;
 use crate::{
-    ApiClient, AsParams, EqIdentity, Filter, Identity, Partition, Patch, Result, Search, SetCursor,
-    WithPartition,
+    ApiClient, AsParams, EqIdentity, Filter, Identity, IntoPatch, Partition, Patch, Result, Search,
+    SetCursor, WithPartition,
 };
 
 use super::utils::{get_duplicates_from_result, get_missing_from_result};
@@ -162,15 +162,19 @@ where
 /// Trait for upserts of resources that support both Create and Update.
 pub trait Upsert<TCreate, TUpdate, TResponse, 'a>
 where
-    TCreate: Serialize + Sync + Send + EqIdentity + 'a + Clone,
-    TUpdate: Serialize + Sync + Send + From<TCreate> + Default,
+    TCreate: Serialize + Sync + Send + EqIdentity + 'a + Clone + IntoPatch<TUpdate>,
+    TUpdate: Serialize + Sync + Send + Default,
     TResponse: Serialize + DeserializeOwned + Sync + Send,
     Self: WithApiClient + WithBasePath,
 {
     /// Upsert a list resources, meaning that they will first be attempted created,
     /// and if that fails with a conflict, update any that already existed, and create
     /// the remainder.
-    async fn upsert(&'a self, upserts: &'a [TCreate]) -> Result<Vec<TResponse>> {
+    async fn upsert(
+        &'a self,
+        upserts: &'a [TCreate],
+        ignore_nulls: bool,
+    ) -> Result<Vec<TResponse>> {
         let items = Items::from(upserts);
         let resp: Result<ItemsWithoutCursor<TResponse>> =
             self.get_client().post(Self::BASE_PATH, &items).await;
@@ -185,7 +189,7 @@ where
                 if let Some(idt) = idt {
                     to_update.push(Patch::<TUpdate> {
                         id: idt.clone(),
-                        update: TUpdate::from(it.clone()),
+                        update: it.clone().patch(ignore_nulls),
                     });
                 } else {
                     to_create.push(it);
@@ -221,8 +225,8 @@ where
 impl<'a, T, TCreate, TUpdate, TResponse> Upsert<'a, TCreate, TUpdate, TResponse> for T
 where
     T: Create<TCreate, TResponse> + Update<Patch<TUpdate>, TResponse>,
-    TCreate: Serialize + Sync + Send + EqIdentity + 'a + Clone,
-    TUpdate: Serialize + Sync + Send + From<TCreate> + Default,
+    TCreate: Serialize + Sync + Send + EqIdentity + 'a + Clone + IntoPatch<TUpdate>,
+    TUpdate: Serialize + Sync + Send + Default,
     TResponse: Serialize + DeserializeOwned + Sync + Send,
 {
 }

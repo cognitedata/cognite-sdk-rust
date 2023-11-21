@@ -4,8 +4,8 @@ use serde_with::skip_serializing_none;
 
 use crate::time_series::TimeSeries;
 use crate::{
-    CogniteExternalId, Identity, LabelsFilter, Partition, Patch, Range, SetCursor, UpdateList,
-    UpdateSet, UpdateSetNull, WithPartition,
+    CogniteExternalId, Identity, IntoPatch, IntoPatchItem, LabelsFilter, Partition, Patch, Range,
+    SetCursor, UpdateList, UpdateSet, UpdateSetNull, WithPartition,
 };
 
 use crate::{assets::Asset, events::Event, files::FileMetadata};
@@ -85,7 +85,7 @@ impl From<Relationship> for AddRelationship {
 }
 
 #[skip_serializing_none]
-#[derive(Serialize, Deserialize, Default)]
+#[derive(Serialize, Deserialize, Default, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct PatchRelationship {
     pub source_type: Option<UpdateSet<RelationshipVertexType>>,
@@ -99,40 +99,46 @@ pub struct PatchRelationship {
     pub labels: Option<UpdateList<CogniteExternalId, CogniteExternalId>>,
 }
 
-impl From<Relationship> for Patch<PatchRelationship> {
-    fn from(rel: Relationship) -> Self {
+impl IntoPatch<Patch<PatchRelationship>> for Relationship {
+    fn patch(self, ignore_nulls: bool) -> Patch<PatchRelationship> {
         Patch::<PatchRelationship> {
             id: Identity::ExternalId {
-                external_id: rel.external_id,
+                external_id: self.external_id,
             },
             update: PatchRelationship {
-                source_type: Some(rel.source_type.into()),
-                source_external_id: Some(rel.source_external_id.into()),
-                target_type: Some(rel.target_type.into()),
-                target_external_id: Some(rel.target_external_id.into()),
-                confidence: Some(rel.confidence.into()),
-                start_time: Some(rel.start_time.into()),
-                end_time: Some(rel.end_time.into()),
-                data_set_id: Some(rel.data_set_id.into()),
-                labels: Some(rel.labels.into()),
+                source_type: self.source_type.patch(ignore_nulls),
+                source_external_id: self.source_external_id.patch(ignore_nulls),
+                target_type: self.target_type.patch(ignore_nulls),
+                target_external_id: self.target_external_id.patch(ignore_nulls),
+                confidence: self.confidence.patch(ignore_nulls),
+                start_time: self.start_time.patch(ignore_nulls),
+                end_time: self.end_time.patch(ignore_nulls),
+                data_set_id: self.data_set_id.patch(ignore_nulls),
+                labels: self.labels.patch(ignore_nulls),
             },
         }
     }
 }
 
-impl From<AddRelationship> for PatchRelationship {
-    fn from(rel: AddRelationship) -> Self {
+impl IntoPatch<PatchRelationship> for AddRelationship {
+    fn patch(self, ignore_nulls: bool) -> PatchRelationship {
         PatchRelationship {
-            source_type: Some(rel.source_type.into()),
-            source_external_id: Some(rel.source_external_id.into()),
-            target_type: Some(rel.target_type.into()),
-            target_external_id: Some(rel.target_external_id.into()),
-            confidence: Some(rel.confidence.into()),
-            start_time: Some(rel.start_time.into()),
-            end_time: Some(rel.end_time.into()),
-            data_set_id: Some(rel.data_set_id.into()),
-            labels: Some(rel.labels.into()),
+            source_type: self.source_type.patch(ignore_nulls),
+            source_external_id: self.source_external_id.patch(ignore_nulls),
+            target_type: self.target_type.patch(ignore_nulls),
+            target_external_id: self.target_external_id.patch(ignore_nulls),
+            confidence: self.confidence.patch(ignore_nulls),
+            start_time: self.start_time.patch(ignore_nulls),
+            end_time: self.end_time.patch(ignore_nulls),
+            data_set_id: self.data_set_id.patch(ignore_nulls),
+            labels: self.labels.patch(ignore_nulls),
         }
+    }
+}
+
+impl From<Relationship> for Patch<PatchRelationship> {
+    fn from(rel: Relationship) -> Self {
+        IntoPatch::<Patch<PatchRelationship>>::patch(rel, false)
     }
 }
 

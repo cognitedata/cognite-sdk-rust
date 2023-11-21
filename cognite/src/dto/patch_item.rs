@@ -5,6 +5,14 @@ use serde_with::skip_serializing_none;
 
 use crate::{EqIdentity, Identity};
 
+pub trait IntoPatchItem<TPatch> {
+    fn patch(self, ignore_nulls: bool) -> Option<TPatch>;
+}
+
+pub trait IntoPatch<TPatch> {
+    fn patch(self, ignore_nulls: bool) -> TPatch;
+}
+
 #[skip_serializing_none]
 #[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase", untagged)]
@@ -25,11 +33,12 @@ impl<T> Default for UpdateSetNull<T> {
     }
 }
 
-impl<T> From<Option<T>> for UpdateSetNull<T> {
-    fn from(el: Option<T>) -> Self {
-        match el {
-            Some(x) => UpdateSetNull::Set { set: x },
-            None => UpdateSetNull::SetNull { set_null: true },
+impl<T> IntoPatchItem<UpdateSetNull<T>> for Option<T> {
+    fn patch(self, ignore_nulls: bool) -> Option<UpdateSetNull<T>> {
+        match (self, ignore_nulls) {
+            (None, true) => None,
+            (None, false) => Some(UpdateSetNull::SetNull { set_null: true }),
+            (Some(x), _) => Some(UpdateSetNull::Set { set: x }),
         }
     }
 }
@@ -58,9 +67,9 @@ impl<T> UpdateSet<T> {
     }
 }
 
-impl<T> From<T> for UpdateSet<T> {
-    fn from(el: T) -> Self {
-        UpdateSet { set: el }
+impl<T> IntoPatchItem<UpdateSet<T>> for T {
+    fn patch(self, _ignore_nulls: bool) -> Option<UpdateSet<T>> {
+        Some(UpdateSet { set: self })
     }
 }
 
@@ -109,19 +118,18 @@ impl<TAdd, TRemove> UpdateList<TAdd, TRemove> {
     }
 }
 
-impl<TAdd, TRemove> From<Vec<TAdd>> for UpdateList<TAdd, TRemove> {
-    fn from(el: Vec<TAdd>) -> Self {
-        Self::Set { set: el }
+impl<TAdd, TRemove> IntoPatchItem<UpdateList<TAdd, TRemove>> for Vec<TAdd> {
+    fn patch(self, _ignore_nulls: bool) -> Option<UpdateList<TAdd, TRemove>> {
+        Some(UpdateList::set(self))
     }
 }
 
-impl<TAdd, TRemove> From<Option<Vec<TAdd>>> for UpdateList<TAdd, TRemove> {
-    fn from(el: Option<Vec<TAdd>>) -> Self {
-        match el {
-            Some(x) => x.into(),
-            None => UpdateList::<TAdd, TRemove>::Set {
-                set: Vec::<TAdd>::new(),
-            },
+impl<TAdd, TRemove> IntoPatchItem<UpdateList<TAdd, TRemove>> for Option<Vec<TAdd>> {
+    fn patch(self, ignore_nulls: bool) -> Option<UpdateList<TAdd, TRemove>> {
+        match (self, ignore_nulls) {
+            (Some(x), _) => Some(UpdateList::set(x)),
+            (None, true) => None,
+            (None, false) => Some(UpdateList::set(vec![])),
         }
     }
 }
@@ -177,30 +185,27 @@ where
     }
 }
 
-impl<TKey, TValue> From<HashMap<TKey, TValue>> for UpdateMap<TKey, TValue>
-where
-    TKey: std::hash::Hash + std::cmp::Eq,
+impl<TKey: std::hash::Hash + std::cmp::Eq, TValue> IntoPatchItem<UpdateMap<TKey, TValue>>
+    for HashMap<TKey, TValue>
 {
-    fn from(el: HashMap<TKey, TValue>) -> Self {
-        UpdateMap::Set { set: el }
+    fn patch(self, _ignore_nulls: bool) -> Option<UpdateMap<TKey, TValue>> {
+        Some(UpdateMap::set(self))
     }
 }
 
-impl<TKey, TValue> From<Option<HashMap<TKey, TValue>>> for UpdateMap<TKey, TValue>
-where
-    TKey: std::hash::Hash + std::cmp::Eq,
+impl<TKey: std::hash::Hash + std::cmp::Eq, TValue> IntoPatchItem<UpdateMap<TKey, TValue>>
+    for Option<HashMap<TKey, TValue>>
 {
-    fn from(el: Option<HashMap<TKey, TValue>>) -> Self {
-        match el {
-            Some(x) => x.into(),
-            None => UpdateMap::Set {
-                set: HashMap::new(),
-            },
+    fn patch(self, ignore_nulls: bool) -> Option<UpdateMap<TKey, TValue>> {
+        match (self, ignore_nulls) {
+            (None, true) => None,
+            (None, false) => Some(UpdateMap::set(HashMap::new())),
+            (Some(x), _) => Some(UpdateMap::set(x)),
         }
     }
 }
 
-#[derive(Serialize, Deserialize, Debug, Default)]
+#[derive(Serialize, Deserialize, Debug, Default, Clone)]
 #[serde(rename_all = "camelCase")]
 /// Wrapper around a patch update.
 pub struct Patch<T>

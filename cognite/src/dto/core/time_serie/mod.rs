@@ -4,6 +4,8 @@ mod synthetic;
 pub use self::filter::*;
 pub use self::synthetic::*;
 
+use crate::IntoPatch;
+use crate::IntoPatchItem;
 use crate::{EqIdentity, Identity, Patch, UpdateList, UpdateMap, UpdateSet, UpdateSetNull};
 
 use serde::{Deserialize, Serialize};
@@ -71,7 +73,7 @@ impl EqIdentity for AddTimeSeries {
 }
 
 #[skip_serializing_none]
-#[derive(Serialize, Deserialize, Debug, Default)]
+#[derive(Serialize, Deserialize, Debug, Default, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct PatchTimeSerie {
     pub name: Option<UpdateSetNull<String>>,
@@ -85,37 +87,43 @@ pub struct PatchTimeSerie {
     pub is_step: Option<UpdateSet<bool>>,
 }
 
-impl From<TimeSeries> for Patch<PatchTimeSerie> {
-    fn from(time_serie: TimeSeries) -> Patch<PatchTimeSerie> {
+impl IntoPatch<Patch<PatchTimeSerie>> for TimeSeries {
+    fn patch(self, ignore_nulls: bool) -> Patch<PatchTimeSerie> {
         Patch::<PatchTimeSerie> {
-            id: to_idt!(time_serie),
+            id: to_idt!(self),
             update: PatchTimeSerie {
-                name: Some(time_serie.name.into()),
-                external_id: Some(time_serie.external_id.into()),
-                metadata: Some(time_serie.metadata.into()),
-                unit: Some(time_serie.unit.into()),
-                asset_id: Some(time_serie.asset_id.into()),
-                description: Some(time_serie.description.into()),
-                security_categories: Some(time_serie.security_categories.into()),
-                data_set_id: Some(time_serie.data_set_id.into()),
-                is_step: Some(time_serie.is_step.into()),
+                name: self.name.patch(ignore_nulls),
+                external_id: self.external_id.patch(ignore_nulls),
+                metadata: self.metadata.patch(ignore_nulls),
+                unit: self.unit.patch(ignore_nulls),
+                asset_id: self.asset_id.patch(ignore_nulls),
+                description: self.description.patch(ignore_nulls),
+                security_categories: self.security_categories.patch(ignore_nulls),
+                data_set_id: self.data_set_id.patch(ignore_nulls),
+                is_step: self.is_step.patch(ignore_nulls),
             },
         }
     }
 }
 
-impl From<AddTimeSeries> for PatchTimeSerie {
-    fn from(time_serie: AddTimeSeries) -> Self {
+impl IntoPatch<PatchTimeSerie> for AddTimeSeries {
+    fn patch(self, ignore_nulls: bool) -> PatchTimeSerie {
         PatchTimeSerie {
-            name: Some(time_serie.name.into()),
-            external_id: Some(time_serie.external_id.into()),
-            metadata: Some(time_serie.metadata.into()),
-            unit: Some(time_serie.unit.into()),
-            asset_id: Some(time_serie.asset_id.into()),
-            description: Some(time_serie.description.into()),
-            security_categories: Some(time_serie.security_categories.into()),
-            data_set_id: Some(time_serie.data_set_id.into()),
-            is_step: Some(time_serie.is_step.into()),
+            name: self.name.patch(ignore_nulls),
+            external_id: self.external_id.patch(ignore_nulls),
+            metadata: self.metadata.patch(ignore_nulls),
+            unit: self.unit.patch(ignore_nulls),
+            asset_id: self.asset_id.patch(ignore_nulls),
+            description: self.description.patch(ignore_nulls),
+            security_categories: self.security_categories.patch(ignore_nulls),
+            data_set_id: self.data_set_id.patch(ignore_nulls),
+            is_step: self.is_step.patch(ignore_nulls),
         }
+    }
+}
+
+impl From<TimeSeries> for Patch<PatchTimeSerie> {
+    fn from(time_serie: TimeSeries) -> Patch<PatchTimeSerie> {
+        IntoPatch::<Patch<PatchTimeSerie>>::patch(time_serie, false)
     }
 }

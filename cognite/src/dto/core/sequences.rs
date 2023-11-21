@@ -1,6 +1,6 @@
 use crate::{
-    models::FdmFilter, EqIdentity, Identity, Partition, Patch, Range, SetCursor, UpdateList,
-    UpdateMap, UpdateSet, UpdateSetNull, WithPartition,
+    models::FdmFilter, EqIdentity, Identity, IntoPatch, IntoPatchItem, Partition, Patch, Range,
+    SetCursor, UpdateList, UpdateMap, UpdateSet, UpdateSetNull, WithPartition,
 };
 
 use serde::{Deserialize, Serialize};
@@ -89,7 +89,7 @@ impl EqIdentity for AddSequence {
 }
 
 #[skip_serializing_none]
-#[derive(Serialize, Deserialize, Debug, Default)]
+#[derive(Serialize, Deserialize, Debug, Default, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct UpdateSequenceColumns {
     pub modify: Option<Vec<Patch<PatchSequenceColumn>>>,
@@ -115,7 +115,7 @@ impl From<UpdateList<SequenceColumn, String>> for UpdateSequenceColumns {
 }
 
 #[skip_serializing_none]
-#[derive(Serialize, Deserialize, Debug, Default)]
+#[derive(Serialize, Deserialize, Debug, Default, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct PatchSequenceColumn {
     pub description: Option<UpdateSetNull<String>>,
@@ -125,7 +125,7 @@ pub struct PatchSequenceColumn {
 }
 
 #[skip_serializing_none]
-#[derive(Serialize, Deserialize, Debug, Default)]
+#[derive(Serialize, Deserialize, Debug, Default, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct PatchSequence {
     pub name: Option<UpdateSetNull<String>>,
@@ -137,34 +137,40 @@ pub struct PatchSequence {
     pub columns: Option<UpdateSequenceColumns>,
 }
 
-impl From<Sequence> for Patch<PatchSequence> {
-    fn from(sequence: Sequence) -> Self {
-        Self {
-            id: Identity::Id { id: sequence.id },
+impl IntoPatch<Patch<PatchSequence>> for Sequence {
+    fn patch(self, ignore_nulls: bool) -> Patch<PatchSequence> {
+        Patch::<PatchSequence> {
+            id: to_idt!(self),
             update: PatchSequence {
-                name: Some(sequence.name.into()),
-                description: Some(sequence.description.into()),
-                asset_id: Some(sequence.asset_id.into()),
-                external_id: Some(sequence.external_id.into()),
-                metadata: Some(sequence.metadata.into()),
-                data_set_id: Some(sequence.data_set_id.into()),
+                name: self.name.patch(ignore_nulls),
+                description: self.description.patch(ignore_nulls),
+                asset_id: self.asset_id.patch(ignore_nulls),
+                external_id: self.external_id.patch(ignore_nulls),
+                metadata: self.metadata.patch(ignore_nulls),
+                data_set_id: self.data_set_id.patch(ignore_nulls),
                 columns: None,
             },
         }
     }
 }
 
-impl From<AddSequence> for PatchSequence {
-    fn from(sequence: AddSequence) -> Self {
+impl IntoPatch<PatchSequence> for AddSequence {
+    fn patch(self, ignore_nulls: bool) -> PatchSequence {
         PatchSequence {
-            name: Some(sequence.name.into()),
-            description: Some(sequence.description.into()),
-            asset_id: Some(sequence.asset_id.into()),
-            external_id: Some(sequence.external_id.into()),
-            metadata: Some(sequence.metadata.into()),
-            data_set_id: Some(sequence.data_set_id.into()),
+            name: self.name.patch(ignore_nulls),
+            description: self.description.patch(ignore_nulls),
+            asset_id: self.asset_id.patch(ignore_nulls),
+            external_id: self.external_id.patch(ignore_nulls),
+            metadata: self.metadata.patch(ignore_nulls),
+            data_set_id: self.data_set_id.patch(ignore_nulls),
             columns: None,
         }
+    }
+}
+
+impl From<Sequence> for Patch<PatchSequence> {
+    fn from(sequence: Sequence) -> Self {
+        IntoPatch::<Patch<PatchSequence>>::patch(sequence, false)
     }
 }
 
