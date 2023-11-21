@@ -127,7 +127,7 @@ where
                     .get_with_params(Self::BASE_PATH, Some(state.req.clone()))
                     .await?;
 
-                state.responses.extend(response.items.into_iter());
+                state.responses.extend(response.items);
                 state.next_cursor = match response.next_cursor {
                     Some(x) => CursorState::Some(x),
                     None => CursorState::End,
@@ -629,7 +629,7 @@ where
                     .post(&format!("{}/list", Self::BASE_PATH), &state.req)
                     .await?;
 
-                state.responses.extend(response.items.into_iter());
+                state.responses.extend(response.items);
                 state.next_cursor = match response.next_cursor {
                     Some(x) => CursorState::Some(x),
                     None => CursorState::End,
