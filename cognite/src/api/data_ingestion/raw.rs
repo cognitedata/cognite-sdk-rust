@@ -71,7 +71,7 @@ impl RawResource {
         let path = format!("raw/dbs/{db_name}/tables/delete");
         let items = Items::from(to_delete);
         self.api_client
-            .post::<::serde_json::Value, Items>(&path, &items)
+            .post::<::serde_json::Value, _>(&path, &items)
             .await?;
         Ok(())
     }
@@ -115,7 +115,7 @@ impl RawResource {
         let query = EnsureParentQuery { ensure_parent };
         let items = Items::from(rows);
         self.api_client
-            .post_with_query::<::serde_json::Value, Items, EnsureParentQuery>(
+            .post_with_query::<::serde_json::Value, _, EnsureParentQuery>(
                 &path,
                 &items,
                 Some(query),
@@ -140,7 +140,7 @@ impl RawResource {
         let path = format!("raw/dbs/{db_name}/tables/{table_name}/rows/delete");
         let items = Items::from(to_delete);
         self.api_client
-            .post::<::serde_json::Value, Items>(&path, &items)
+            .post::<::serde_json::Value, _>(&path, &items)
             .await?;
         Ok(())
     }

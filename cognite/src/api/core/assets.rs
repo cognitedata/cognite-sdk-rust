@@ -19,6 +19,7 @@ impl<'a> SearchItems<'a, AssetFilter, AssetSearch, Asset> for AssetsResource {}
 impl Update<Patch<PatchAsset>, Asset> for AssetsResource {}
 impl DeleteWithRequest<DeleteAssetsRequest> for AssetsResource {}
 impl FilterWithRequest<FilterAssetsRequest, Asset> for AssetsResource {}
+impl RetrieveWithRequest<RetrieveAssetsRequest, Asset> for AssetsResource {}
 
 impl AssetsResource {
     /// Retrieve a list of assets by their IDs.

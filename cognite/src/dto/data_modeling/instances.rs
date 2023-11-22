@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 use serde_with::skip_serializing_none;
 
 use crate::models::{
-    FdmFilter, ItemId, SourceReference, TaggedViewReference, ViewCorePropertyType,
+    FdmFilter, ItemId, RawValue, SourceReference, TaggedViewReference, ViewCorePropertyType,
 };
 
 #[skip_serializing_none]
@@ -219,7 +219,7 @@ pub struct FilterInstancesRequest {
 pub struct TypePropertyDefinition {
     pub nullable: Option<bool>,
     pub auto_increment: Option<bool>,
-    pub default_value: Option<serde_json::Value>,
+    pub default_value: Option<RawValue>,
     pub description: Option<String>,
     pub name: Option<String>,
     pub r#type: ViewCorePropertyType,
