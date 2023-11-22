@@ -5,6 +5,7 @@ mod auth;
 mod dto;
 mod error;
 mod retry;
+
 pub mod utils;
 
 pub mod assets {
