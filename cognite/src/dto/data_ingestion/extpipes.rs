@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use serde::{Deserialize, Serialize};
 use serde_with::skip_serializing_none;
 
-use crate::{Identity, Patch, Range, UpdateList, UpdateMap, UpdateSet};
+use crate::{Identity, IntoPatch, IntoPatchItem, Patch, Range, UpdateList, UpdateMap, UpdateSet};
 
 #[derive(Serialize, Deserialize, Clone, Default, Debug)]
 #[serde(rename_all = "camelCase")]
@@ -80,7 +80,7 @@ impl From<ExtPipe> for AddExtPipe {
 }
 
 #[skip_serializing_none]
-#[derive(Serialize, Deserialize, Default)]
+#[derive(Serialize, Deserialize, Default, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct PatchExtPipe {
     pub external_id: Option<UpdateSet<String>>,
@@ -95,42 +95,48 @@ pub struct PatchExtPipe {
     pub documentation: Option<UpdateSet<Option<String>>>,
 }
 
-impl From<ExtPipe> for Patch<PatchExtPipe> {
-    fn from(pipe: ExtPipe) -> Self {
+impl IntoPatch<Patch<PatchExtPipe>> for ExtPipe {
+    fn patch(self, ignore_nulls: bool) -> Patch<PatchExtPipe> {
         Patch::<PatchExtPipe> {
             id: Identity::ExternalId {
-                external_id: pipe.external_id.clone(),
+                external_id: self.external_id,
             },
             update: PatchExtPipe {
-                external_id: Some(pipe.external_id.into()),
-                name: Some(pipe.name.into()),
-                description: Some(pipe.description.into()),
-                data_set_id: Some(pipe.data_set_id.into()),
-                schedule: Some(pipe.schedule.into()),
-                raw_tables: Some(pipe.raw_tables.into()),
-                contacts: Some(pipe.contacts.into()),
-                metadata: Some(pipe.metadata.into()),
-                source: Some(pipe.source.into()),
-                documentation: Some(pipe.documentation.into()),
+                external_id: None,
+                name: self.name.patch(ignore_nulls),
+                description: self.description.patch(ignore_nulls),
+                data_set_id: self.data_set_id.patch(ignore_nulls),
+                schedule: self.schedule.patch(ignore_nulls),
+                raw_tables: self.raw_tables.patch(ignore_nulls),
+                contacts: self.contacts.patch(ignore_nulls),
+                metadata: self.metadata.patch(ignore_nulls),
+                source: self.source.patch(ignore_nulls),
+                documentation: self.documentation.patch(ignore_nulls),
             },
         }
     }
 }
 
-impl From<AddExtPipe> for PatchExtPipe {
-    fn from(pipe: AddExtPipe) -> Self {
+impl IntoPatch<PatchExtPipe> for AddExtPipe {
+    fn patch(self, ignore_nulls: bool) -> PatchExtPipe {
         PatchExtPipe {
-            external_id: Some(pipe.external_id.into()),
-            name: Some(pipe.name.into()),
-            description: Some(pipe.description.into()),
-            data_set_id: Some(pipe.data_set_id.into()),
-            schedule: Some(pipe.schedule.into()),
-            raw_tables: Some(pipe.raw_tables.into()),
-            contacts: Some(pipe.contacts.into()),
-            metadata: Some(pipe.metadata.into()),
-            source: Some(pipe.source.into()),
-            documentation: Some(pipe.documentation.into()),
+            external_id: self.external_id.patch(ignore_nulls),
+            name: self.name.patch(ignore_nulls),
+            description: self.description.patch(ignore_nulls),
+            data_set_id: self.data_set_id.patch(ignore_nulls),
+            schedule: self.schedule.patch(ignore_nulls),
+            raw_tables: self.raw_tables.patch(ignore_nulls),
+            contacts: self.contacts.patch(ignore_nulls),
+            metadata: self.metadata.patch(ignore_nulls),
+            source: self.source.patch(ignore_nulls),
+            documentation: self.documentation.patch(ignore_nulls),
         }
+    }
+}
+
+impl From<ExtPipe> for Patch<PatchExtPipe> {
+    fn from(sequence: ExtPipe) -> Self {
+        IntoPatch::<Patch<PatchExtPipe>>::patch(sequence, false)
     }
 }
 

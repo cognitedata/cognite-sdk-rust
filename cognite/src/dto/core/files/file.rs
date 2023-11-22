@@ -2,7 +2,10 @@ use serde::{Deserialize, Serialize};
 use serde_with::skip_serializing_none;
 use std::collections::HashMap;
 
-use crate::{CogniteExternalId, EqIdentity, Identity, Patch, UpdateList, UpdateMap, UpdateSetNull};
+use crate::{
+    CogniteExternalId, EqIdentity, Identity, IntoPatch, IntoPatchItem, Patch, UpdateList,
+    UpdateMap, UpdateSetNull,
+};
 
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
@@ -82,7 +85,7 @@ impl EqIdentity for AddFile {
 }
 
 #[skip_serializing_none]
-#[derive(Serialize, Deserialize, Debug, Default)]
+#[derive(Serialize, Deserialize, Debug, Default, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct PatchFile {
     pub external_id: Option<UpdateSetNull<String>>,
@@ -98,42 +101,48 @@ pub struct PatchFile {
     pub labels: Option<UpdateList<CogniteExternalId, CogniteExternalId>>,
 }
 
-impl From<FileMetadata> for Patch<PatchFile> {
-    fn from(file: FileMetadata) -> Self {
-        Self {
-            id: to_idt!(file),
+impl IntoPatch<Patch<PatchFile>> for FileMetadata {
+    fn patch(self, ignore_nulls: bool) -> Patch<PatchFile> {
+        Patch::<PatchFile> {
+            id: to_idt!(self),
             update: PatchFile {
-                external_id: Some(file.external_id.into()),
-                directory: Some(file.directory.into()),
-                source: Some(file.source.into()),
-                mime_type: Some(file.mime_type.into()),
-                metadata: Some(file.metadata.into()),
-                asset_ids: Some(file.asset_ids.into()),
-                source_created_time: Some(file.source_created_time.into()),
-                source_modified_time: Some(file.source_modified_time.into()),
-                data_set_id: Some(file.data_set_id.into()),
-                security_categories: Some(file.security_categories.into()),
-                labels: Some(file.labels.into()),
+                external_id: self.external_id.patch(ignore_nulls),
+                directory: self.directory.patch(ignore_nulls),
+                source: self.source.patch(ignore_nulls),
+                mime_type: self.mime_type.patch(ignore_nulls),
+                metadata: self.metadata.patch(ignore_nulls),
+                asset_ids: self.asset_ids.patch(ignore_nulls),
+                source_created_time: self.source_created_time.patch(ignore_nulls),
+                source_modified_time: self.source_modified_time.patch(ignore_nulls),
+                data_set_id: self.data_set_id.patch(ignore_nulls),
+                security_categories: self.security_categories.patch(ignore_nulls),
+                labels: self.labels.patch(ignore_nulls),
             },
         }
     }
 }
 
-impl From<AddFile> for PatchFile {
-    fn from(file: AddFile) -> Self {
-        Self {
-            external_id: Some(file.external_id.into()),
-            directory: Some(file.directory.into()),
-            source: Some(file.source.into()),
-            mime_type: Some(file.mime_type.into()),
-            metadata: Some(file.metadata.into()),
-            asset_ids: Some(file.asset_ids.into()),
-            source_created_time: Some(file.source_created_time.into()),
-            source_modified_time: Some(file.source_modified_time.into()),
-            data_set_id: Some(file.data_set_id.into()),
-            security_categories: Some(file.security_categories.into()),
-            labels: Some(file.labels.into()),
+impl IntoPatch<PatchFile> for AddFile {
+    fn patch(self, ignore_nulls: bool) -> PatchFile {
+        PatchFile {
+            external_id: self.external_id.patch(ignore_nulls),
+            directory: self.directory.patch(ignore_nulls),
+            source: self.source.patch(ignore_nulls),
+            mime_type: self.mime_type.patch(ignore_nulls),
+            metadata: self.metadata.patch(ignore_nulls),
+            asset_ids: self.asset_ids.patch(ignore_nulls),
+            source_created_time: self.source_created_time.patch(ignore_nulls),
+            source_modified_time: self.source_modified_time.patch(ignore_nulls),
+            data_set_id: self.data_set_id.patch(ignore_nulls),
+            security_categories: self.security_categories.patch(ignore_nulls),
+            labels: self.labels.patch(ignore_nulls),
         }
+    }
+}
+
+impl From<FileMetadata> for Patch<PatchFile> {
+    fn from(file: FileMetadata) -> Self {
+        IntoPatch::<Patch<PatchFile>>::patch(file, false)
     }
 }
 

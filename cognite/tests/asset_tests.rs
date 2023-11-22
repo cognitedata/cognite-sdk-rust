@@ -122,3 +122,37 @@ async fn create_update_ignore_missing() {
         .await
         .unwrap();
 }
+
+#[tokio::test]
+async fn upsert_assets() {
+    let asset_id = format!("{}-asset5", PREFIX.as_str());
+    let mut new_asset = Asset::new("asset5", "desc", Some(asset_id.clone()), None, None, None);
+
+    let client = get_client();
+
+    let res = client
+        .assets
+        .upsert(&[new_asset.clone().into()], true)
+        .await
+        .unwrap();
+    assert_eq!(res[0].description.as_ref().unwrap(), "desc");
+
+    new_asset.description = Some("desc 2".to_owned());
+
+    let res = client
+        .assets
+        .upsert(&[new_asset.into()], true)
+        .await
+        .unwrap();
+    assert_eq!(res[0].description.as_ref().unwrap(), "desc 2");
+
+    client
+        .assets
+        .delete(&DeleteAssetsRequest {
+            items: vec![Identity::external_id(asset_id)],
+            ignore_unknown_ids: true,
+            recursive: true,
+        })
+        .await
+        .unwrap();
+}

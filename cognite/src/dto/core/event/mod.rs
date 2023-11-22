@@ -2,7 +2,10 @@ mod filter;
 
 pub use self::filter::*;
 
-use crate::{EqIdentity, Identity, IntegerOrString, Patch, UpdateList, UpdateMap, UpdateSetNull};
+use crate::{
+    EqIdentity, Identity, IntegerOrString, IntoPatch, IntoPatchItem, Patch, UpdateList, UpdateMap,
+    UpdateSetNull,
+};
 use serde::{Deserialize, Serialize};
 use serde_with::skip_serializing_none;
 use std::collections::HashMap;
@@ -109,7 +112,7 @@ impl EqIdentity for AddEvent {
 }
 
 #[skip_serializing_none]
-#[derive(Serialize, Deserialize, Debug, Default)]
+#[derive(Serialize, Deserialize, Debug, Default, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct PatchEvent {
     pub external_id: Option<UpdateSetNull<String>>,
@@ -124,39 +127,45 @@ pub struct PatchEvent {
     pub subtype: Option<UpdateSetNull<String>>,
 }
 
-impl From<Event> for Patch<PatchEvent> {
-    fn from(event: Event) -> Patch<PatchEvent> {
+impl IntoPatch<Patch<PatchEvent>> for Event {
+    fn patch(self, ignore_nulls: bool) -> Patch<PatchEvent> {
         Patch::<PatchEvent> {
-            id: to_idt!(event),
+            id: to_idt!(self),
             update: PatchEvent {
-                external_id: Some(event.external_id.into()),
-                data_set_id: Some(event.data_set_id.into()),
-                start_time: Some(event.start_time.into()),
-                end_time: Some(event.end_time.into()),
-                description: Some(event.description.into()),
-                metadata: Some(event.metadata.into()),
-                asset_ids: Some(event.asset_ids.into()),
-                source: Some(event.source.into()),
-                r#type: Some(event.r#type.into()),
-                subtype: Some(event.subtype.into()),
+                external_id: self.external_id.patch(ignore_nulls),
+                data_set_id: self.data_set_id.patch(ignore_nulls),
+                start_time: self.start_time.patch(ignore_nulls),
+                end_time: self.end_time.patch(ignore_nulls),
+                description: self.description.patch(ignore_nulls),
+                metadata: self.metadata.patch(ignore_nulls),
+                asset_ids: self.asset_ids.patch(ignore_nulls),
+                source: self.source.patch(ignore_nulls),
+                r#type: self.r#type.patch(ignore_nulls),
+                subtype: self.subtype.patch(ignore_nulls),
             },
         }
     }
 }
 
-impl From<AddEvent> for PatchEvent {
-    fn from(event: AddEvent) -> Self {
+impl IntoPatch<PatchEvent> for AddEvent {
+    fn patch(self, ignore_nulls: bool) -> PatchEvent {
         PatchEvent {
-            external_id: Some(event.external_id.into()),
-            data_set_id: Some(event.data_set_id.into()),
-            start_time: Some(event.start_time.into()),
-            end_time: Some(event.end_time.into()),
-            description: Some(event.description.into()),
-            metadata: Some(event.metadata.into()),
-            asset_ids: Some(event.asset_ids.into()),
-            source: Some(event.source.into()),
-            r#type: Some(event.r#type.into()),
-            subtype: Some(event.subtype.into()),
+            external_id: self.external_id.patch(ignore_nulls),
+            data_set_id: self.data_set_id.patch(ignore_nulls),
+            start_time: self.start_time.patch(ignore_nulls),
+            end_time: self.end_time.patch(ignore_nulls),
+            description: self.description.patch(ignore_nulls),
+            metadata: self.metadata.patch(ignore_nulls),
+            asset_ids: self.asset_ids.patch(ignore_nulls),
+            source: self.source.patch(ignore_nulls),
+            r#type: self.r#type.patch(ignore_nulls),
+            subtype: self.subtype.patch(ignore_nulls),
         }
+    }
+}
+
+impl From<Event> for Patch<PatchEvent> {
+    fn from(value: Event) -> Self {
+        IntoPatch::<Patch<PatchEvent>>::patch(value, false)
     }
 }

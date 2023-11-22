@@ -3,7 +3,9 @@ use std::collections::HashMap;
 use serde::{Deserialize, Serialize};
 use serde_with::skip_serializing_none;
 
-use crate::{Identity, Patch, Range, UpdateMap, UpdateSet, UpdateSetNull};
+use crate::{
+    Identity, IntoPatch, IntoPatchItem, Patch, Range, UpdateMap, UpdateSet, UpdateSetNull,
+};
 
 #[derive(Serialize, Deserialize, Debug, Default)]
 #[serde(rename_all = "camelCase")]
@@ -59,7 +61,7 @@ pub struct DataSetsCount {
 }
 
 #[skip_serializing_none]
-#[derive(Serialize, Deserialize, Debug, Default)]
+#[derive(Serialize, Deserialize, Debug, Default, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct PatchDataSet {
     pub external_id: Option<UpdateSetNull<String>>,
@@ -69,29 +71,35 @@ pub struct PatchDataSet {
     pub write_protected: Option<UpdateSet<bool>>,
 }
 
-impl From<DataSet> for Patch<PatchDataSet> {
-    fn from(data_set: DataSet) -> Patch<PatchDataSet> {
+impl IntoPatch<Patch<PatchDataSet>> for DataSet {
+    fn patch(self, ignore_nulls: bool) -> Patch<PatchDataSet> {
         Patch::<PatchDataSet> {
-            id: to_idt!(data_set),
+            id: to_idt!(self),
             update: PatchDataSet {
-                external_id: Some(data_set.external_id.into()),
-                name: Some(data_set.name.into()),
-                description: Some(data_set.description.into()),
-                metadata: Some(data_set.metadata.into()),
-                write_protected: Some(data_set.write_protected.into()),
+                external_id: None,
+                name: self.name.patch(ignore_nulls),
+                description: self.description.patch(ignore_nulls),
+                metadata: self.metadata.patch(ignore_nulls),
+                write_protected: self.write_protected.patch(ignore_nulls),
             },
         }
     }
 }
 
-impl From<AddDataSet> for PatchDataSet {
-    fn from(data_set: AddDataSet) -> Self {
+impl IntoPatch<PatchDataSet> for AddDataSet {
+    fn patch(self, ignore_nulls: bool) -> PatchDataSet {
         PatchDataSet {
-            external_id: Some(data_set.external_id.into()),
-            name: Some(data_set.name.into()),
-            description: Some(data_set.description.into()),
-            metadata: Some(data_set.metadata.into()),
-            write_protected: Some(data_set.write_protected.into()),
+            external_id: None,
+            name: self.name.patch(ignore_nulls),
+            description: self.description.patch(ignore_nulls),
+            metadata: self.metadata.patch(ignore_nulls),
+            write_protected: self.write_protected.patch(ignore_nulls),
         }
+    }
+}
+
+impl From<DataSet> for Patch<PatchDataSet> {
+    fn from(data_set: DataSet) -> Patch<PatchDataSet> {
+        IntoPatch::<Patch<PatchDataSet>>::patch(data_set, false)
     }
 }
