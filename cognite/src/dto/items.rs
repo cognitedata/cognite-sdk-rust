@@ -1,35 +1,28 @@
 use serde::{Deserialize, Serialize};
-use serde_json::json;
 use serde_with::skip_serializing_none;
 
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
 /// A wrapper around a list of items.
-pub struct Items {
-    pub items: ::serde_json::Value,
+pub struct Items<T> {
+    pub items: T,
 }
 
-impl<T: Serialize> From<&Vec<T>> for Items {
-    fn from(items: &Vec<T>) -> Items {
-        Items {
-            items: json!(items),
-        }
+impl<'a, T: Serialize> From<&'a Vec<T>> for Items<&'a Vec<T>> {
+    fn from(items: &'a Vec<T>) -> Self {
+        Items { items }
     }
 }
 
-impl<T: Serialize> From<Vec<&T>> for Items {
-    fn from(items: Vec<&T>) -> Items {
-        Items {
-            items: json!(items),
-        }
+impl<'a, T: Serialize> From<Vec<&'a T>> for Items<Vec<&'a T>> {
+    fn from(items: Vec<&'a T>) -> Self {
+        Items { items }
     }
 }
 
-impl<T: Serialize> From<&[T]> for Items {
-    fn from(items: &[T]) -> Items {
-        Items {
-            items: json!(items),
-        }
+impl<'a, T: Serialize> From<&'a [T]> for Items<&'a [T]> {
+    fn from(items: &'a [T]) -> Self {
+        Items { items }
     }
 }
 
@@ -58,36 +51,36 @@ where
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
 /// A wrapper around a list of items, with ignore unknown ids.
-pub struct ItemsWithIgnoreUnknownIds {
-    pub items: ::serde_json::Value,
+pub struct ItemsWithIgnoreUnknownIds<T> {
+    pub items: T,
     pub ignore_unknown_ids: bool,
 }
 
-impl ItemsWithIgnoreUnknownIds {
-    pub fn new<T>(items: &[T], ignore_unknown_ids: bool) -> Self
+impl<T> ItemsWithIgnoreUnknownIds<T> {
+    pub fn new(items: T, ignore_unknown_ids: bool) -> Self
     where
         T: Serialize,
     {
         Self {
-            items: json!(items),
+            items,
             ignore_unknown_ids,
         }
     }
 }
 
-impl<T: Serialize> From<&Vec<T>> for ItemsWithIgnoreUnknownIds {
-    fn from(items: &Vec<T>) -> ItemsWithIgnoreUnknownIds {
+impl<'a, T: Serialize> From<&'a Vec<T>> for ItemsWithIgnoreUnknownIds<&'a Vec<T>> {
+    fn from(items: &'a Vec<T>) -> Self {
         ItemsWithIgnoreUnknownIds {
-            items: json!(items),
+            items,
             ignore_unknown_ids: true,
         }
     }
 }
 
-impl<T: Serialize> From<&[T]> for ItemsWithIgnoreUnknownIds {
-    fn from(items: &[T]) -> ItemsWithIgnoreUnknownIds {
+impl<'a, T: Serialize> From<&'a [T]> for ItemsWithIgnoreUnknownIds<&'a [T]> {
+    fn from(items: &'a [T]) -> Self {
         ItemsWithIgnoreUnknownIds {
-            items: json!(items),
+            items,
             ignore_unknown_ids: true,
         }
     }

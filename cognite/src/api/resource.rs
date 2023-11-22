@@ -308,7 +308,10 @@ where
     async fn delete(&self, deletes: &[TIdt]) -> Result<()> {
         let items = Items::from(deletes);
         self.get_client()
-            .post::<::serde_json::Value, Items>(&format!("{}/delete", Self::BASE_PATH), &items)
+            .post::<::serde_json::Value, Items<&[TIdt]>>(
+                &format!("{}/delete", Self::BASE_PATH),
+                &items,
+            )
             .await?;
         Ok(())
     }
@@ -343,10 +346,7 @@ where
         let mut req = ItemsWithIgnoreUnknownIds::from(deletes);
         req.ignore_unknown_ids = ignore_unknown_ids;
         self.get_client()
-            .post::<::serde_json::Value, ItemsWithIgnoreUnknownIds>(
-                &format!("{}/delete", Self::BASE_PATH),
-                &req,
-            )
+            .post::<::serde_json::Value, _>(&format!("{}/delete", Self::BASE_PATH), &req)
             .await?;
         Ok(())
     }

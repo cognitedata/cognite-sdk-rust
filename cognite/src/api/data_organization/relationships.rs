@@ -14,6 +14,7 @@ impl Create<AddRelationship, Relationship> for RelationshipsResource {}
 impl Update<Patch<PatchRelationship>, Relationship> for RelationshipsResource {}
 impl DeleteWithIgnoreUnknownIds<CogniteExternalId> for RelationshipsResource {}
 impl FilterWithRequest<FilterRelationshipsQuery, Relationship> for RelationshipsResource {}
+impl RetrieveWithRequest<RetrieveRelationshipsRequest, Relationship> for RelationshipsResource {}
 
 impl RelationshipsResource {
     pub async fn retrieve(

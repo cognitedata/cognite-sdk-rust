@@ -206,7 +206,7 @@ impl TimeSeriesResource {
     pub async fn delete_datapoints(&self, query: &[DeleteDatapointsQuery]) -> Result<()> {
         let items = Items::from(query);
         self.api_client
-            .post::<::serde_json::Value, Items>("timeseries/data/delete", &items)
+            .post::<::serde_json::Value, _>("timeseries/data/delete", &items)
             .await?;
         Ok(())
     }
