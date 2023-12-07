@@ -53,32 +53,30 @@ impl AuthHeaderManager {
                 let token = a.get_token(client).await?;
                 let auth_header_value =
                     HeaderValue::from_str(&format!("Bearer {token}")).map_err(|e| {
-                        AuthenticatorError {
-                            error: Some(format!("Failed to set authorization bearer token: {e}")),
-                            error_description: None,
-                            error_uri: None,
-                        }
+                        AuthenticatorError::internal_error(
+                            "Failed to set authorization bearer token".to_string(),
+                            Some(e.to_string()),
+                        )
                     })?;
                 headers.insert("Authorization", auth_header_value);
             }
             AuthHeaderManager::FixedToken(token) => {
                 let auth_header_value =
                     HeaderValue::from_str(&format!("Bearer {token}")).map_err(|e| {
-                        AuthenticatorError {
-                            error: Some(format!("Failed to set authorization bearer token: {e}")),
-                            error_description: None,
-                            error_uri: None,
-                        }
+                        AuthenticatorError::internal_error(
+                            "Failed to set authorization bearer token".to_string(),
+                            Some(e.to_string()),
+                        )
                     })?;
                 headers.insert("Authorization", auth_header_value);
             }
             AuthHeaderManager::AuthTicket(t) => {
-                let auth_ticket_header_value =
-                    HeaderValue::from_str(t).map_err(|e| AuthenticatorError {
-                        error: Some(format!("Failed to set auth ticket: {e}")),
-                        error_description: None,
-                        error_uri: None,
-                    })?;
+                let auth_ticket_header_value = HeaderValue::from_str(t).map_err(|e| {
+                    AuthenticatorError::internal_error(
+                        "Failed to set auth ticket".to_string(),
+                        Some(e.to_string()),
+                    )
+                })?;
                 headers.insert("auth-ticket", auth_ticket_header_value);
             }
             AuthHeaderManager::Custom(c) => c(headers, client)?,
@@ -136,18 +134,31 @@ struct AuthenticatorResponse {
 #[derive(Serialize, Deserialize, Debug, Error)]
 /// Error from an authenticator request.
 pub struct AuthenticatorError {
-    pub error: Option<String>,
+    pub error: String,
     pub error_description: Option<String>,
     pub error_uri: Option<String>,
 }
 
+impl AuthenticatorError {
+    pub fn internal_error(error: String, error_description: Option<String>) -> Self {
+        Self {
+            error,
+            error_description,
+            error_uri: None,
+        }
+    }
+}
+
 impl Display for AuthenticatorError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(
-            f,
-            "{:#?}: {:#?}. {:#?}",
-            &self.error, &self.error_description, &self.error_uri
-        )
+        write!(f, "{}", self.error,)?;
+        if let Some(error_description) = &self.error_description {
+            write!(f, ": {error_description}")?;
+        }
+        if let Some(error_uri) = &self.error_uri {
+            write!(f, " ({error_uri})")?;
+        }
+        Ok(())
     }
 }
 
@@ -191,36 +202,37 @@ impl Authenticator {
         &self,
         client: &ClientWithMiddleware,
     ) -> Result<AuthenticatorResponse, AuthenticatorError> {
-        match client.get(&self.token_url).form(&self.req).send().await {
-            Ok(response) => match response.status() {
-                StatusCode::OK => match response.json::<AuthenticatorResponse>().await {
-                    Ok(json) => Ok(json),
-                    Err(_e) => Err(AuthenticatorError {
-                        error: Some("Failed to serialize".to_string()),
-                        error_description: None,
-                        error_uri: None,
-                    }),
-                },
-                _ => match response.json::<AuthenticatorError>().await {
-                    Ok(json) => Err(json),
-                    Err(_e) => Err(AuthenticatorError {
-                        error: Some(
-                            "Something went wrong, but the response error couldn't be serialized"
-                                .to_string(),
-                        ),
-                        error_description: None,
-                        error_uri: None,
-                    }),
-                },
-            },
-            Err(e) => Err(AuthenticatorError {
-                error: Some(format!(
-                    "Something went wrong when sending the request: {e}"
-                )),
-                error_description: None,
-                error_uri: None,
-            }),
+        let response = client
+            .get(&self.token_url)
+            .form(&self.req)
+            .send()
+            .await
+            .map_err(|e| {
+                AuthenticatorError::internal_error(
+                    "Something went wrong when sending the request".to_string(),
+                    Some(e.to_string()),
+                )
+            })?;
+
+        let status = response.status();
+
+        if status != StatusCode::OK {
+            return Err(
+                response.json::<AuthenticatorError>().await.map_err(|e| {
+                    AuthenticatorError::internal_error(
+                         format!("Something went wrong (status: {status}), but the response error couldn't be deserialized"),
+                        Some(e.to_string()),
+                    )
+                })?,
+            );
         }
+
+        response.json::<AuthenticatorResponse>().await.map_err(|e| {
+            AuthenticatorError::internal_error(
+                "Failed to deserialize".to_string(),
+                Some(e.to_string()),
+            )
+        })
     }
 
     /// Get a token. This will only fetch a new token if it is about
