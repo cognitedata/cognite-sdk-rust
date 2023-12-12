@@ -68,10 +68,7 @@ async fn create_and_delete_instances() {
     assert_eq!(
         result
             .iter()
-            .filter(|&x| match x {
-                SlimNodeOrEdge::Node(_) => true,
-                _ => false,
-            })
+            .filter(|&x| matches!(x, SlimNodeOrEdge::Node(_)))
             .count(),
         node_external_ids.len()
     );
@@ -79,10 +76,7 @@ async fn create_and_delete_instances() {
     assert_eq!(
         result
             .iter()
-            .filter(|&x| match x {
-                SlimNodeOrEdge::Edge(_) => true,
-                _ => false,
-            })
+            .filter(|&x| matches!(x, SlimNodeOrEdge::Edge(_)))
             .count(),
         edge_external_ids.len()
     );
