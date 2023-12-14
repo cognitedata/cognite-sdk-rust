@@ -48,12 +48,13 @@ pub struct DataModel {
     pub is_global: bool,
 }
 
+#[skip_serializing_none]
 #[derive(Serialize, Deserialize, Clone, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct DataModelId {
     pub space: String,
     pub external_id: String,
-    pub version: String,
+    pub version: Option<String>,
 }
 
 #[skip_serializing_none]
