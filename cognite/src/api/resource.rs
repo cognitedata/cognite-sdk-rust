@@ -64,10 +64,9 @@ where
         params: Option<TParams>,
     ) -> impl Future<Output = Result<ItemsWithCursor<TResponse>>> + Send {
         async move {
-            Ok(self
-                .get_client()
+            self.get_client()
                 .get_with_params(Self::BASE_PATH, params)
-                .await?)
+                .await
         }
     }
 
@@ -101,10 +100,10 @@ where
     ///
     /// Each item in the stream will be a result, after the first error is returned the
     /// stream will end.
-    fn list_all_stream<'a>(
-        &'a self,
+    fn list_all_stream(
+        &self,
         params: TParams,
-    ) -> impl TryStream<Ok = TResponse, Error = crate::Error, Item = Result<TResponse>> + Send + 'a
+    ) -> impl TryStream<Ok = TResponse, Error = crate::Error, Item = Result<TResponse>> + Send
     where
         TParams: SetCursor + Clone,
         TResponse: Send + 'static,
@@ -662,10 +661,10 @@ where
     ///
     /// Each item in the stream will be a result, after the first error is returned the
     /// stream will end.
-    fn filter_all_stream<'a>(
-        &'a self,
+    fn filter_all_stream(
+        &self,
         filter: TFilter,
-    ) -> impl TryStream<Ok = TResponse, Error = crate::Error, Item = Result<TResponse>> + Send + 'a
+    ) -> impl TryStream<Ok = TResponse, Error = crate::Error, Item = Result<TResponse>> + Send
     where
         TFilter: SetCursor,
         TResponse: Send + 'static,
