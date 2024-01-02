@@ -8,5 +8,3 @@ pub mod data_organization;
 pub mod iam;
 pub mod resource;
 pub mod utils;
-
-pub use self::api_client::*;
