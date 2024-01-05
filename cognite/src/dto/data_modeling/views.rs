@@ -5,8 +5,10 @@ use serde::{Deserialize, Serialize};
 use serde_with::skip_serializing_none;
 
 use crate::{
-    models::{ItemId, RawValue, SourceReference, UsedFor},
-    to_query, AsParams, SetCursor,
+    models::{
+        CDFExternalIdReference, ItemId, PrimitiveProperty, SourceReference, TextProperty, UsedFor,
+    },
+    to_query, AsParams, RawValue, SetCursor,
 };
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
@@ -219,31 +221,6 @@ pub enum ViewCorePropertyType {
     File(CDFExternalIdReference),
     Sequence(CDFExternalIdReference),
     Direct(ViewDirectNodeRelation),
-}
-
-#[skip_serializing_none]
-#[derive(Serialize, Deserialize, Derivative, Clone, Debug)]
-#[serde(rename_all = "camelCase")]
-pub struct TextProperty {
-    #[derivative(Default(value = "false"))]
-    pub list: Option<bool>,
-    pub collation: Option<String>,
-}
-
-#[skip_serializing_none]
-#[derive(Serialize, Deserialize, Derivative, Clone, Debug)]
-#[serde(rename_all = "camelCase")]
-pub struct PrimitiveProperty {
-    #[derivative(Default(value = "false"))]
-    pub list: Option<bool>,
-}
-
-#[skip_serializing_none]
-#[derive(Serialize, Deserialize, Derivative, Clone, Debug)]
-#[serde(rename_all = "camelCase")]
-pub struct CDFExternalIdReference {
-    #[derivative(Default(value = "false"))]
-    pub list: Option<bool>,
 }
 
 #[skip_serializing_none]

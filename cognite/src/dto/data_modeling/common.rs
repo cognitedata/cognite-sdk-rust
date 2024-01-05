@@ -1,7 +1,8 @@
+use derivative::Derivative;
 use serde::{Deserialize, Serialize};
 use serde_with::skip_serializing_none;
 
-use crate::models::ViewReference;
+use crate::models::views::ViewReference;
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 #[serde(rename_all = "camelCase")]
@@ -62,4 +63,46 @@ pub enum UsedFor {
     Node,
     Edge,
     All,
+}
+
+#[skip_serializing_none]
+#[derive(Serialize, Deserialize, Derivative, Clone, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct TextProperty {
+    #[derivative(Default(value = "false"))]
+    pub list: Option<bool>,
+    pub collation: Option<String>,
+}
+
+#[skip_serializing_none]
+#[derive(Serialize, Deserialize, Derivative, Clone, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct PrimitiveProperty {
+    #[derivative(Default(value = "false"))]
+    pub list: Option<bool>,
+}
+
+#[skip_serializing_none]
+#[derive(Serialize, Deserialize, Derivative, Clone, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct CDFExternalIdReference {
+    #[derivative(Default(value = "false"))]
+    pub list: Option<bool>,
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug, Default)]
+#[serde(rename_all = "camelCase")]
+pub enum SortDirection {
+    #[default]
+    Ascending,
+    Descending,
+}
+
+#[skip_serializing_none]
+#[derive(Serialize, Deserialize, Clone, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct PropertySort {
+    pub property: Vec<String>,
+    pub direction: Option<SortDirection>,
+    pub nulls_first: Option<bool>,
 }

@@ -22,6 +22,10 @@ impl FilterWithRequest<SequenceFilterRequest, Sequence> for SequencesResource {}
 
 impl SequencesResource {
     /// Insert a list of rows into a set of sequences.
+    ///
+    /// # Arguments
+    ///
+    /// * `rows` - Sequence row batches to insert.
     pub async fn insert_rows(&self, rows: &[InsertSequenceRows]) -> Result<()> {
         let items = Items::from(rows);
         self.api_client
@@ -31,6 +35,10 @@ impl SequencesResource {
     }
 
     /// Retrieve a rows from a set of sequences.
+    ///
+    /// # Arguments
+    ///
+    /// * `query` - Sequence rows retrieval query.
     pub async fn retrieve_rows(
         &self,
         query: RetrieveSequenceRows,
@@ -42,6 +50,10 @@ impl SequencesResource {
 
     /// Retrieve the last row from a sequence. The last row is the one with the highest row number,
     /// not necessarily the one that was ingested the most recently.
+    ///
+    /// # Arguments
+    ///
+    /// * `query` - Sequence row retrieval query.
     pub async fn retrieve_last_row(
         &self,
         query: RetrieveLastSequenceRow,
@@ -52,6 +64,10 @@ impl SequencesResource {
     }
 
     /// Delete rows from a set of sequences.
+    ///
+    /// # Arguments
+    ///
+    /// * `query` - Row ranges to delete.
     pub async fn delete_rows(&self, query: &[DeleteSequenceRows]) -> Result<()> {
         let items = Items::from(query);
         self.api_client

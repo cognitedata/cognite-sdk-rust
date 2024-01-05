@@ -4,9 +4,12 @@ use derivative::Derivative;
 use serde::{Deserialize, Serialize};
 use serde_with::skip_serializing_none;
 
-use crate::models::{
-    FdmFilter, ItemId, RawValue, SourceReference, TaggedViewReference, ViewCorePropertyType,
+use crate::{
+    models::{ItemId, PropertySort, SourceReference, TaggedViewReference},
+    AdvancedFilter, RawValue,
 };
+
+use super::views::ViewCorePropertyType;
 
 #[skip_serializing_none]
 #[derive(Serialize, Deserialize, Derivative, Clone, Debug)]
@@ -183,23 +186,6 @@ pub enum InstanceType {
     Edge,
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug, Default)]
-#[serde(rename_all = "camelCase")]
-pub enum SortDirection {
-    #[default]
-    Ascending,
-    Descending,
-}
-
-#[skip_serializing_none]
-#[derive(Serialize, Deserialize, Clone, Debug)]
-#[serde(rename_all = "camelCase")]
-pub struct PropertySort {
-    pub property: Vec<String>,
-    pub direction: Option<SortDirection>,
-    pub nulls_first: Option<bool>,
-}
-
 #[skip_serializing_none]
 #[derive(Serialize, Deserialize, Clone, Debug, Default)]
 #[serde(rename_all = "camelCase")]
@@ -210,7 +196,7 @@ pub struct FilterInstancesRequest {
     pub cursor: Option<String>,
     pub limit: Option<i32>,
     pub sort: Option<Vec<PropertySort>>,
-    pub filter: Option<FdmFilter>,
+    pub filter: Option<AdvancedFilter>,
 }
 
 #[skip_serializing_none]
@@ -271,7 +257,7 @@ pub struct AggregateInstancesRequest {
     pub limit: Option<i32>,
     pub aggregates: Option<Vec<InstancesAggregate>>,
     pub group_by: Option<Vec<String>>,
-    pub filter: Option<FdmFilter>,
+    pub filter: Option<AdvancedFilter>,
     pub instance_type: InstanceType,
     pub view: TaggedViewReference,
 }
@@ -338,6 +324,6 @@ pub struct SearchInstancesRequest {
     pub query: Option<String>,
     pub instance_type: Option<InstanceType>,
     pub properties: Option<Vec<String>>,
-    pub filter: Option<FdmFilter>,
+    pub filter: Option<AdvancedFilter>,
     pub limit: Option<i32>,
 }

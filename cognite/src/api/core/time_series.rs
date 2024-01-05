@@ -39,6 +39,10 @@ impl TimeSeriesResource {
     ///
     /// For very performance intensive workloads, consider using `insert_datapoints_proto`
     /// directly.
+    ///
+    /// # Arguments
+    ///
+    /// * `add_datapoints` - List of datapoint batches to insert.
     pub async fn insert_datapoints(&self, add_datapoints: Vec<AddDatapoints>) -> Result<()> {
         let request = DataPointInsertionRequest::from(add_datapoints);
         self.insert_datapoints_proto(&request).await?;
@@ -47,6 +51,10 @@ impl TimeSeriesResource {
 
     /// Insert datapoints for a set of timeseries. Any existing datapoints with the
     /// same timestamp will be overwritten.
+    ///
+    /// # Arguments
+    ///
+    /// * `add_datapoints` - Datapoint batches to insert.
     pub async fn insert_datapoints_proto(
         &self,
         add_datapoints: &DataPointInsertionRequest,
@@ -63,7 +71,14 @@ impl TimeSeriesResource {
     /// Insert datapoints for a set of time series, then create any missing time series.
     ///
     /// In order for this to work correctly, `generator` must return an iterator over time series
-    /// with the same length as the passed slice. For example:
+    /// with the same length as the passed slice.
+    ///
+    /// # Arguments
+    ///
+    /// * `add_datapoints` - Datapoint batches to insert.
+    /// * `generator` - Method called to produce timeseries that does not exist.
+    ///
+    /// # Example
     ///
     /// ```ignore
     /// client.time_series.insert_datapoints_proto_create_missing(
@@ -94,7 +109,14 @@ impl TimeSeriesResource {
     /// Insert datapoints for a set of time series, then create any missing time series.
     ///
     /// In order for this to work correctly, `generator` must return an iterator over time series
-    /// with the same length as the passed slice. For example:
+    /// with the same length as the passed slice.
+    ///
+    /// # Arguments
+    ///
+    /// * `add_datapoints` - Datapoint batches to insert.
+    /// * `generator` - Method called to produce timeseries that does not exist.
+    ///
+    /// # Example
     ///
     /// ```ignore
     /// client.time_series.insert_datapoints_create_missing(
@@ -118,6 +140,10 @@ impl TimeSeriesResource {
 
     /// Insert datapoints for a set of timeseries. If the request fails due to any
     /// missing time series, remove them from the request and retry.
+    ///
+    /// # Arguments
+    ///
+    /// * `add_datapoints` - Datapoint batches to insert.
     pub async fn insert_datapoints_proto_ignore_missing(
         &self,
         add_datapoints: &DataPointInsertionRequest,
@@ -151,6 +177,10 @@ impl TimeSeriesResource {
 
     /// Insert datapoints for a set of timeseries. If the request fails due to any
     /// missing time series, remove them from the request and retry.
+    ///
+    /// # Arguments
+    ///
+    /// * `add_datapoints` - Datapoint batches to insert.
     pub async fn insert_datapoints_ignore_missing(
         &self,
         add_datapoints: Vec<AddDatapoints>,
@@ -168,6 +198,10 @@ impl TimeSeriesResource {
     ///
     /// For very performance intensive workloads, consider using `retrieve_datapoints_proto`
     /// directly.
+    ///
+    /// # Arguments
+    ///
+    /// * `datapoints_filter` - Filter describing which datapoints to retrieve.
     pub async fn retrieve_datapoints(
         &self,
         datapoints_filter: DatapointsFilter,
@@ -177,6 +211,10 @@ impl TimeSeriesResource {
     }
 
     /// Retrieve datapoints for a collection of time series.
+    ///
+    /// # Arguments
+    ///
+    /// * `datapoints_filter` - Filter describing which datapoints to retrieve.
     pub async fn retrieve_datapoints_proto(
         &self,
         datapoints_filter: DatapointsFilter,
@@ -189,6 +227,11 @@ impl TimeSeriesResource {
     }
 
     /// Retrieve the latest datapoint before a given time for a list of time series.
+    ///
+    /// # Arguments
+    ///
+    /// * `items` - Queries for latest datapoint.
+    /// * `ignore_unknown_ids` - Set this to `true` to ignore timeseries that do not exist.
     pub async fn retrieve_latest_datapoints(
         &self,
         items: &[LatestDatapointsQuery],
@@ -203,6 +246,10 @@ impl TimeSeriesResource {
     }
 
     /// Delete ranges of datapoints for a list of time series.
+    ///
+    /// # Arguments
+    ///
+    /// * `query` - Ranges of datapoints to delete.
     pub async fn delete_datapoints(&self, query: &[DeleteDatapointsQuery]) -> Result<()> {
         let items = Items::from(query);
         self.api_client
@@ -215,6 +262,10 @@ impl TimeSeriesResource {
     /// and operators, to create completely new time series.
     ///
     /// See https://developer.cognite.com/dev/concepts/resource_types/synthetic_timeseries.html for more details.
+    ///
+    /// # Arguments
+    ///
+    /// * `query` - Synthetic datapoints queries.
     pub async fn query_synthetic_timeseries(
         &self,
         query: &[SyntheticTimeSeriesQuery],

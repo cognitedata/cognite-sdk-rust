@@ -1,6 +1,9 @@
 use crate::{
     dto::data_modeling::views::{ViewDefinition, ViewQuery},
-    models::{ItemIdOptionalVersion, ViewCreateDefinition, ViewReference},
+    models::{
+        views::{ViewCreateDefinition, ViewReference},
+        ItemIdOptionalVersion,
+    },
     Create, DeleteWithResponse, List, Resource, Retrieve, WithBasePath,
 };
 

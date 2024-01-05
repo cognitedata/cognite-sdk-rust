@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 use serde_with::skip_serializing_none;
 
 use crate::{
-    models::{ViewCreateOrReference, ViewDefinitionOrReference},
+    models::views::{ViewCreateOrReference, ViewDefinitionOrReference},
     to_query, AsParams, SetCursor,
 };
 

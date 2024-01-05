@@ -3,7 +3,7 @@ use crate::dto::{data_organization::relationships::*, items::ItemsWithCursor};
 use crate::error::Result;
 use crate::{CogniteExternalId, Patch};
 
-/// Relationships lets you create custom links between different resources.
+/// API resource for relationships.
 pub type RelationshipsResource = Resource<Relationship>;
 
 impl WithBasePath for RelationshipsResource {
@@ -17,6 +17,14 @@ impl FilterWithRequest<FilterRelationshipsQuery, Relationship> for Relationships
 impl RetrieveWithRequest<RetrieveRelationshipsRequest, Relationship> for RelationshipsResource {}
 
 impl RelationshipsResource {
+    /// Retrieve a list of relationships by their ID.
+    ///
+    /// # Arguments
+    ///
+    /// * `relationship_ids` - IDs of relationships to retrieve.
+    /// * `ignore_unknown_ids` - Set this to `true` to ignore any IDs not found in CDF.
+    /// If this is `false`, any missing IDs will cause the request to fail.
+    /// * `fetch_resources` - Whether to fetch the associated resources along with the relationship itself.
     pub async fn retrieve(
         &self,
         relationship_ids: &[CogniteExternalId],

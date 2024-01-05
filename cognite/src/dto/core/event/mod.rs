@@ -1,87 +1,79 @@
+mod aggregate;
 mod filter;
 
+pub use self::aggregate::*;
 pub use self::filter::*;
 
 use crate::{
-    EqIdentity, Identity, IntegerOrString, IntoPatch, IntoPatchItem, Patch, UpdateList, UpdateMap,
-    UpdateSetNull,
+    EqIdentity, Identity, IntoPatch, IntoPatchItem, Patch, UpdateList, UpdateMap, UpdateSetNull,
 };
 use serde::{Deserialize, Serialize};
 use serde_with::skip_serializing_none;
 use std::collections::HashMap;
 
 #[skip_serializing_none]
-#[derive(Serialize, Deserialize, Debug)]
-#[serde(rename_all = "camelCase")]
-pub struct EventListResponse {
-    pub items: Vec<Event>,
-    previous_cursor: Option<String>,
-    next_cursor: Option<String>,
-}
-
-#[derive(Serialize, Deserialize, Debug)]
-#[serde(rename_all = "camelCase")]
-pub struct AggregatedCount {
-    pub count: i64,
-    pub value: IntegerOrString,
-}
-
-#[derive(Serialize, Deserialize, Debug)]
-#[serde(rename_all = "camelCase")]
-pub struct AggregatedEventFilterResponse {
-    pub items: Vec<AggregatedCount>,
-}
-
-#[derive(Serialize, Deserialize, Debug)]
-#[serde(rename_all = "camelCase")]
-pub struct AggregatedEventCountResponse {
-    pub items: Vec<EventCount>,
-}
-
-#[derive(Serialize, Deserialize, Debug)]
-#[serde(rename_all = "camelCase")]
-pub struct EventCount {
-    pub count: i64,
-}
-
-impl EventCount {
-    pub fn new(count: i64) -> EventCount {
-        EventCount { count }
-    }
-}
-
-#[skip_serializing_none]
 #[derive(Serialize, Deserialize, Debug, Default, Clone)]
 #[serde(rename_all = "camelCase")]
+/// A CDF event.
 pub struct Event {
+    /// Event internal ID.
     pub id: i64,
+    /// Event external ID. Must be unique accross all events in the project.
     pub external_id: Option<String>,
+    /// The ID of the dataset this event belongs to.
     pub data_set_id: Option<i64>,
+    /// Start time in milliseconds since epoch.
     pub start_time: Option<i64>,
+    /// End time in milliseconds since epoch.
     pub end_time: Option<i64>,
+    /// Type of the event.
+    #[serde(rename = "type")]
     pub r#type: Option<String>,
+    /// Subtype of the event.
     pub subtype: Option<String>,
+    /// Textual description of the event.
     pub description: Option<String>,
+    /// Custom, application specific metadata. String key -> String value.
+    /// Limits: Maximum length of key is 128 bytes, value 128000 bytes,
+    /// up to 256 key-value pairs, of total size at most 200000.
     pub metadata: Option<HashMap<String, String>>,
+    /// IDs of assets this event belongs to.
     pub asset_ids: Option<Vec<i64>>,
+    /// The source of this event.
     pub source: Option<String>,
-    pub created_time: Option<i64>,
-    pub last_updated_time: Option<i64>,
+    /// Time this event was created, in milliseconds since epoch.
+    pub created_time: i64,
+    /// Time this event was last updated, in milliseconds since epoch.
+    pub last_updated_time: i64,
 }
 
 #[skip_serializing_none]
 #[derive(Serialize, Deserialize, Debug, Default, Clone)]
 #[serde(rename_all = "camelCase")]
+/// Create a new event
 pub struct AddEvent {
+    /// Event external ID. Must be unique accross all events in the project.
     pub external_id: Option<String>,
+    /// The ID of the dataset this event belongs to.
     pub data_set_id: Option<i64>,
+    /// Start time in milliseconds since epoch.
     pub start_time: Option<i64>,
+    /// End time in milliseconds since epoch.
     pub end_time: Option<i64>,
+    /// Type of the event.
+    #[serde(rename = "type")]
     pub r#type: Option<String>,
+    /// Subtype of the event.
     pub subtype: Option<String>,
+    /// Textual description of the event.
     pub description: Option<String>,
+    /// Custom, application specific metadata. String key -> String value.
+    /// Limits: Maximum length of key is 128 bytes, value 128000 bytes,
+    /// up to 256 key-value pairs, of total size at most 200000.
     pub metadata: Option<HashMap<String, String>>,
+    /// IDs of assets this event belongs to.
     pub asset_ids: Option<Vec<i64>>,
+    /// The source of this event.
     pub source: Option<String>,
 }
 
@@ -114,16 +106,29 @@ impl EqIdentity for AddEvent {
 #[skip_serializing_none]
 #[derive(Serialize, Deserialize, Debug, Default, Clone)]
 #[serde(rename_all = "camelCase")]
+/// Update an event.
 pub struct PatchEvent {
+    /// Event external ID. Must be unique accross all events in the project.
     pub external_id: Option<UpdateSetNull<String>>,
+    /// The ID of the dataset this event belongs to.
     pub data_set_id: Option<UpdateSetNull<i64>>,
+    /// Start time in milliseconds since epoch.
     pub start_time: Option<UpdateSetNull<i64>>,
+    /// End time in milliseconds since epoch.
     pub end_time: Option<UpdateSetNull<i64>>,
+    /// Textual description of the event.
     pub description: Option<UpdateSetNull<String>>,
+    /// Custom, application specific metadata. String key -> String value.
+    /// Limits: Maximum length of key is 128 bytes, value 128000 bytes,
+    /// up to 256 key-value pairs, of total size at most 200000.
     pub metadata: Option<UpdateMap<String, String>>,
+    /// IDs of assets this event belongs to.
     pub asset_ids: Option<UpdateList<i64, i64>>,
+    /// The source of this event.
     pub source: Option<UpdateSetNull<String>>,
+    /// Type of the event.
     pub r#type: Option<UpdateSetNull<String>>,
+    /// Subtype of the event.
     pub subtype: Option<UpdateSetNull<String>>,
 }
 

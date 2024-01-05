@@ -2,6 +2,7 @@
 use cognite::models::*;
 use cognite::*;
 
+use cognite::models::views::{ViewQuery, ViewReference};
 use wiremock::matchers::{body_json_string, method, path, query_param};
 use wiremock::{Mock, MockServer, ResponseTemplate};
 

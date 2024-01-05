@@ -1,5 +1,8 @@
 use crate::{
-    models::{Space, SpaceCreate, SpaceId},
+    models::{
+        spaces::{Space, SpaceCreate},
+        SpaceId,
+    },
     Create, DeleteWithResponse, LimitCursorQuery, List, Resource, Retrieve, WithBasePath,
 };
 

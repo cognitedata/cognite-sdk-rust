@@ -17,30 +17,35 @@ use serde::{Deserialize, Serialize};
 
 use crate::Identity;
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(untagged)]
 #[serde(rename_all = "camelCase")]
+/// Enumeration over different types of retrieved data points.
 pub enum DatapointsEnumType {
+    /// Datapoints with double precision floating point values.
     NumericDatapoints(Vec<DatapointDouble>),
+    /// Datapoints with string values.
     StringDatapoints(Vec<DatapointString>),
+    /// Aggregate data points.
     AggregateDatapoints(Vec<DatapointAggregate>),
 }
 
 impl DatapointsEnumType {
+    /// Get self as numeric datapoints, or none if a different type.
     pub fn numeric(self) -> Option<Vec<DatapointDouble>> {
         match self {
             Self::NumericDatapoints(x) => Some(x),
             _ => None,
         }
     }
-
+    /// Get self as string datapoints, or none if a different type.
     pub fn string(self) -> Option<Vec<DatapointString>> {
         match self {
             Self::StringDatapoints(x) => Some(x),
             _ => None,
         }
     }
-
+    /// Get self as aggregate datapoints, or none if a different type.
     pub fn aggregate(self) -> Option<Vec<DatapointAggregate>> {
         match self {
             Self::AggregateDatapoints(x) => Some(x),
@@ -49,33 +54,51 @@ impl DatapointsEnumType {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
+/// A datapoint with double precision floating point value.
 pub struct DatapointDouble {
+    /// Timestamp in milliseconds since epoch.
     pub timestamp: i64,
+    /// Datapoint value.
     pub value: f64,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
+/// A datapoint with string value.
 pub struct DatapointString {
+    /// Timestamp in milliseconds since epoch.
     pub timestamp: i64,
+    /// Datapoint value.
     pub value: String,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
+/// An aggregate data point.
 pub struct DatapointAggregate {
+    /// Timestamp in milliseconds since epoch.
     pub timestamp: i64,
+    /// Average of values in aggregate.
     pub average: f64,
+    /// Max value in aggregate.
     pub max: f64,
+    /// Min value in aggregate.
     pub min: f64,
+    /// Number of values in aggregate.
     pub count: f64,
+    /// Sum of values in aggregate.
     pub sum: f64,
+    /// Interpolated value.
     pub interpolation: f64,
+    /// Step-interpolated value.
     pub step_interpolation: f64,
+    /// The variance of the underlying function when assuming linear or step behavior between data points.
     pub continuous_variance: f64,
+    /// The variance of the discrete set of data points, no weighting for density of points in time.
     pub discrete_variance: f64,
+    /// The sum of absolute differences between neighboring data points in a period.
     pub total_variation: f64,
 }
 
@@ -134,34 +157,58 @@ impl From<AggregateDatapoint> for DatapointAggregate {
 }
 
 #[derive(Serialize, Deserialize, Debug)]
+/// Response to a request for datapoints.
 pub struct DatapointsListResponse {
     pub items: Vec<DatapointsResponse>,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
+/// Response for a single timeseries when listing datapoints.
 pub struct DatapointsResponse {
+    /// Time series internal ID.
     pub id: i64,
+    /// Time series external ID.
     pub external_id: Option<String>,
+    /// Retrieved datapoints.
     pub datapoints: DatapointsEnumType,
+    /// Time series unit.
     pub unit: Option<String>,
     #[serde(default)]
+    /// Time series `is_step` property value.
     pub is_step: bool,
     #[serde(default)]
+    /// Whether this is a string time series.
     pub is_string: bool,
 }
 
+#[derive(Debug, Clone)]
+/// Add datapoints to a time series.
 pub struct AddDatapoints {
+    /// ID or external ID of time series to insert into.
     pub id: Identity,
+    /// Data points to insert.
     pub datapoints: DatapointsEnumType,
 }
 
 impl AddDatapoints {
-    pub fn new(time_serie_id: i64, datapoints: DatapointsEnumType) -> AddDatapoints {
+    /// Create a new batch of data points to insert.
+    ///
+    /// # Arguments
+    ///
+    /// * `id` - Internal ID of time series to insert into.
+    /// * `datapoints` - Datapoints to insert.
+    pub fn new(id: i64, datapoints: DatapointsEnumType) -> AddDatapoints {
         AddDatapoints {
-            id: Identity::Id { id: time_serie_id },
+            id: Identity::Id { id },
             datapoints,
         }
     }
+    /// Create a new batch of data points to insert.
+    ///
+    /// # Arguments
+    ///
+    /// * `external_id` - External ID of time series to insert into.
+    /// * `datapoints` - Datapoints to insert.
     pub fn new_external_id(external_id: &str, datapoints: DatapointsEnumType) -> AddDatapoints {
         AddDatapoints {
             id: Identity::ExternalId {

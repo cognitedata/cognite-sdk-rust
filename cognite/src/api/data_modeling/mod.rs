@@ -13,6 +13,7 @@ use self::containers::ContainersResource;
 use self::data_models::DataModelsResource;
 use self::spaces::SpacesResource;
 
+/// API resource for data modeling.
 pub struct Models {
     pub instances: Instances,
     pub views: ViewsResource,
@@ -22,7 +23,7 @@ pub struct Models {
 }
 
 impl Models {
-    pub fn new(api_client: Arc<ApiClient>) -> Self {
+    pub(crate) fn new(api_client: Arc<ApiClient>) -> Self {
         Models {
             instances: Instances::new(api_client.clone()),
             views: ViewsResource::new(api_client.clone()),

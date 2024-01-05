@@ -42,7 +42,13 @@ pub enum AuthHeaderManager {
 }
 
 impl AuthHeaderManager {
-    /// Set necesary headers in `headers`.
+    /// Set necesary headers in `headers`. This will sometimes request tokens from
+    /// the identity provider.
+    ///
+    /// # Arguments
+    ///
+    /// * `headers` - Request header collection.
+    /// * `client` - Reqwest client used to send authentication requests, if necessary.
     pub async fn set_headers(
         &self,
         headers: &mut HeaderMap,
@@ -134,12 +140,16 @@ struct AuthenticatorResponse {
 #[derive(Serialize, Deserialize, Debug, Error)]
 /// Error from an authenticator request.
 pub struct AuthenticatorError {
+    /// Error message
     pub error: String,
+    /// Detailed error description.
     pub error_description: Option<String>,
+    /// Error URI.
     pub error_uri: Option<String>,
 }
 
 impl AuthenticatorError {
+    /// Create an authenticator error from message and description.
     pub fn internal_error(error: String, error_description: Option<String>) -> Self {
         Self {
             error,
@@ -179,6 +189,7 @@ impl AuthenticatorState {
     }
 }
 
+/// Simple OIDC authenticator.
 pub struct Authenticator {
     req: AuthenticatorRequest,
     state: RwLock<AuthenticatorState>,
@@ -187,6 +198,10 @@ pub struct Authenticator {
 
 impl Authenticator {
     /// Create a new authenticator with given config.
+    ///
+    /// # Arguments
+    ///
+    /// * `config` - Authenticator configuration.
     pub fn new(config: AuthenticatorConfig) -> Authenticator {
         Authenticator {
             token_url: config.token_url.clone(),
@@ -237,6 +252,10 @@ impl Authenticator {
 
     /// Get a token. This will only fetch a new token if it is about
     /// to expire (will expire in the next 60 seconds).
+    ///
+    /// # Arguments
+    ///
+    /// * `client` - Reqwest client to use for requests to the IdP.
     pub async fn get_token(
         &self,
         client: &ClientWithMiddleware,

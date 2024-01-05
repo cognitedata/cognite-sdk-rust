@@ -4,12 +4,11 @@ use serde::{Deserialize, Serialize};
 use serde_with::skip_serializing_none;
 
 use crate::{
-    models::{
-        CDFExternalIdReference, PrimitiveProperty, RawValue, TaggedContainerReference,
-        TextProperty, UsedFor,
-    },
-    to_query, AsParams, SetCursor,
+    models::{TaggedContainerReference, UsedFor},
+    to_query, AsParams, RawValue, SetCursor,
 };
+
+use super::common::{CDFExternalIdReference, PrimitiveProperty, TextProperty};
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 #[serde(rename_all = "camelCase")]
