@@ -33,7 +33,7 @@ pub enum Aggregate {
 #[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase", untagged)]
 /// Either a timestamp in milliseconds since epoch, or a timestamp on the form
-/// N[timeunit]-ago where timeunit is w,d,h,m,s. Example: '2d-ago'
+/// `N[timeunit]-ago` where timeunit is `w`,`d`,`h`,`m`,`s`. Example: '2d-ago'
 /// gets datapoints that are up to 2 days old. You can also specify time
 /// in milliseconds since epoch. Note that for aggregates, the start time is rounded
 /// down to a whole granularity unit (in UTC timezone). Daily granularities (d) are
@@ -102,6 +102,7 @@ pub struct DatapointsFilter {
 #[skip_serializing_none]
 #[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
+/// Query data points
 pub struct DatapointsQuery {
     #[serde(flatten)]
     /// ID or external ID of time series to retrieve data from.
@@ -159,10 +160,16 @@ pub struct LatestDatapointsQuery {
 }
 
 impl LatestDatapointsQuery {
-    pub fn new(time_serie_id: Identity, before: &str) -> LatestDatapointsQuery {
+    /// Create a new latest datapoint query.
+    ///
+    /// # Arguments
+    ///
+    /// * `id` - Time series ID.
+    /// * `before` - Get data points before this time.
+    pub fn new(id: Identity, before: impl Into<String>) -> LatestDatapointsQuery {
         LatestDatapointsQuery {
-            id: time_serie_id,
-            before: String::from(before),
+            id,
+            before: before.into(),
         }
     }
 }

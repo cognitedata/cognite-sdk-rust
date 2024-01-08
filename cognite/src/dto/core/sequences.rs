@@ -53,6 +53,7 @@ pub struct SequenceColumn {
 #[skip_serializing_none]
 #[derive(Serialize, Deserialize, Debug, Default, Clone)]
 #[serde(rename_all = "camelCase")]
+/// A CDF sequence.
 pub struct Sequence {
     /// Sequence internal ID.
     pub id: i64,
@@ -81,6 +82,7 @@ pub struct Sequence {
 #[skip_serializing_none]
 #[derive(Serialize, Deserialize, Debug, Default, Clone)]
 #[serde(rename_all = "camelCase")]
+/// Create a new sequence.
 pub struct AddSequence {
     /// External ID of the sequence. Must be unique within the project.
     pub external_id: Option<String>,
@@ -173,6 +175,7 @@ pub struct PatchSequenceColumn {
 #[skip_serializing_none]
 #[derive(Serialize, Deserialize, Debug, Default, Clone)]
 #[serde(rename_all = "camelCase")]
+/// Update a sequence.
 pub struct PatchSequence {
     /// Name of the sequence.
     pub name: Option<UpdateSetNull<String>>,

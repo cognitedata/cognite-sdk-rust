@@ -153,9 +153,16 @@ impl WithPartition for EventQuery {
 #[skip_serializing_none]
 #[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase", untagged)]
+/// Filter with a range, or by whether the value is null.
 pub enum RangeOrIsNull {
+    /// Filter by a range of values.
     Range(Range<i64>),
-    IsNull { is_null: bool },
+    /// Filter by whether the value is null
+    #[serde(rename_all = "camelCase")]
+    IsNull {
+        /// Whether or not the value is null.
+        is_null: bool,
+    },
 }
 
 #[skip_serializing_none]
@@ -199,6 +206,7 @@ pub struct EventFilter {
 }
 
 impl EventFilter {
+    /// Create a new empty event filter.
     pub fn new() -> EventFilter {
         EventFilter::default()
     }

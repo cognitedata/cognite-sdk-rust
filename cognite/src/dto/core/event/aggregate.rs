@@ -43,6 +43,7 @@ pub enum EventAggregateCount {
 #[skip_serializing_none]
 #[derive(Serialize, Deserialize, Debug, Clone, Default)]
 #[serde(rename_all = "camelCase")]
+/// Aggregate query with a list of properties.
 pub struct AggregateWithProperty {
     /// Filter on aggregate property values.
     aggregate_filter: Option<AggregateFilter>,
@@ -57,6 +58,7 @@ pub struct AggregateWithProperty {
 #[skip_serializing_none]
 #[derive(Serialize, Deserialize, Debug, Clone, Default)]
 #[serde(rename_all = "camelCase")]
+/// Aggregate query with a path within a metadata object.
 pub struct AggregateWithPath {
     /// Filter on aggregate property values.
     aggregate_filter: Option<AggregateFilter>,

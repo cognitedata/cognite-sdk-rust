@@ -89,6 +89,9 @@ impl Retryable {
     ///
     /// Returns `None` if the response object does not contain any errors.
     ///
+    /// # Arguments
+    ///
+    /// * `res` - Request response.
     pub fn from_reqwest_response(
         res: &reqwest_middleware::Result<reqwest::Response>,
     ) -> Option<Self> {

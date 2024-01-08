@@ -3,6 +3,12 @@ use std::hash::Hash;
 
 /// Chunk a map of lists both by the maximum number of keys per map,
 /// and the number of total values.
+///
+/// # Arguments
+///
+/// * `inp` - The input hashmap.
+/// * `max_total` - Maximum number of total values per result map.
+/// * `max_keys` - Maximum number of keys per result map.
 pub fn chunk_map<'a, TKey: Hash + Eq + 'a + Clone, TValue: 'a>(
     inp: HashMap<TKey, Vec<TValue>>,
     max_total: usize,

@@ -10,6 +10,7 @@ use serde::ser::Serialize;
 
 use crate::error::{Error, Result};
 
+/// API client, used to query CDF.
 pub struct ApiClient {
     api_base_url: String,
     app_name: String,

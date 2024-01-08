@@ -20,6 +20,14 @@ type CustomAuthCallback =
 /// Trait for a custom authenticator. This should set the necessary headers in `headers` before each
 /// request. Note that this may be called from multiple places in parallel.
 pub trait CustomAuthenticator {
+    /// Set the required headers for authentication. This may use the provided
+    /// `client` to perform a request, if necessary. This will be called frequently, so
+    /// make sure it only makes external requests when needed.
+    ///
+    /// # Arguments
+    ///
+    /// * `headers` - Header map to modify.
+    /// * `client` - Client used to perform any external authentication requests.
     async fn set_headers(
         &self,
         headers: &mut HeaderMap,

@@ -1,5 +1,6 @@
 mod filter;
 #[allow(clippy::all)]
+#[allow(missing_docs)]
 mod proto {
     include!(concat!(
         env!("OUT_DIR"),
@@ -159,6 +160,7 @@ impl From<AggregateDatapoint> for DatapointAggregate {
 #[derive(Serialize, Deserialize, Debug)]
 /// Response to a request for datapoints.
 pub struct DatapointsListResponse {
+    /// List of datapoint responses.
     pub items: Vec<DatapointsResponse>,
 }
 

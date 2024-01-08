@@ -1,3 +1,5 @@
+#![warn(missing_docs)]
+#![doc = include_str!("../../README.md")]
 mod cognite_client;
 
 mod api;
@@ -22,7 +24,7 @@ pub mod assets {
 /// units of °C every second.
 pub mod time_series {
     pub use super::api::core::time_series::*;
-    pub use super::dto::core::{datapoint::*, time_serie::*};
+    pub use super::dto::core::{datapoint::*, time_series::*};
 }
 
 /// Event objects store complex information about multiple assets over a time period.

@@ -9,12 +9,19 @@ use crate::{
 #[skip_serializing_none]
 #[derive(Serialize, Deserialize, Clone, Debug)]
 #[serde(rename_all = "camelCase")]
+/// Create a data model.
 pub struct DataModelCreate {
+    /// Data model space.
     pub space: String,
+    /// Data model external ID.
     pub external_id: String,
+    /// Data model name.
     pub name: Option<String>,
+    /// Data model description.
     pub description: Option<String>,
+    /// Data model version.
     pub version: String,
+    /// Views in data model.
     pub views: Option<Vec<ViewCreateOrReference>>,
 }
 
@@ -36,51 +43,55 @@ impl From<DataModel> for DataModelCreate {
 #[skip_serializing_none]
 #[derive(Serialize, Deserialize, Clone, Debug)]
 #[serde(rename_all = "camelCase")]
+/// A CDF data model.
 pub struct DataModel {
+    /// Data model space.
     pub space: String,
+    /// Data model external ID.
     pub external_id: String,
+    /// Data model name.
     pub name: Option<String>,
+    /// Data model description.
     pub description: Option<String>,
+    /// Data model version.
     pub version: String,
+    /// Views in data model.
     pub views: Option<Vec<ViewDefinitionOrReference>>,
+    /// Time this data model was created, in milliseconds since epoch.
     pub created_time: i64,
+    /// Time this data model was last updated, in milliseconds since epoch.
     pub last_updated_time: i64,
+    /// Whether this data model is global (defined by CDF) or project specific.
     pub is_global: bool,
 }
 
 #[skip_serializing_none]
 #[derive(Serialize, Deserialize, Clone, Debug)]
 #[serde(rename_all = "camelCase")]
+/// ID of a data model
 pub struct DataModelId {
+    /// Data model space.
     pub space: String,
+    /// Data model external ID.
     pub external_id: String,
+    /// Data model version. This is required for some endpoints, but not all.
     pub version: Option<String>,
 }
 
-#[skip_serializing_none]
-#[derive(Serialize, Deserialize, Clone, Debug, Default)]
-#[serde(rename_all = "camelCase")]
-pub struct DataModelFilter {
-    pub cursor: Option<String>,
-    pub limit: Option<i32>,
-    pub spaces: Option<Vec<String>>,
-    pub all_versions: Option<bool>,
-    pub include_global: Option<bool>,
-}
-
-impl SetCursor for DataModelFilter {
-    fn set_cursor(&mut self, cursor: Option<String>) {
-        self.cursor = cursor;
-    }
-}
-
 #[derive(Clone, Debug, Default)]
+/// Query for listing data models.
 pub struct DataModelQuery {
+    /// Optional cursor for pagination.
     pub cursor: Option<String>,
+    /// Maximum number of data models to retrieve. Default is 10, maximum is 1000.
     pub limit: Option<i32>,
+    /// Whether to expand the referenced views inline in the returned result.
     pub inline_views: Option<bool>,
+    /// Filter by data model space.
     pub space: Option<String>,
+    /// Whether to include all versions, or just the latest version.
     pub all_versions: Option<bool>,
+    /// Whether to include global data models.
     pub include_global: Option<bool>,
 }
 

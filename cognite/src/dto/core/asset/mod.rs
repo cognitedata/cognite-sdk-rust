@@ -30,6 +30,7 @@ pub struct AssetAggregate {
 #[skip_serializing_none]
 #[derive(Serialize, Deserialize, Debug, Default, Clone)]
 #[serde(rename_all = "camelCase")]
+/// A CDF asset, representing some entity.
 pub struct Asset {
     /// Server-generated ID of the asset.
     pub id: i64,

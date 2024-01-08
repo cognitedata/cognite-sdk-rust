@@ -44,6 +44,7 @@ pub struct FileFilter {
 }
 
 impl FileFilter {
+    /// Create a new empty file filter.
     pub fn new() -> FileFilter {
         FileFilter::default()
     }

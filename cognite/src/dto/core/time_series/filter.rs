@@ -10,6 +10,7 @@ use std::collections::HashMap;
 #[skip_serializing_none]
 #[derive(Serialize, Deserialize, Debug, Default, Clone)]
 #[serde(rename_all = "camelCase")]
+/// Filter time series.
 pub struct TimeSeriesFilter {
     /// Include time series with this name.
     pub name: Option<String>,

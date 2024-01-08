@@ -9,7 +9,7 @@ pub mod datapoint;
 pub mod event;
 pub mod files;
 pub mod sequences;
-pub mod time_serie;
+pub mod time_series;
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 #[serde(rename_all = "camelCase")]

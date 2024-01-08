@@ -3,7 +3,7 @@ use std::iter::FromIterator;
 
 use crate::api::resource::*;
 use crate::dto::core::datapoint::*;
-use crate::dto::core::time_serie::*;
+use crate::dto::core::time_series::*;
 use crate::error::Result;
 use crate::get_missing_from_result;
 use crate::Identity;
@@ -261,7 +261,8 @@ impl TimeSeriesResource {
     /// Query synthetic time series. Synthetic time series lets you combine various input time series, constants,
     /// and operators, to create completely new time series.
     ///
-    /// See https://developer.cognite.com/dev/concepts/resource_types/synthetic_timeseries.html for more details.
+    /// See [synthetic timeseries](https://developer.cognite.com/dev/concepts/resource_types/synthetic_timeseries.html)
+    /// for more details.
     ///
     /// # Arguments
     ///

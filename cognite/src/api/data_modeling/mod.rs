@@ -15,10 +15,15 @@ use self::spaces::SpacesResource;
 
 /// API resource for data modeling.
 pub struct Models {
+    /// Data model instances (nodes and edges)
     pub instances: Instances,
+    /// Data modeling views.
     pub views: ViewsResource,
+    /// Data modeling spaces.
     pub spaces: SpacesResource,
+    /// Data models.
     pub data_models: DataModelsResource,
+    /// Data modeling containers.
     pub containers: ContainersResource,
 }
 
