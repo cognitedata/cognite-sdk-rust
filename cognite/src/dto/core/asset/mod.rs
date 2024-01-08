@@ -12,7 +12,7 @@ use serde_json::json;
 use serde_with::skip_serializing_none;
 use std::collections::HashMap;
 
-use super::GeoLocation;
+use super::common::GeoLocation;
 
 #[skip_serializing_none]
 #[derive(Serialize, Deserialize, Debug, Clone)]

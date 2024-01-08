@@ -11,6 +11,11 @@ mod retry;
 /// Utility methods and tooling.
 pub mod utils;
 
+/// Common types for DTOs.
+pub mod dto_common {
+    pub use super::dto::core::common::*;
+}
+
 /// Assets represent objects or groups of objects from the physical world.
 /// Assets are organized in hierarchies. For example, a water pump asset can
 /// be part of a subsystem asset on an oil platform asset.

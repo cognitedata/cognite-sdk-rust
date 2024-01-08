@@ -282,6 +282,7 @@ pub struct ViewDefinition {
 #[skip_serializing_none]
 #[derive(Serialize, Deserialize, Clone, Debug)]
 #[serde(rename_all = "camelCase", untagged)]
+#[allow(clippy::large_enum_variant)]
 /// Properties in a view definition.
 pub enum ViewDefinitionProperties {
     /// A view property referencing a property in a container.

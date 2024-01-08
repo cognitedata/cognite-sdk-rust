@@ -1,8 +1,8 @@
-pub mod containers;
-pub mod data_models;
-pub mod instances;
-pub mod spaces;
-pub mod views;
+pub(crate) mod containers;
+pub(crate) mod data_models;
+pub(crate) mod instances;
+pub(crate) mod spaces;
+pub(crate) mod views;
 
 use std::sync::Arc;
 

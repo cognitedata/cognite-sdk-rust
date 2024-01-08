@@ -1,4 +1,4 @@
-use crate::dto::core::CoreSortItem;
+use crate::dto::core::common::CoreSortItem;
 use crate::{
     to_query, to_query_vec_i64, AdvancedFilter, Identity, Partition, SetCursor, WithPartition,
 };

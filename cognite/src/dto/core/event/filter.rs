@@ -1,6 +1,6 @@
 use crate::{
-    dto::core::CoreSortItem, to_query, to_query_vec, to_query_vec_i64, AdvancedFilter, AsParams,
-    Identity, Partition, Range, SetCursor, WithPartition,
+    dto::core::common::CoreSortItem, to_query, to_query_vec, to_query_vec_i64, AdvancedFilter,
+    AsParams, Identity, Partition, Range, SetCursor, WithPartition,
 };
 use serde::{Deserialize, Serialize};
 use serde_with::skip_serializing_none;
