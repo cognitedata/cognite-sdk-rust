@@ -2,7 +2,7 @@ use async_trait::async_trait;
 use futures_locks::RwLock;
 use reqwest::{
     header::{HeaderMap, HeaderValue},
-    Method, StatusCode,
+    StatusCode,
 };
 use reqwest_middleware::ClientWithMiddleware;
 use serde::{Deserialize, Serialize};
@@ -100,8 +100,6 @@ pub struct AuthenticatorConfig {
     pub audience: Option<String>,
     /// Optional space separate list of scopes.
     pub scopes: Option<String>,
-    /// HTTP method to use, defaults to GET.
-    pub http_method: Option<reqwest::Method>,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -185,7 +183,6 @@ pub struct Authenticator {
     req: AuthenticatorRequest,
     state: RwLock<AuthenticatorState>,
     token_url: String,
-    method: Method,
 }
 
 impl Authenticator {
@@ -193,7 +190,6 @@ impl Authenticator {
     pub fn new(config: AuthenticatorConfig) -> Authenticator {
         Authenticator {
             token_url: config.token_url.clone(),
-            method: config.http_method.clone().unwrap_or(Method::GET),
             req: AuthenticatorRequest::new(config),
             state: RwLock::new(AuthenticatorState {
                 last_response: None,
@@ -207,7 +203,7 @@ impl Authenticator {
         client: &ClientWithMiddleware,
     ) -> Result<AuthenticatorResponse, AuthenticatorError> {
         let response = client
-            .request(self.method.clone(), &self.token_url)
+            .post(&self.token_url)
             .form(&self.req)
             .send()
             .await
