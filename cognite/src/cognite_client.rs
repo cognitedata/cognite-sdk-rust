@@ -77,6 +77,8 @@ pub struct CogniteClient {
     pub sequences: SequencesResource,
     pub sessions: SessionsResource,
     pub models: Models,
+
+    pub http_client: ClientWithMiddleware,
 }
 
 static COGNITE_BASE_URL: &str = "COGNITE_BASE_URL";
@@ -112,13 +114,10 @@ impl CogniteClient {
         config: Option<ClientConfig>,
     ) -> Result<Self> {
         let api_base_path = format!("{}/api/{}/projects/{}", api_base_url, "v1", project_name);
-        let api_client = ApiClient::new(
-            &api_base_path,
-            app_name,
-            Self::get_client(config.unwrap_or_default(), auth, None, None)?,
-        );
+        let client = Self::get_client(config.unwrap_or_default(), auth, None, None)?;
+        let api_client = ApiClient::new(&api_base_path, app_name, client.clone());
 
-        Self::new_internal(api_client)
+        Self::new_internal(api_client, client)
     }
 
     fn get_client(
@@ -165,15 +164,12 @@ impl CogniteClient {
         middleware: Option<Vec<Arc<dyn Middleware>>>,
     ) -> Result<Self> {
         let api_base_path = format!("{}/api/{}/projects/{}", base_url, "v1", project);
-        let api_client = ApiClient::new(
-            &api_base_path,
-            &app_name,
-            Self::get_client(config, auth, client, middleware)?,
-        );
-        Self::new_internal(api_client)
+        let client = Self::get_client(config, auth, client, middleware)?;
+        let api_client = ApiClient::new(&api_base_path, &app_name, client.clone());
+        Self::new_internal(api_client, client)
     }
 
-    fn new_internal(api_client: ApiClient) -> Result<Self> {
+    fn new_internal(api_client: ApiClient, http_client: ClientWithMiddleware) -> Result<Self> {
         let ac = Arc::new(api_client);
         Ok(CogniteClient {
             api_client: ac.clone(),
@@ -192,6 +188,7 @@ impl CogniteClient {
             sequences: SequencesResource::new(ac.clone()),
             sessions: SessionsResource::new(ac.clone()),
             models: Models::new(ac),
+            http_client,
         })
     }
 
@@ -205,13 +202,10 @@ impl CogniteClient {
         let authenticator = Authenticator::new(auth_config);
         let api_base_path = format!("{}/api/{}/projects/{}", api_base_url, "v1", project_name);
         let auth = AuthHeaderManager::OIDCToken(authenticator);
-        let api_client = ApiClient::new(
-            &api_base_path,
-            app_name,
-            Self::get_client(config.unwrap_or_default(), auth, None, None)?,
-        );
+        let client = Self::get_client(config.unwrap_or_default(), auth, None, None)?;
+        let api_client = ApiClient::new(&api_base_path, app_name, client.clone());
 
-        Self::new_internal(api_client)
+        Self::new_internal(api_client, client)
     }
 
     pub fn builder() -> Builder {
