@@ -227,7 +227,7 @@ impl Authenticator {
             return match serde_json::from_str(&response) {
                 Ok(e) => Err(e),
                 Err(e) => Err(AuthenticatorError::internal_error(
-                    format!("Something went wrong (status: {status}), but the response error couldn't be deserialized. Raw response: {e}")
+                    format!("Something went wrong (status: {status}), but the response error couldn't be deserialized. Raw response: {response}")
                     , Some(e.to_string())))
             };
         }
