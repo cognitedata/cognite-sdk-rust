@@ -216,18 +216,23 @@ impl Authenticator {
 
         let status = response.status();
 
+        let response = response.text().await.map_err(|e| {
+            AuthenticatorError::internal_error(
+                "Failed to receive response contents".to_owned(),
+                Some(e.to_string()),
+            )
+        })?;
+
         if status != StatusCode::OK {
-            return Err(
-                response.json::<AuthenticatorError>().await.map_err(|e| {
-                    AuthenticatorError::internal_error(
-                         format!("Something went wrong (status: {status}), but the response error couldn't be deserialized"),
-                        Some(e.to_string()),
-                    )
-                })?,
-            );
+            return match serde_json::from_str(&response) {
+                Ok(e) => Err(e),
+                Err(e) => Err(AuthenticatorError::internal_error(
+                    format!("Something went wrong (status: {status}), but the response error couldn't be deserialized. Raw response: {e}")
+                    , Some(e.to_string())))
+            };
         }
 
-        response.json::<AuthenticatorResponse>().await.map_err(|e| {
+        serde_json::from_str(&response).map_err(|e| {
             AuthenticatorError::internal_error(
                 "Failed to deserialize".to_string(),
                 Some(e.to_string()),
