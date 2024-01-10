@@ -77,8 +77,6 @@ pub struct CogniteClient {
     pub sequences: SequencesResource,
     pub sessions: SessionsResource,
     pub models: Models,
-
-    pub http_client: ClientWithMiddleware,
 }
 
 static COGNITE_BASE_URL: &str = "COGNITE_BASE_URL";
@@ -117,7 +115,7 @@ impl CogniteClient {
         let client = Self::get_client(config.unwrap_or_default(), auth, None, None)?;
         let api_client = ApiClient::new(&api_base_path, app_name, client.clone());
 
-        Self::new_internal(api_client, client)
+        Self::new_internal(api_client)
     }
 
     fn get_client(
@@ -166,10 +164,10 @@ impl CogniteClient {
         let api_base_path = format!("{}/api/{}/projects/{}", base_url, "v1", project);
         let client = Self::get_client(config, auth, client, middleware)?;
         let api_client = ApiClient::new(&api_base_path, &app_name, client.clone());
-        Self::new_internal(api_client, client)
+        Self::new_internal(api_client)
     }
 
-    fn new_internal(api_client: ApiClient, http_client: ClientWithMiddleware) -> Result<Self> {
+    fn new_internal(api_client: ApiClient) -> Result<Self> {
         let ac = Arc::new(api_client);
         Ok(CogniteClient {
             api_client: ac.clone(),
@@ -188,7 +186,6 @@ impl CogniteClient {
             sequences: SequencesResource::new(ac.clone()),
             sessions: SessionsResource::new(ac.clone()),
             models: Models::new(ac),
-            http_client,
         })
     }
 
@@ -205,7 +202,7 @@ impl CogniteClient {
         let client = Self::get_client(config.unwrap_or_default(), auth, None, None)?;
         let api_client = ApiClient::new(&api_base_path, app_name, client.clone());
 
-        Self::new_internal(api_client, client)
+        Self::new_internal(api_client)
     }
 
     pub fn builder() -> Builder {
