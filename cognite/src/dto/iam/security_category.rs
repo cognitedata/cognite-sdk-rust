@@ -4,21 +4,30 @@ use crate::{models::SortDirection, to_query, AsParams, SetCursor};
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
+/// Create a security category.
 pub struct AddSecurityCategory {
+    /// Security category name.
     pub name: String,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
+/// CDF security category.
 pub struct SecurityCategory {
+    /// Security category name.
     pub name: String,
+    /// Internal ID.
     pub id: u64,
 }
 
 #[derive(Debug, Default)]
+/// Filter security categories.
 pub struct SecurityCategoryQuery {
+    /// Sort security categories in ascending or descending order.
     pub sort: Option<SortDirection>,
+    /// Cursor for pagination.
     pub cursor: Option<String>,
+    /// Optional limit. Default is 25, maximum is 1000.
     pub limit: Option<i32>,
 }
 

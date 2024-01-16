@@ -55,7 +55,9 @@ pub fn to_query_vec_i64(name: &str, item: &Option<Vec<i64>>, params: &mut Vec<(S
 
 /// Simple query with limit and cursor.
 pub struct LimitCursorQuery {
+    /// Maximum number of results to return.
     pub limit: Option<i32>,
+    /// Cursor for pagination.
     pub cursor: Option<String>,
 }
 
@@ -70,8 +72,11 @@ impl AsParams for LimitCursorQuery {
 
 /// Query with limt, cursor, and partition.
 pub struct LimitCursorPartitionQuery {
+    /// Maximum number of results to return.
     pub limit: Option<i32>,
+    /// Cursor for pagination.
     pub cursor: Option<String>,
+    /// Partition count and number.
     pub partition: Option<Partition>,
 }
 

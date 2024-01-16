@@ -16,6 +16,11 @@ pub struct AuthenticatorMiddleware {
 struct AuthenticatorFlag;
 
 impl AuthenticatorMiddleware {
+    /// Create a new authenticator middleware from an authenticator.
+    ///
+    /// # Arguments
+    ///
+    /// * `authenticator` - Header manager.
     pub fn new(authenticator: AuthHeaderManager) -> crate::Result<Self> {
         Ok(Self { authenticator })
     }

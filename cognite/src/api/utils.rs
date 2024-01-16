@@ -2,6 +2,10 @@ use crate::{Identity, Kind, Result};
 
 /// Given a result object from CDF, if it is a "conflict" error,
 /// return the list of identities.
+///
+/// # Arguments
+///
+/// * `res` - Result from a CDF request.
 pub fn get_duplicates_from_result<T>(res: &Result<T>) -> Option<Vec<Identity>> {
     match res {
         Ok(_) => None,
@@ -17,6 +21,10 @@ pub fn get_duplicates_from_result<T>(res: &Result<T>) -> Option<Vec<Identity>> {
 
 /// Given a result object from CDF, if it is a "missing" error,
 /// return the list of identities.
+///
+/// # Arguments
+///
+/// * `res` - Result from a CDF request.
 pub fn get_missing_from_result<T>(res: &Result<T>) -> Option<Vec<Identity>> {
     match res {
         Ok(_) => None,

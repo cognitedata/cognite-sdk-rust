@@ -1,5 +1,5 @@
-pub mod assets;
-pub mod events;
-pub mod files;
-pub mod sequences;
-pub mod time_series;
+pub(crate) mod assets;
+pub(crate) mod events;
+pub(crate) mod files;
+pub(crate) mod sequences;
+pub(crate) mod time_series;

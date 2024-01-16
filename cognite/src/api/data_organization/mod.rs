@@ -1,3 +1,3 @@
-pub mod datasets;
-pub mod labels;
-pub mod relationships;
+pub(crate) mod datasets;
+pub(crate) mod labels;
+pub(crate) mod relationships;

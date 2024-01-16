@@ -1,4 +1,4 @@
-use futures::Stream;
+use futures::TryStream;
 
 use crate::api::resource::*;
 use crate::dto::core::files::*;
@@ -22,7 +22,18 @@ impl Update<Patch<PatchFile>, FileMetadata> for Files {}
 
 impl Files {
     /// Upload a stream to an url, the url is received from `Files::upload`
-    /// For example:
+    ///
+    /// # Arguments
+    ///
+    /// * `mime_type` - Mime type of file to upload. For example `application/pdf`.
+    /// * `url` - URL to upload stream to.
+    /// * `stream` - Stream to upload.
+    /// * `stream_chunked` - Set this to `true` to use chunked streaming. Note that this is not supported for the
+    /// azure file backend. If this is set to `false`, the entire file is read into memory before uploading, which may
+    /// be very expensive. Use `upload_stream_known_size` if the size of the file is known.
+    ///
+    /// # Example
+    ///
     /// ```ignore
     /// use tokio_util::codec::{BytesCodec, FramedRead};
     ///
@@ -32,10 +43,7 @@ impl Files {
     /// ```
     ///
     /// Note that `stream_chunked` being true is in general more efficient, but it is not supported
-    /// for the azure file backend. Setting it to false results in the entire stream being read into memory before uploading.
-    ///
-    /// If you want to stream data without chunked streaming, an option is to use `upload_stream_known_size`, which
-    /// requires prior knowledge of stream length.
+    /// for the azure file backend.
     pub async fn upload_stream<S>(
         &self,
         mime_type: &str,
@@ -56,7 +64,17 @@ impl Files {
     /// Upload a stream to an url, the url is received from `Files::upload`
     /// This method requires that the length of the stream in bytes is known before hand.
     /// If the specified size is wrong, the request may fail or even hang.
-    /// For example:
+    ///
+    /// # Arguments
+    ///
+    /// * `mime_type` - Mime type of file to upload. For example `application/pdf`.
+    /// * `url` - URL to upload stream to.
+    /// * `stream` - Stream to upload.
+    /// * `size` - Known size of stream in bytes. Note: Do not use this method if the size is not
+    /// actually known!
+    ///
+    /// # Example
+    ///
     /// ```ignore
     /// use tokio_util::codec::{BytesCodec, FramedRead};
     ///
@@ -86,7 +104,13 @@ impl Files {
             .await
     }
 
-    /// Upload a binary blob to `url`.
+    /// Upload a binary vector to `url`.
+    ///
+    /// # Arguments
+    ///
+    /// * `mime_type` - Mime type of file to upload. For example `application/pdf`.
+    /// * `url` - URL to upload blob to.
+    /// * `blob` - File to upload, as bytes.
     pub async fn upload_blob(&self, mime_type: &str, url: &str, blob: Vec<u8>) -> Result<()> {
         self.api_client.put_blob(url, mime_type, blob).await
     }
@@ -94,6 +118,12 @@ impl Files {
     /// Create a file, optionally overwriting an existing file.
     ///
     /// The result will contain an upload URL that can be used to upload a file.
+    ///
+    /// # Arguments
+    ///
+    /// * `overwrite` - Set this to `true` to overwrite existing files with the same `external_id`.
+    /// If this is `false`, and a file with the given `external_id` already exists, the request will fail.
+    /// * `item` - The file to upload.
     pub async fn upload(&self, overwrite: bool, item: &AddFile) -> Result<FileMetadata> {
         self.api_client
             .post_with_query("files", item, Some(FileUploadQuery::new(overwrite)))
@@ -101,6 +131,10 @@ impl Files {
     }
 
     /// Get download links for a list of files.
+    ///
+    /// # Arguments
+    ///
+    /// * `ids` - List of file IDs or external IDs.
     pub async fn download_link(&self, ids: &[Identity]) -> Result<Vec<FileDownloadUrl>> {
         let items = Items::from(ids);
         let file_links_response: ItemsWithoutCursor<FileDownloadUrl> =
@@ -109,18 +143,26 @@ impl Files {
     }
 
     /// Stream a file from `url`.
+    ///
+    /// # Arguments
+    ///
+    /// * `url` - URL to download from.
     pub async fn download(
         &self,
         url: &str,
-    ) -> Result<impl Stream<Item = std::result::Result<bytes::Bytes, reqwest::Error>>> {
+    ) -> Result<impl TryStream<Ok = bytes::Bytes, Error = reqwest::Error>> {
         self.api_client.get_stream(url).await
     }
 
     /// Stream a file given by `id`.
+    ///
+    /// # Arguments
+    ///
+    /// * `id` - ID or external ID of file to download.
     pub async fn download_file(
         &self,
         id: Identity,
-    ) -> Result<impl Stream<Item = std::result::Result<bytes::Bytes, reqwest::Error>>> {
+    ) -> Result<impl TryStream<Ok = bytes::Bytes, Error = reqwest::Error>> {
         let items = vec![id];
         let links = self.download_link(&items).await?;
         let link = links.first().unwrap();

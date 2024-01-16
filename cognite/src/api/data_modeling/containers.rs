@@ -21,6 +21,11 @@ impl List<ContainerQuery, ContainerDefinition> for ContainersResource {}
 impl Retrieve<ItemId, ContainerDefinition> for ContainersResource {}
 
 impl ContainersResource {
+    /// Delete constraints from a container.
+    ///
+    /// # Arguments
+    ///
+    /// * `items` - IDs of container constraints to delete.
     pub async fn delete_constraints(
         &self,
         items: &[ContainerComponentId],
@@ -35,6 +40,11 @@ impl ContainersResource {
         Ok(r.items)
     }
 
+    /// Delete indexes from a container.
+    ///
+    /// # Arguments
+    ///
+    /// * `items` - IDs of container indexes to delete.
     pub async fn delete_indexes(
         &self,
         items: &[ContainerComponentId],

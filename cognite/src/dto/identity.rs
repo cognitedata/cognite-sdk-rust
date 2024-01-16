@@ -5,11 +5,15 @@ use serde::{Deserialize, Serialize};
 #[serde(untagged)]
 /// An Identity represents a CDF resource either by internal ID or external ID.
 pub enum Identity {
+    /// Identity by CDF internal ID.
     Id {
+        /// Numerical internal ID.
         id: i64,
     },
     #[serde(rename_all = "camelCase")]
+    /// Identity by CDF external ID.
     ExternalId {
+        /// External ID, unique for the given resource.
         external_id: String,
     },
 }
@@ -90,6 +94,7 @@ impl From<&str> for Identity {
 #[serde(rename_all = "camelCase")]
 /// Wrapper around a cognite internal ID.
 pub struct CogniteId {
+    /// Internal ID.
     id: i64,
 }
 
@@ -97,6 +102,7 @@ pub struct CogniteId {
 #[serde(rename_all = "camelCase")]
 /// Wrapper around a cognite external ID.
 pub struct CogniteExternalId {
+    /// External ID.
     pub external_id: String,
 }
 

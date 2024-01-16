@@ -5,46 +5,66 @@ use crate::{to_query, AsParams, SetCursor};
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
+/// A raw database
 pub struct Database {
+    /// Raw database name
     pub name: String,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
+/// Request for deleting raw databases.
 pub struct DeleteDatabasesRequest {
+    /// List of databases to delete.
     pub items: Vec<Database>,
+    /// Whether to allow deleting databases with tables in them.
     pub recursive: bool,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
+/// A raw table.
 pub struct Table {
+    /// Raw table name.
     pub name: String,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
+/// A raw row.
 pub struct RawRow {
+    /// Raw row key.
     pub key: String,
+    /// Raw row columns
     pub columns: ::serde_json::Value,
+    /// When this column was last updated, in milliseconds since epoch.
     pub last_updated_time: i64,
 }
 
 #[derive(Serialize, Deserialize, Debug, Default, Clone)]
+/// Create a raw row.
 pub struct RawRowCreate {
+    /// Raw row key.
     pub key: String,
+    /// Raw row columns.
     pub columns: ::serde_json::Value,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
+/// Delete a raw row.
 pub struct DeleteRow {
+    /// Raw row key.
     pub key: String,
 }
 
 #[derive(Debug, Default, Clone)]
+/// Query for retrieving cursors for parallel read.
 pub struct RetrieveCursorsQuery {
+    /// Minimum last updated time, in milliseconds since epoch.
     pub min_last_updated_time: Option<i64>,
+    /// Maximum last updated time, in milliseconds since epoch.
     pub max_last_updated_time: Option<i64>,
+    /// Requested number of cursors.
     pub number_of_cursors: Option<i32>,
 }
 
@@ -68,11 +88,17 @@ impl AsParams for RetrieveCursorsQuery {
 
 #[skip_serializing_none]
 #[derive(Debug, Default, Serialize, Clone)]
+/// Query for retrieving raw rows from a table.
 pub struct RetrieveRowsQuery {
+    /// Maximum number of rows to return.
     pub limit: Option<i32>,
+    /// List of columns to return. Can be left out to return all columns.
     pub columns: Option<Vec<String>>,
+    /// Optional cursor for pagination.
     pub cursor: Option<String>,
+    /// Minimum last updated time, in millisecond since epoch.
     pub min_last_updated_time: Option<i64>,
+    /// Maximum last updated time, in milliseconds since epoch.
     pub max_last_updated_time: Option<i64>,
 }
 
@@ -104,8 +130,25 @@ impl SetCursor for RetrieveRowsQuery {
     }
 }
 
+#[derive(Debug, Default, Clone, Copy)]
+/// Query for whether to create missing parents when working with
+/// tables or rows.
 pub struct EnsureParentQuery {
+    /// Set to `true` to create missing parents.
     pub ensure_parent: Option<bool>,
+}
+
+impl EnsureParentQuery {
+    /// Create a new ensure parent query.
+    ///
+    /// # Arguments
+    ///
+    /// * `ensure_parent` - `true` to create missing raw tables and destinations.
+    pub fn new(ensure_parent: bool) -> Self {
+        Self {
+            ensure_parent: Some(ensure_parent),
+        }
+    }
 }
 
 impl AsParams for EnsureParentQuery {

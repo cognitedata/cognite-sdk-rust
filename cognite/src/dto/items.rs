@@ -5,6 +5,7 @@ use serde_with::skip_serializing_none;
 #[serde(rename_all = "camelCase")]
 /// A wrapper around a list of items.
 pub struct Items<T> {
+    /// Collection of items.
     pub items: T,
 }
 
@@ -34,7 +35,9 @@ pub struct ItemsWithCursor<T>
 where
     T: Serialize,
 {
+    /// Collection of items.
     pub items: Vec<T>,
+    /// Next cursor, for pagination.
     pub next_cursor: Option<String>,
 }
 
@@ -45,6 +48,7 @@ pub struct ItemsWithoutCursor<T>
 where
     T: Serialize,
 {
+    /// Collection of items.
     pub items: Vec<T>,
 }
 
@@ -52,11 +56,19 @@ where
 #[serde(rename_all = "camelCase")]
 /// A wrapper around a list of items, with ignore unknown ids.
 pub struct ItemsWithIgnoreUnknownIds<T> {
+    /// Collection of items.
     pub items: T,
+    /// `true` to ignore unknown IDs.
     pub ignore_unknown_ids: bool,
 }
 
 impl<T> ItemsWithIgnoreUnknownIds<T> {
+    /// Create a new items collection with ignore unknown IDs.
+    ///
+    /// # Arguments
+    ///
+    /// * `items` - Collection of items.
+    /// * `ignore_unknown_ids` - `true` to ignore unknown IDs.
     pub fn new(items: T, ignore_unknown_ids: bool) -> Self
     where
         T: Serialize,

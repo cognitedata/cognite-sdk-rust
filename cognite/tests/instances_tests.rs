@@ -1,5 +1,5 @@
 #[cfg(test)]
-use cognite::models::*;
+use cognite::models::instances::*;
 use cognite::*;
 
 use serde_json::json;
@@ -111,10 +111,16 @@ async fn create_and_delete_instances() {
 
 #[test]
 fn test_filter_serialization() {
-    let filter = FdmFilter::equals(["prop"], 15)
-        .and(FdmFilter::not(FdmFilter::equals(["other_prop"], 15)))
-        .and(FdmFilter::exists(["thing", "third_prop"]))
-        .or(FdmFilter::contains_any(["test"], &["value1", "value2"]));
+    let filter = AdvancedFilter::equals(["prop"], 15)
+        .and(AdvancedFilter::not(AdvancedFilter::equals(
+            ["other_prop"],
+            15,
+        )))
+        .and(AdvancedFilter::exists(["thing", "third_prop"]))
+        .or(AdvancedFilter::contains_any(
+            ["test"],
+            &["value1", "value2"],
+        ));
 
     let json = json!(filter);
     assert_eq!(

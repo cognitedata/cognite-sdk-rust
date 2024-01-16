@@ -1,7 +1,7 @@
 use crate::api::resource::*;
 use crate::dto::core::event::*;
 use crate::error::Result;
-use crate::{Identity, Patch};
+use crate::{Identity, ItemsWithoutCursor, Patch};
 
 /// Event objects store complex information about multiple assets over a time period.
 /// Typical types of events might include Alarms, Process Data, and Logs.
@@ -25,22 +25,20 @@ impl<'a> SearchItems<'a, EventFilter, EventSearch, Event> for EventsResource {}
 impl FilterWithRequest<EventFilterQuery, Event> for EventsResource {}
 
 impl EventsResource {
-    pub async fn aggregated_count(&self, event_filter: EventFilter) -> Result<i64> {
-        let filter: AggregatedEventsCountFilter = AggregatedEventsCountFilter::new(event_filter);
-        let events_response: AggregatedEventCountResponse =
-            self.api_client.post("events/aggregate", &filter).await?;
-        Ok(events_response.items.first().map(|e| e.count).unwrap_or(0))
-    }
-
-    pub async fn aggregated_fields(
+    /// Compute aggregates over events, such as getting the count of all events in a project,
+    /// checking different names and descriptions of events in your project, etc.
+    ///
+    /// # Arguments
+    ///
+    /// * `aggregate` - Aggregate to compute
+    ///
+    /// The returned aggregates depend on which aggregates were requested.
+    pub async fn aggregate(
         &self,
-        event_filter: EventFilter,
-        fields: Vec<String>,
-    ) -> Result<Vec<AggregatedCount>> {
-        let filter: AggregatedEventsListFilter =
-            AggregatedEventsListFilter::new(event_filter, fields, "uniqueValues".to_string());
-        let events_response: AggregatedEventFilterResponse =
-            self.api_client.post("events/aggregate", &filter).await?;
-        Ok(events_response.items)
+        aggregate: EventAggregateRequest,
+    ) -> Result<Vec<EventAggregateResponse>> {
+        let resp: ItemsWithoutCursor<EventAggregateResponse> =
+            self.api_client.post("events/aggregate", &aggregate).await?;
+        Ok(resp.items)
     }
 }

@@ -26,6 +26,10 @@ pub struct Resource<T> {
 
 impl<T> Resource<T> {
     /// Create a new resource with given API client.
+    ///
+    /// # Arguments
+    ///
+    /// * `api_client` - API client reference.
     pub fn new(api_client: Arc<ApiClient>) -> Self {
         Resource {
             api_client,
@@ -61,6 +65,10 @@ where
     Self: WithApiClient + WithBasePath,
 {
     /// Query a resource with optional query parameters.
+    ///
+    /// # Arguments
+    ///
+    /// * `params` - Query parameters.
     async fn list(&self, params: Option<TParams>) -> Result<ItemsWithCursor<TResponse>> {
         Ok(self
             .get_client()
@@ -69,6 +77,10 @@ where
     }
 
     /// Query a resource with query parameters, continuing until the cursor is exhausted.
+    ///
+    /// # Arguments
+    ///
+    /// * `params` - Initial query parameters. This can contain a cursor which is the starting point.
     async fn list_all(&self, mut params: TParams) -> Result<Vec<TResponse>>
     where
         TParams: SetCursor + Clone,
@@ -96,6 +108,10 @@ where
     ///
     /// Each item in the stream will be a result, after the first error is returned the
     /// stream will end.
+    ///
+    /// # Arguments
+    ///
+    /// * `params` - Initial query parameters. This can contain a cursors used as starting point.
     fn list_all_stream<'a>(
         &'a self,
         params: TParams,
@@ -151,6 +167,10 @@ where
     Self: WithApiClient + WithBasePath,
 {
     /// Create a list of resources.
+    ///
+    /// # Arguments
+    ///
+    /// `creates` - List of resources to create.
     async fn create(&self, creates: &[TCreate]) -> Result<Vec<TResponse>> {
         let items = Items::from(creates);
         let response: ItemsWithoutCursor<TResponse> =
@@ -159,6 +179,10 @@ where
     }
 
     /// Create a list of resources, converting from a different type.
+    ///
+    /// # Arguments
+    ///
+    /// * `creates` - List of resources to create.
     async fn create_from<'a>(
         &self,
         creates: &'a [impl Into<TCreate> + Sync + Clone],
@@ -168,6 +192,10 @@ where
     }
 
     /// Create a list of resources, ignoring any that fail with general "conflict" errors.
+    ///
+    /// # Arguments
+    ///
+    /// * `creates` - List of resources to create.
     async fn create_ignore_duplicates(&self, creates: &[TCreate]) -> Result<Vec<TResponse>>
     where
         TCreate: EqIdentity,
@@ -200,6 +228,10 @@ where
 
     /// Create a list of resources, converting from a different type, and ignoring any that fail
     /// with general "conflict" errors.
+    ///
+    /// # Arguments
+    ///
+    /// * `creates` - List of resources to create.
     async fn create_from_ignore_duplicates<T: 'a, 'a>(
         &self,
         creates: &'a [impl Into<TCreate> + Sync + Clone],
@@ -224,6 +256,13 @@ where
     /// Upsert a list resources, meaning that they will first be attempted created,
     /// and if that fails with a conflict, update any that already existed, and create
     /// the remainder.
+    ///
+    /// # Arguments
+    ///
+    /// * `upserts` - Resources to insert or update.
+    /// * `ignore_nulls` - Behavior for values that are `None`. If this is `true`,
+    /// `None` values will simply be ignored. Otherwise, fields with `None` values
+    /// will be set to null in CDF.
     async fn upsert(
         &'a self,
         upserts: &'a [TCreate],
@@ -289,6 +328,10 @@ where
 /// Trait for resource types that support upserts directly.
 pub trait UpsertCollection<TUpsert, TResponse> {
     /// Upsert a list of resources.
+    ///
+    /// # Arguments
+    ///
+    /// * `collection` - Items to insert or update.
     async fn upsert(&self, collection: &TUpsert) -> Result<Vec<TResponse>>
     where
         TUpsert: Serialize + Sync + Send,
@@ -309,6 +352,10 @@ where
     Self: WithApiClient + WithBasePath,
 {
     /// Delete a list of resources by ID.
+    ///
+    /// # Arguments
+    ///
+    /// * `deletes` - IDs of items to delete.
     async fn delete(&self, deletes: &[TIdt]) -> Result<()> {
         let items = Items::from(deletes);
         self.get_client()
@@ -329,6 +376,10 @@ where
     Self: WithApiClient + WithBasePath,
 {
     /// Delete resources using `req`.
+    ///
+    /// # Arguments
+    ///
+    /// * `req` - Request describing items to delete.
     async fn delete(&self, req: &TReq) -> Result<()> {
         self.get_client()
             .post::<::serde_json::Value, TReq>(&format!("{}/delete", Self::BASE_PATH), req)
@@ -346,6 +397,12 @@ where
     Self: WithApiClient + WithBasePath,
 {
     /// Delete a list of resources, optionally ignore unknown ids.
+    ///
+    /// # Arguments
+    ///
+    /// * `deletes` - IDs of items to delete.
+    /// * `ignore_unknown_ids` - If `true`, missing IDs will be ignored, and not
+    /// cause the request to fail.
     async fn delete(&self, deletes: &[TIdt], ignore_unknown_ids: bool) -> Result<()> {
         let mut req = ItemsWithIgnoreUnknownIds::from(deletes);
         req.ignore_unknown_ids = ignore_unknown_ids;
@@ -366,6 +423,10 @@ where
     Self: WithApiClient + WithBasePath,
 {
     /// Delete a list of resources.
+    ///
+    /// # Arguments
+    ///
+    /// * `deletes` - IDs of items to delete.
     async fn delete(&self, deletes: &[TIdt]) -> Result<ItemsWithoutCursor<TResponse>> {
         let items = Items::from(deletes);
         let response: ItemsWithoutCursor<TResponse> = self
@@ -385,6 +446,10 @@ where
     Self: WithApiClient + WithBasePath,
 {
     /// Update a list of resources.
+    ///
+    /// # Arguments
+    ///
+    /// * `updates` - Items to update.
     async fn update(&self, updates: &[TUpdate]) -> Result<Vec<TResponse>> {
         let items = Items::from(updates);
         let response: ItemsWithoutCursor<TResponse> = self
@@ -395,6 +460,10 @@ where
     }
 
     /// Update a list of resources by converting to the update from a different type.
+    ///
+    /// # Arguments
+    ///
+    /// * `updates` - Items to update.
     async fn update_from<T: 'a, 'a>(&self, updates: &'a [T]) -> Result<Vec<TResponse>>
     where
         T: std::marker::Sync + Clone,
@@ -405,6 +474,10 @@ where
     }
 
     /// Update a list of resources, ignoring any that fail due to items missing in CDF.
+    ///
+    /// # Arguments
+    ///
+    /// * `updates` - Items to update.
     async fn update_ignore_unknown_ids(&self, updates: &[TUpdate]) -> Result<Vec<TResponse>>
     where
         TUpdate: EqIdentity,
@@ -439,6 +512,10 @@ where
 
     /// Update a list of resources by converting from a different type, ignoring any that fail
     /// due items missing in CDF.
+    ///
+    /// # Arguments
+    ///
+    /// * `updates` - Items to update.
     async fn update_from_ignore_unknown_ids<T: 'a, 'a>(
         &self,
         updates: &'a [T],
@@ -462,6 +539,10 @@ where
     Self: WithApiClient + WithBasePath,
 {
     /// Retrieve a list of items from CDF by id.
+    ///
+    /// # Arguments
+    ///
+    /// * `ids` - IDs of items to retrieve.
     async fn retrieve(&self, ids: &[TIdt]) -> Result<Vec<TResponse>> {
         let items = Items::from(ids);
         let response: ItemsWithoutCursor<TResponse> = self
@@ -480,6 +561,11 @@ where
     TResponse: Serialize + DeserializeOwned,
     Self: WithApiClient + WithBasePath,
 {
+    /// Retrieve items from CDF with a more complex request.
+    ///
+    /// # Arguments
+    ///
+    /// * `req` - Request describing items to retrieve.
     async fn retrieve(&self, req: &TRequest) -> Result<TResponse> {
         let response: TResponse = self
             .get_client()
@@ -499,6 +585,12 @@ where
 {
     /// Retrieve a list of items from CDF. If ignore_unknown_ids is false,
     /// this will fail if any items are missing from CDF.
+    ///
+    /// # Arguments
+    ///
+    /// * `ids` - IDs of items to retrieve.
+    /// * `ignore_unknown_ids` - If `true`, items missing from CDF will be ignored, and not
+    /// cause the request to fail.
     async fn retrieve(&self, ids: &[TIdt], ignore_unknown_ids: bool) -> Result<Vec<TResponse>> {
         let mut items = ItemsWithIgnoreUnknownIds::from(ids);
         items.ignore_unknown_ids = ignore_unknown_ids;
@@ -520,6 +612,12 @@ where
 {
     /// Filter resources using a simple filter.
     /// The response may contain a cursor that can be used to paginate results.
+    ///
+    /// # Arguments
+    ///
+    /// * `filter` - Filter which items to retrieve.
+    /// * `cursor` - Optional cursor for pagination.
+    /// * `limit` - Maximum number of result items.
     async fn filter_items(
         &self,
         filter: TFilter,
@@ -567,6 +665,10 @@ where
     Self: WithApiClient + WithBasePath,
 {
     /// Filter resources.
+    ///
+    /// # Arguments
+    ///
+    /// * `filter` - Filter which items to retrieve.
     async fn filter(&self, filter: TFilter) -> Result<ItemsWithCursor<TResponse>> {
         let response: ItemsWithCursor<TResponse> = self
             .get_client()
@@ -576,6 +678,10 @@ where
     }
 
     /// Filter resources, following cursors until they are exhausted.
+    ///
+    /// # Arguments
+    ///
+    /// * `filter` - Filter which items to retrieve.
     async fn filter_all(&self, mut filter: TFilter) -> Result<Vec<TResponse>>
     where
         TFilter: SetCursor,
@@ -602,6 +708,10 @@ where
     ///
     /// Each item in the stream will be a result, after the first error is returned the
     /// stream will end.
+    ///
+    /// # Arguments
+    ///
+    /// * `filter` - Filter which items to retrieve.
     fn filter_all_stream<'a>(
         &'a self,
         filter: TFilter,
@@ -649,6 +759,11 @@ where
 
     /// Filter resources using partitioned reads, following cursors until all partitions are
     /// exhausted.
+    ///
+    /// # Arguments
+    ///
+    /// * `filter` - Filter which items to retrieve.
+    /// * `num_partitions` - Number of partitions.
     async fn filter_all_partitioned(
         &self,
         filter: TFilter,
@@ -682,6 +797,12 @@ where
     Self: WithApiClient + WithBasePath,
 {
     /// Fuzzy search resources.
+    ///
+    /// # Arguments
+    ///
+    /// * `filter` - Simple filter applied to items.
+    /// * `search` - Fuzzy search.
+    /// * `limit` - Maximum number of items to retrieve.
     async fn search(
         &'a self,
         filter: TFilter,

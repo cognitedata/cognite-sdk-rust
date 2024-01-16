@@ -2,8 +2,12 @@
 use std::collections::HashMap;
 
 use cognite::models::{
-    DirectRelationReference, EdgeOrNodeData, EdgeWrite, ItemId, NodeOrEdgeCreate,
-    NodeOrEdgeSpecification, NodeWrite, SourceReference, ViewReference,
+    instances::{
+        DirectRelationReference, EdgeOrNodeData, EdgeWrite, NodeOrEdgeCreate,
+        NodeOrEdgeSpecification, NodeWrite,
+    },
+    views::ViewReference,
+    ItemId, SourceReference,
 };
 
 fn get_mock_properties() -> HashMap<String, String> {

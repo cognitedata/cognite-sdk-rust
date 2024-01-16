@@ -15,6 +15,11 @@ impl Create<AddSession, Session> for SessionsResource {}
 impl Retrieve<CogniteId, Session> for SessionsResource {}
 
 impl SessionsResource {
+    /// Revoke a list of sessions.
+    ///
+    /// # Arguments
+    ///
+    /// * `session_ids` - Sessions to revoke.
     pub async fn revoke(&self, session_ids: &[CogniteId]) -> Result<Vec<Session>> {
         let items = Items::from(session_ids);
         let response: ItemsWithoutCursor<Session> =
