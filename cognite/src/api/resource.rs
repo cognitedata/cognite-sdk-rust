@@ -260,6 +260,9 @@ where
     /// # Arguments
     ///
     /// * `upserts` - Resources to insert or update.
+    /// * `ignore_nulls` - Behavior for values that are `None`. If this is `true`,
+    /// `None` values will simply be ignored. Otherwise, fields with `None` values
+    /// will be set to null in CDF.
     async fn upsert(
         &'a self,
         upserts: &'a [TCreate],

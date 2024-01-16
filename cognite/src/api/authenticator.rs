@@ -158,6 +158,11 @@ pub struct AuthenticatorError {
 
 impl AuthenticatorError {
     /// Create an authenticator error from message and description.
+    ///
+    /// # Arguments
+    ///
+    /// * `error` - Short error message
+    /// * `error_description` - Detailed error description.
     pub fn internal_error(error: String, error_description: Option<String>) -> Self {
         Self {
             error,
