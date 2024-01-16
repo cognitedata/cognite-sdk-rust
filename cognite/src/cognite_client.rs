@@ -53,29 +53,50 @@ macro_rules! env_or_none {
     };
 }
 
-#[derive(Default, Clone)]
+#[derive(Default, Clone, Debug)]
+/// Configuration object for a cognite client.
 pub struct ClientConfig {
+    /// Maximum number of retries per request.
     pub max_retries: u32,
+    /// Maximum delay between retries.
     pub max_retry_delay_ms: Option<u64>,
+    /// Timeout in milliseconds before no more retries will be started.
     pub timeout_ms: Option<u64>,
 }
 
+/// Client object for the CDF API.
 pub struct CogniteClient {
+    /// Reference to an API client, which can let you make
+    /// your own requests to the CDF API.
     pub api_client: Arc<ApiClient>,
 
+    /// CDF assets resource.
     pub assets: AssetsResource,
+    /// CDF events resource.
     pub events: EventsResource,
+    /// CDF files resource.
     pub files: Files,
+    /// CDF time series resource.
     pub time_series: TimeSeriesResource,
+    /// CDF groups resource.
     pub groups: GroupsResource,
+    /// CDF raw resource.
     pub raw: RawResource,
+    /// CDF data sets resource.
     pub data_sets: DataSetsResource,
+    /// CDF labels resource.
     pub labels: LabelsResource,
+    /// CDF relationships resource.
     pub relationships: RelationshipsResource,
+    /// CDF extraction pipelines resource.
     pub ext_pipes: ExtPipesResource,
+    /// CDF extraction pipeline runs resource.
     pub ext_pipe_runs: ExtPipeRunsResource,
+    /// CDF sequences resource.
     pub sequences: SequencesResource,
+    /// CDF sessions resource.
     pub sessions: SessionsResource,
+    /// CDF data modeling resource.
     pub models: Models,
 }
 
@@ -89,6 +110,23 @@ static COGNITE_AUDIENCE: &str = "COGNITE_AUDIENCE";
 static COGNITE_SCOPES: &str = "COGNITE_SCOPES";
 
 impl CogniteClient {
+    /// Create a new cogntite client, taking OIDC credentials from the environment.
+    ///
+    /// # Arguments
+    ///
+    /// * `app_name` - The value used for the `x-cdp-app` header.
+    /// * `config` - Optional configuration for retries.
+    ///
+    /// This uses the environment variables
+    ///
+    /// * `COGNITE_BASE_URL`
+    /// * `COGNITE_PROJECT`
+    /// * `COGNITE_CLIENT_ID`
+    /// * `COGNITE_CLIENT_SECRET`
+    /// * `COGNITE_TOKEN_URL`
+    /// * `COGNITE_RESOURCE`
+    /// * `COGNITE_AUDIENCE`
+    /// * `COGNITE_SCOPES`
     pub fn new_oidc(app_name: &str, config: Option<ClientConfig>) -> Result<Self> {
         let api_base_url = env_or!(COGNITE_BASE_URL, "https://api.cognitedata.com/".to_string());
         let project_name = env_or_error!(COGNITE_PROJECT_NAME);
@@ -104,6 +142,15 @@ impl CogniteClient {
         CogniteClient::new_from_oidc(&api_base_url, auth_config, &project_name, app_name, config)
     }
 
+    /// Create a new cognite client, using a user-provided authentication manager.
+    ///
+    /// # Arguments
+    ///
+    /// * `api_base_url` - Base URL for the API. For example `https://api.cognitedata.com`
+    /// * `project_name` - Name of the CDF project to use.
+    /// * `auth` - Authentication provider.
+    /// * `app_name` - Value used for the `x-cdp-app` header.
+    /// * `config` - Optional configuration for retries.
     pub fn new_custom_auth(
         api_base_url: &str,
         project_name: &str,
@@ -195,6 +242,15 @@ impl CogniteClient {
         })
     }
 
+    /// Create a new cognite client using provided OIDC credentials.
+    ///
+    /// # Arguments
+    ///
+    /// * `api_base_url` - Base URL for the API. For example `https://api.cognitedata.com`
+    /// * `project_name` - Name of the CDF project to use.
+    /// * `auth_config` - Configuration for creating an OIDC authenticator.
+    /// * `app_name` - Value used for the `x-cdp-app` header.
+    /// * `config` - Optional configuration for retries.
     pub fn new_from_oidc(
         api_base_url: &str,
         auth_config: AuthenticatorConfig,
@@ -214,11 +270,13 @@ impl CogniteClient {
         Self::new_internal(api_client)
     }
 
+    /// Create a builder with a fluent API for creating a cognite client.
     pub fn builder() -> Builder {
         Builder::default()
     }
 }
 
+/// Fluent API for configuring a client.
 #[derive(Default)]
 pub struct Builder {
     auth: Option<AuthHeaderManager>,
@@ -231,41 +289,80 @@ pub struct Builder {
 }
 
 impl Builder {
+    /// Set a custom authenticator.
+    ///
+    /// # Arguments
+    ///
+    /// * `auth` - Authenticator to use.
     pub fn set_custom_auth(&mut self, auth: AuthHeaderManager) -> &mut Self {
         self.auth = Some(auth);
         self
     }
 
+    /// Set an authenticator using OIDC client credentials.
+    ///
+    /// # Arguments
+    ///
+    /// * `auth` - Client credentials.
     pub fn set_oidc_credentials(&mut self, auth: AuthenticatorConfig) -> &mut Self {
         self.auth = Some(AuthHeaderManager::OIDCToken(Authenticator::new(auth)));
         self
     }
 
+    /// Set the CDF project to connect to.
+    ///
+    /// # Arguments
+    ///
+    /// * `project` - CDF project
     pub fn set_project(&mut self, project: &str) -> &mut Self {
         self.project = Some(project.to_owned());
         self
     }
 
+    /// Set the value of the `x-cdp-app` header.
     pub fn set_app_name(&mut self, app_name: &str) -> &mut Self {
         self.app_name = Some(app_name.to_owned());
         self
     }
 
+    /// Set the reqwest client used internally. If your application
+    /// connects to a large number of different CDF projects, or uses a large
+    /// number of different sets of credentials. It is recommended to share
+    /// a single reqwest client.
+    ///
+    /// # Arguments
+    ///
+    /// * `client` - reqwest client to use.
     pub fn set_internal_client(&mut self, client: Client) -> &mut Self {
         self.client = Some(client);
         self
     }
 
+    /// Set configuration for retries.
+    ///
+    /// # Arguments
+    ///
+    /// * `config` - Client configuration.
     pub fn set_client_config(&mut self, config: ClientConfig) -> &mut Self {
         self.config = Some(config);
         self
     }
 
+    /// Set the base URL used by the client.
+    ///
+    /// # Arguments
+    ///
+    /// * `base_url` - Cognite API base URL, for example `https://api.cognitedata.com`
     pub fn set_base_url(&mut self, base_url: &str) -> &mut Self {
         self.base_url = Some(base_url.to_owned());
         self
     }
 
+    /// Add some custom middleware.
+    ///
+    /// # Arguments
+    ///
+    /// * `middleware` - A reference to some reqwest middleware.
     pub fn with_custom_middleware(&mut self, middleware: Arc<dyn Middleware>) -> &mut Self {
         match &mut self.custom_middleware {
             Some(x) => x.push(middleware),
@@ -274,6 +371,7 @@ impl Builder {
         self
     }
 
+    /// Create a cognite client. This may fail if not all required parameters are provided.
     pub fn build(self) -> Result<CogniteClient> {
         let auth = self
             .auth

@@ -2,7 +2,7 @@ use crate::api::resource::*;
 use crate::dto::data_organization::labels::*;
 use crate::CogniteExternalId;
 
-/// Labels let you annotate resources such as assets and time series.
+/// API resource for labels.
 pub type LabelsResource = Resource<Label>;
 
 impl WithBasePath for LabelsResource {

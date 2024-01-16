@@ -2,33 +2,49 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 #[serde(rename_all = "camelCase", untagged)]
+/// Raw filter value.
 pub enum RawValue {
+    /// String value.
     String(String),
+    /// Numerical value.
     Number(serde_json::Number),
+    /// Boolean value.
     Boolean(bool),
+    /// String array value.
     StringArray(Vec<String>),
+    /// Number array value.
     NumberArray(Vec<serde_json::Number>),
+    /// Boolean array value.
     BooleanArray(Vec<bool>),
+    /// JSON object value.
     Object(serde_json::Value),
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 #[serde(rename_all = "camelCase")]
+/// Parameterized value.
 pub struct ParameterizedPropertyValue {
+    /// Parameter reference.
     pub parameter: String,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 #[serde(rename_all = "camelCase")]
+/// Referenced property value, use the value of a different property.
 pub struct ReferencedPropertyValue {
+    /// Property to reference.
     pub property: Vec<String>,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 #[serde(rename_all = "camelCase", untagged)]
+/// Value used in complex queries.
 pub enum QueryValue {
+    /// Parameterized value.
     Parameter(ParameterizedPropertyValue),
+    /// Reference to a different property.
     Reference(ReferencedPropertyValue),
+    /// Raw value.
     Raw(RawValue),
 }
 

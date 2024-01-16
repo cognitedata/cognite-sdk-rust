@@ -3,359 +3,227 @@ use std::collections::HashMap;
 use serde::{Deserialize, Serialize};
 use serde_with::skip_serializing_none;
 
-use crate::models::{NodeOrEdge, PropertySort, RawValue, SourceReference, TaggedViewReference};
-
-use super::value::QueryValue;
-
-#[derive(Serialize, Deserialize, Clone, Debug)]
-#[serde(rename_all = "camelCase")]
-pub enum FdmFilter {
-    Equals {
-        property: Vec<String>,
-        value: QueryValue,
-    },
-    In {
-        property: Vec<String>,
-        values: QueryValue,
-    },
-    Range {
-        property: Vec<String>,
-        gte: Option<QueryValue>,
-        gt: Option<QueryValue>,
-        lte: Option<QueryValue>,
-        lt: Option<QueryValue>,
-    },
-    Prefix {
-        property: Vec<String>,
-        value: QueryValue,
-    },
-    Exists {
-        property: Vec<String>,
-    },
-    ContainsAny {
-        property: Vec<String>,
-        values: QueryValue,
-    },
-    ContainsAll {
-        property: Vec<String>,
-        values: QueryValue,
-    },
-    MatchAll {},
-    Nested {
-        scope: Vec<String>,
-        filter: Box<FdmFilter>,
-    },
-    Overlaps {
-        start_property: Vec<String>,
-        end_property: Vec<String>,
-        gte: Option<QueryValue>,
-        gt: Option<QueryValue>,
-        lte: Option<QueryValue>,
-        lt: Option<QueryValue>,
-    },
-    HasData(Vec<SourceReference>),
-    And(Vec<FdmFilter>),
-    Or(Vec<FdmFilter>),
-    Not(Box<FdmFilter>),
-}
-
-impl Default for FdmFilter {
-    fn default() -> Self {
-        Self::MatchAll {}
-    }
-}
-
-pub trait PropertyIdentifier {
-    fn into_identifier(self) -> Vec<String>;
-}
-
-impl PropertyIdentifier for Vec<String> {
-    fn into_identifier(self) -> Vec<String> {
-        self
-    }
-}
-
-impl PropertyIdentifier for &[String] {
-    fn into_identifier(self) -> Vec<String> {
-        self.to_owned()
-    }
-}
-
-impl PropertyIdentifier for &[&str] {
-    fn into_identifier(self) -> Vec<String> {
-        self.iter().map(|&s| s.to_owned()).collect()
-    }
-}
-
-impl<const N: usize> PropertyIdentifier for &[String; N] {
-    fn into_identifier(self) -> Vec<String> {
-        self.to_vec()
-    }
-}
-
-impl<const N: usize> PropertyIdentifier for &[&str; N] {
-    fn into_identifier(self) -> Vec<String> {
-        self.iter().map(|&s| s.to_owned()).collect()
-    }
-}
-
-impl<const N: usize> PropertyIdentifier for [String; N] {
-    fn into_identifier(self) -> Vec<String> {
-        self.to_vec()
-    }
-}
-
-impl<const N: usize> PropertyIdentifier for [&str; N] {
-    fn into_identifier(self) -> Vec<String> {
-        self.iter().map(|&s| s.to_owned()).collect()
-    }
-}
-
-impl FdmFilter {
-    pub fn equals(property: impl PropertyIdentifier, value: impl Into<QueryValue>) -> Self {
-        Self::Equals {
-            property: property.into_identifier(),
-            value: value.into(),
-        }
-    }
-
-    pub fn is_in(property: impl PropertyIdentifier, values: impl Into<QueryValue>) -> Self {
-        Self::In {
-            property: property.into_identifier(),
-            values: values.into(),
-        }
-    }
-
-    pub fn range(
-        property: impl PropertyIdentifier,
-        gte: Option<impl Into<QueryValue>>,
-        gt: Option<impl Into<QueryValue>>,
-        lte: Option<impl Into<QueryValue>>,
-        lt: Option<impl Into<QueryValue>>,
-    ) -> Self {
-        Self::Range {
-            property: property.into_identifier(),
-            gte: gte.map(|v| v.into()),
-            gt: gt.map(|v| v.into()),
-            lte: lte.map(|v| v.into()),
-            lt: lt.map(|v| v.into()),
-        }
-    }
-
-    pub fn prefix(property: impl PropertyIdentifier, value: impl Into<QueryValue>) -> Self {
-        Self::Prefix {
-            property: property.into_identifier(),
-            value: value.into(),
-        }
-    }
-
-    pub fn exists(property: impl PropertyIdentifier) -> Self {
-        Self::Exists {
-            property: property.into_identifier(),
-        }
-    }
-
-    pub fn contains_any(property: impl PropertyIdentifier, values: impl Into<QueryValue>) -> Self {
-        Self::ContainsAny {
-            property: property.into_identifier(),
-            values: values.into(),
-        }
-    }
-
-    pub fn contains_all(property: impl PropertyIdentifier, values: impl Into<QueryValue>) -> Self {
-        Self::ContainsAll {
-            property: property.into_identifier(),
-            values: values.into(),
-        }
-    }
-
-    pub fn match_all() -> Self {
-        Self::MatchAll {}
-    }
-
-    pub fn nested(scope: impl PropertyIdentifier, filter: FdmFilter) -> Self {
-        Self::Nested {
-            scope: scope.into_identifier(),
-            filter: Box::new(filter),
-        }
-    }
-
-    pub fn overlaps(
-        start_property: impl PropertyIdentifier,
-        end_property: impl PropertyIdentifier,
-        gte: Option<impl Into<QueryValue>>,
-        gt: Option<impl Into<QueryValue>>,
-        lte: Option<impl Into<QueryValue>>,
-        lt: Option<impl Into<QueryValue>>,
-    ) -> Self {
-        Self::Overlaps {
-            start_property: start_property.into_identifier(),
-            end_property: end_property.into_identifier(),
-            gte: gte.map(|v| v.into()),
-            gt: gt.map(|v| v.into()),
-            lte: lte.map(|v| v.into()),
-            lt: lt.map(|v| v.into()),
-        }
-    }
-
-    pub fn has_data(references: Vec<SourceReference>) -> Self {
-        Self::HasData(references)
-    }
-
-    #[allow(clippy::should_implement_trait)]
-    pub fn not(filter: FdmFilter) -> Self {
-        match filter {
-            Self::Not(n) => *n,
-            _ => Self::Not(Box::new(filter)),
-        }
-    }
-
-    pub fn and(mut self, filter: FdmFilter) -> Self {
-        match &mut self {
-            Self::And(a) => {
-                a.push(filter);
-                self
-            }
-            _ => Self::And(vec![self, filter]),
-        }
-    }
-
-    pub fn or(mut self, filter: FdmFilter) -> Self {
-        match &mut self {
-            Self::Or(a) => {
-                a.push(filter);
-                self
-            }
-            _ => Self::Or(vec![self, filter]),
-        }
-    }
-}
+use crate::{
+    models::{instances::NodeOrEdge, PropertySort, TaggedViewReference},
+    AdvancedFilter, RawValue,
+};
 
 #[skip_serializing_none]
 #[derive(Serialize, Deserialize, Clone, Debug)]
 #[serde(rename_all = "camelCase")]
+/// Reference to a property on a view.
 pub struct ViewPropertyReference {
+    /// View reference
     pub view: TaggedViewReference,
+    /// Property identifier.
     pub identifier: String,
 }
 
 #[skip_serializing_none]
 #[derive(Serialize, Deserialize, Clone, Debug, Default)]
 #[serde(rename_all = "camelCase")]
+/// Query for nodes.
 pub struct NodesQuery {
+    /// Chain result starting from this query.
     pub from: Option<String>,
+    /// Chain result through this direct relation property in the
+    /// query referenced by `from`.
     pub through: Option<ViewPropertyReference>,
-    pub filter: Option<FdmFilter>,
+    /// Filter on nodes to retrieve.
+    pub filter: Option<AdvancedFilter>,
+    /// The direction to use when traversing direct relations. Only
+    /// applicable when `through` is specified.
+    pub direction: Option<QueryDirection>,
+    /// Control which side of the edge to chain from. This option is only applicable if
+    /// the view referenced in the `from` field consists of edges.
+    pub chain_to: Option<QueryChainSide>,
 }
 
 #[skip_serializing_none]
 #[derive(Serialize, Deserialize, Clone, Debug, Default)]
 #[serde(rename_all = "camelCase")]
+/// Expression for querying nodes.
 pub struct QueryNodeTableExpression {
+    /// Sort result set by a list of properties. The order is significant.
     pub sort: Option<Vec<PropertySort>>,
+    /// Maximum number of nodes to retrieve.
     pub limit: Option<i32>,
+    /// Node query.
     pub nodes: NodesQuery,
 }
 
 #[skip_serializing_none]
 #[derive(Serialize, Deserialize, Clone, Debug, Default)]
 #[serde(rename_all = "camelCase")]
-pub enum EdgeDirection {
+/// Direction to query edges or direct relations.
+pub enum QueryDirection {
     #[default]
+    /// Query edges or direct relations outwards.
     Outwards,
+    /// Query edges or direct relations inwards.
     Inwards,
 }
 
 #[skip_serializing_none]
 #[derive(Serialize, Deserialize, Clone, Debug, Default)]
 #[serde(rename_all = "camelCase")]
+/// Which side of edge to chain from.
+pub enum QueryChainSide {
+    /// Chain to `start` if `direction = outwards`, or
+    /// `end` if `direction = inwards`
+    Source,
+    #[default]
+    /// Chain to `end` if `direction = outwards`, or
+    /// `start` if direction `inwards`.
+    Destination,
+}
+
+#[skip_serializing_none]
+#[derive(Serialize, Deserialize, Clone, Debug, Default)]
+#[serde(rename_all = "camelCase")]
+/// Query for edges
 pub struct EdgesQuery {
+    /// Chain result starting from this query.
     pub from: Option<String>,
+    /// Maximum number of levels to traverse.
     pub max_distance: Option<i32>,
-    pub direction: Option<EdgeDirection>,
-    pub filter: Option<FdmFilter>,
-    pub node_filter: Option<FdmFilter>,
-    pub termination_filter: Option<FdmFilter>,
+    /// The direction to use when traversing. Defaults to `outwards`.
+    pub direction: Option<QueryDirection>,
+    /// Filter on edges.
+    pub filter: Option<AdvancedFilter>,
+    /// Filter on nodes along the path.
+    pub node_filter: Option<AdvancedFilter>,
+    /// Termination filter, if this matches, the query won't go any deeper, but the
+    /// edge will be included.
+    pub termination_filter: Option<AdvancedFilter>,
+    /// Limit the number of returned edges for each of the source nodes in the result set.
+    /// The indicated limit applies to the result set from the referenced `from`.
+    /// `limit_each` only has meaning when you also specify `max_distance = 1` and `from`.
     pub limit_each: Option<i32>,
 }
 
 #[skip_serializing_none]
 #[derive(Serialize, Deserialize, Clone, Debug, Default)]
 #[serde(rename_all = "camelCase")]
+/// Expression for querying edges.
 pub struct QueryEdgeTableExpression {
+    /// Sort result set by a list of properties. The order is significant.
     pub sort: Option<Vec<PropertySort>>,
+    /// Sort result set when using recursive graph traversal. The order is significant.
     pub post_sort: Option<Vec<PropertySort>>,
+    /// Maximum number of edges to retrieve.
     pub limit: Option<i32>,
+    /// Query for edges.
     pub edges: EdgesQuery,
 }
 
 #[skip_serializing_none]
 #[derive(Serialize, Deserialize, Clone, Debug)]
 #[serde(rename_all = "camelCase", untagged)]
+/// Composite query performing operations on other result sets.
 pub enum QuerySetOperationTableExpression {
+    /// Return the union of the specified result sets. May return duplicate results.
     UnionAll {
+        /// List of query sets or references to other queries.
         union_all: Vec<QuerySetOrString>,
+        /// Exclude matching results.
         except: Option<Vec<String>>,
+        /// Maximum number of results in result set.
         limit: Option<i32>,
     },
+    /// Return the union of the specified result sets, will not return duplicate results.
+    ///
+    /// Note: Using `UnionAll` is more efficient in general.
     Union {
+        /// List of query sets or references to other queries.
         union: Vec<QuerySetOrString>,
+        /// Exclude matching results.
         except: Option<Vec<String>>,
+        /// Maximum number of results in result set.
         limit: Option<i32>,
     },
+    /// Find the common elements in the returned result set.
     Intersection {
+        /// List of query sets or references to other queries.
         intersection: Vec<QuerySetOrString>,
+        /// Exclude matching results.
         except: Option<Vec<String>>,
+        /// Maximum number of results in result set.
         limit: Option<i32>,
     },
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 #[serde(rename_all = "camelCase", untagged)]
+/// Element of a query set operation. Either another query set, or a reference
+/// to a different query.
 pub enum QuerySetOrString {
+    /// Nested query set.
     QuerySet(Box<QuerySetOperationTableExpression>),
+    /// Reference to a query.
     String(String),
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 #[serde(rename_all = "camelCase", untagged)]
+/// Expression for querying instances.
 pub enum QueryTableExpression {
+    /// Query nodes.
     Node(QueryNodeTableExpression),
+    /// Query edges.
     Edge(QueryEdgeTableExpression),
+    /// Perform complex operations on other query results.
     SetOperation(QuerySetOperationTableExpression),
 }
 
 #[skip_serializing_none]
 #[derive(Serialize, Deserialize, Clone, Debug)]
 #[serde(rename_all = "camelCase")]
+/// Select a set of properties from a view.
 pub struct SourceSelector {
+    /// View identifier.
     pub source: TaggedViewReference,
+    /// List of property identifiers.
     pub properties: Vec<String>,
 }
 
 #[skip_serializing_none]
 #[derive(Serialize, Deserialize, Clone, Debug)]
 #[serde(rename_all = "camelCase")]
+/// Expression for selecting properties from a list of views.
 pub struct SelectExpression {
+    /// List of views to retrieve from.
     pub sources: Vec<SourceSelector>,
+    /// Optional sort on returned values.
     pub sort: Option<Vec<PropertySort>>,
+    /// Maximum number of values to return.
     pub limit: Option<i32>,
 }
 
 #[skip_serializing_none]
 #[derive(Serialize, Deserialize, Clone, Debug)]
 #[serde(rename_all = "camelCase")]
+/// Request for querying instances.
 pub struct QueryInstancesRequest {
+    /// Collection of queries, indexed by their ID.
     pub with: HashMap<String, QueryTableExpression>,
+    /// Map of cursors. The keys here should match the expressions in
+    /// the `with` clause.
     pub cursors: Option<HashMap<String, String>>,
+    /// Define which properties to return for each query.
     pub select: HashMap<String, SelectExpression>,
+    /// Values in filters can be parameterised. Parameters are provided as part of the query object,
+    /// and referenced in the filter itself.
     pub parameters: Option<HashMap<String, RawValue>>,
 }
 
 #[skip_serializing_none]
 #[derive(Serialize, Deserialize, Clone, Debug)]
 #[serde(rename_all = "camelCase")]
+/// Response for querying instances.
 pub struct QueryInstancesResponse<TProperties> {
+    /// Retrieved instances, grouped by query.
     pub items: HashMap<String, Vec<NodeOrEdge<TProperties>>>,
+    /// Set of cursors for pagination.
     pub next_cursor: Option<HashMap<String, String>>,
 }

@@ -1,6 +1,7 @@
 use cognite::models::*;
 use cognite::*;
 mod common;
+use cognite::models::spaces::SpaceCreate;
 use common::*;
 
 #[tokio::test]

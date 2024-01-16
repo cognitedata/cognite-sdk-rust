@@ -89,6 +89,26 @@ fn main() {
 }
 ```
 
+Using the builder pattern to set OIDC credentials:
+
+```Rust
+use cognite::prelude::*;
+
+#[tokio::main]
+fn main() {
+    let builder = CogniteClient::builder();
+    builder
+        .set_oidc_credentials(AuthenticatorConfig {
+            ...
+        })
+        .set_project("my_project")
+        .set_app_name("TestApp")
+        .set_base_url("https://api.cognitedata.com");
+    let cognite_client = builder.build().unwrap();
+}
+
+```
+
 ## Run examples
 
 ```bash

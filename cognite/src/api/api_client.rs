@@ -1,5 +1,5 @@
 use crate::AsParams;
-use futures::{Stream, TryStreamExt};
+use futures::{TryStream, TryStreamExt};
 use prost::Message;
 use reqwest::header::{HeaderMap, HeaderValue, ACCEPT, CONTENT_LENGTH, CONTENT_TYPE, USER_AGENT};
 use reqwest::{Body, Response, StatusCode};
@@ -10,6 +10,7 @@ use serde::ser::Serialize;
 
 use crate::error::{Error, Result};
 
+/// API client, used to query CDF.
 pub struct ApiClient {
     api_base_url: String,
     app_name: String,
@@ -20,6 +21,12 @@ const SDK_VERSION: &str = concat!("rust-sdk-v", env!("CARGO_PKG_VERSION"));
 
 impl ApiClient {
     /// Create a new api client.
+    ///
+    /// # Arguments
+    ///
+    /// * `api_base_url` - Base URL for CDF. For example `https://api.cognitedata.com`
+    /// * `app_name` - App name added to the `x-cdp-app` header.
+    /// * `client` - Underlying reqwest client.
     pub fn new(api_base_url: &str, app_name: &str, client: ClientWithMiddleware) -> ApiClient {
         ApiClient {
             api_base_url: String::from(api_base_url),
@@ -113,6 +120,10 @@ impl ApiClient {
     }
 
     /// Perform a get request to the given path, deserializing the result from JSON.
+    ///
+    /// # Arguments
+    ///
+    /// * `path` - Request path, without leading slash.
     pub async fn get<T: DeserializeOwned>(&self, path: &str) -> Result<T> {
         let url = format!("{}/{}", self.api_base_url, path);
         let headers: HeaderMap = self.get_headers();
@@ -122,6 +133,11 @@ impl ApiClient {
 
     /// Perform a get request to the given path, with a query given by `params`,
     /// then deserialize the result from JSON.
+    ///
+    /// # Arguments
+    ///
+    /// * `path` - Request path, without leading slash.
+    /// * `params` - Optional object converted to query parameters.
     pub async fn get_with_params<T: DeserializeOwned, R: AsParams>(
         &self,
         path: &str,
@@ -139,10 +155,14 @@ impl ApiClient {
     }
 
     /// Perform a get request to the given URL, returning a stream.
+    ///
+    /// # Arguments
+    ///
+    /// * `url` - Full URL to get stream from.
     pub async fn get_stream(
         &self,
         url: &str,
-    ) -> Result<impl Stream<Item = std::result::Result<bytes::Bytes, reqwest::Error>>> {
+    ) -> Result<impl TryStream<Ok = bytes::Bytes, Error = reqwest::Error>> {
         let mut headers = HeaderMap::new();
         headers.insert("x-cdp-sdk", HeaderValue::from_str(SDK_VERSION).expect(""));
         headers.insert(
@@ -164,6 +184,11 @@ impl ApiClient {
 
     /// Perform a post request to the given path, serializing `object` to JSON and sending it
     /// as the body, then deserialize the response from JSON.
+    ///
+    /// # Arguments
+    ///
+    /// * `path` - Request path, without leading slash.
+    /// * `object` - Object converted to JSON body.
     pub async fn post<D, S>(&self, path: &str, object: &S) -> Result<D>
     where
         D: DeserializeOwned,
@@ -178,6 +203,11 @@ impl ApiClient {
 
     /// Perform a post request to the given path, assuming `body` is valid JSON, then
     /// deserialize the response from JSON.
+    ///
+    /// # Arguments
+    ///
+    /// * `path` - Request path, without leading slash.
+    /// * `body` - String body.
     pub async fn post_json<T: DeserializeOwned>(&self, path: &str, body: String) -> Result<T> {
         let url = format!("{}/{}", self.api_base_url, path);
         let headers: HeaderMap = self.get_headers();
@@ -187,6 +217,10 @@ impl ApiClient {
 
     /// Perform a post request to the given path, with query parameters given by `params`.
     /// Deserialize the response from JSON.
+    ///
+    /// * `path` - Request path, without leading slash.
+    /// * `object` - Object converted to JSON body.
+    /// * `params` - Object converted to query parameters.
     pub async fn post_with_query<D: DeserializeOwned, S: Serialize, R: AsParams>(
         &self,
         path: &str,
@@ -214,6 +248,11 @@ impl ApiClient {
 
     /// Perform a post request to the given path, posting `value` as protobuf.
     /// Expects JSON as response.
+    ///
+    /// # Arguments
+    ///
+    /// * `path` - Request path without leading slash.
+    /// * `value` - Protobuf value to post.
     pub async fn post_protobuf<D: DeserializeOwned, T: Message>(
         &self,
         path: &str,
@@ -235,6 +274,11 @@ impl ApiClient {
 
     /// Perform a post request to the given path, send `object` as JSON in the body,
     /// then expect protobuf as response.
+    ///
+    /// # Arguments
+    ///
+    /// * `path` - Request path without leading slash.
+    /// * `object` - Object to convert to JSON and post.
     pub async fn post_expect_protobuf<D: Message + Default, S: Serialize>(
         &self,
         path: &str,
@@ -253,6 +297,12 @@ impl ApiClient {
     }
 
     /// Perform a put request with the data in `data`.
+    ///
+    /// # Arguments
+    ///
+    /// * `url` - URL to stream blob to.
+    /// * `mime_type` - What to put in the `X-Upload_Content-Type` header.
+    /// * `data` - Data to upload.
     pub async fn put_blob(&self, url: &str, mime_type: &str, data: Vec<u8>) -> Result<()> {
         let mut headers: HeaderMap = self.get_headers();
         headers.insert(CONTENT_TYPE, HeaderValue::from_str(mime_type)?);
@@ -266,9 +316,16 @@ impl ApiClient {
 
     /// Perform a put request, streaming data to `url`.
     ///
-    /// If `stream_chunked` is true, use streaming semantics to upload the data.
-    /// If `known_size` is None, this may fail if the destination does not support
-    /// chunked streams.
+    /// # Arguments
+    ///
+    /// * `url` - URL to stream blob to.
+    /// * `mime_type` - What to put in the `X-Upload_Content-Type` header.
+    /// * `stream` - Stream to upload.
+    /// * `stream_chunked` - If `true`, use chunked streaming to upload the data.
+    /// * `known_size` - Set the `Content-Length` header to this value.
+    ///
+    /// If `known_size` is `None` and `stream_chunked` is `true`, the request will be uploaded using
+    /// special chunked streaming logic. Some backends do not support this.
     ///
     /// If `stream_chunked` is true and `known_size` is Some, this will include a content length header,
     /// it is highly recommended to set this whenever possible.
@@ -276,6 +333,7 @@ impl ApiClient {
     /// # Warning
     /// If `stream_chunked` is false, this will collect the input stream into a memory, which can
     /// be _very_ expensive.
+    ///
     pub async fn put_stream<S>(
         &self,
         url: &str,
@@ -319,6 +377,11 @@ impl ApiClient {
     }
 
     /// Perform a put request to `path` with `object` as JSON, expecting JSON in return.
+    ///
+    /// # Arguments
+    ///
+    /// * `path` - Request path without leading slash.
+    /// * `object` - Object to send as JSON.
     pub async fn put<D, S>(&self, path: &str, object: &S) -> Result<D>
     where
         D: DeserializeOwned,
@@ -332,6 +395,11 @@ impl ApiClient {
     }
 
     /// Perform a put request to `path`, assuming `body` is JSON.
+    ///
+    /// # Arguments
+    ///
+    /// * `path` - Request path without leading slash.
+    /// * `body` - Request body JSON as string.
     pub async fn put_json<T: DeserializeOwned>(&self, path: &str, body: &str) -> Result<T> {
         let url = format!("{}/{}", self.api_base_url, path);
         let headers: HeaderMap = self.get_headers();
@@ -344,6 +412,10 @@ impl ApiClient {
     }
 
     /// Perform a delete request to `path`, expecting JSON as response.
+    ///
+    /// # Arguments
+    ///
+    /// * `path` - Request path without leading slash.
     pub async fn delete<T: DeserializeOwned>(&self, path: &str) -> Result<T> {
         let url = format!("{}/{}", self.api_base_url, path);
         let headers: HeaderMap = self.get_headers();
@@ -352,6 +424,11 @@ impl ApiClient {
     }
 
     /// Perform a delete request to `path`, with query parameters given by `params`.
+    ///
+    /// # Arguments
+    ///
+    /// * `path` - Request path without leading slash.
+    /// * `params` - Object converted to query parameters.
     pub async fn delete_with_params<T: DeserializeOwned, R: AsParams>(
         &self,
         path: &str,

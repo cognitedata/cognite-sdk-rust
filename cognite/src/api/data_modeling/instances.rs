@@ -2,7 +2,7 @@ use serde::de::DeserializeOwned;
 use serde::Serialize;
 
 use crate::dto::data_modeling::instances::SlimNodeOrEdge;
-use crate::models::{
+use crate::models::instances::{
     AggregateInstancesRequest, AggregateInstancesResponse, FilterInstancesRequest,
     InstancesFilterResponse, NodeAndEdgeCreateCollection, NodeAndEdgeRetrieveRequest,
     NodeAndEdgeRetrieveResponse, NodeOrEdge, NodeOrEdgeSpecification, QueryInstancesRequest,
@@ -38,6 +38,10 @@ impl DeleteWithResponse<NodeOrEdgeSpecification, NodeOrEdgeSpecification> for In
 
 impl Instances {
     /// Filter instances optionally returning type information.
+    ///
+    /// # Arguments
+    ///
+    /// * `req` - Request with optional filter.
     pub async fn filter_with_type_info<TProperties: DeserializeOwned + Send + Sync + 'static>(
         &self,
         req: FilterInstancesRequest,
@@ -48,6 +52,10 @@ impl Instances {
     }
 
     /// Perform a complex query against data models.
+    ///
+    /// # Arguments
+    ///
+    /// * `query` - Query to execute.
     pub async fn query<TProperties: DeserializeOwned + Send + Sync + 'static>(
         &self,
         query: QueryInstancesRequest,
@@ -59,6 +67,10 @@ impl Instances {
 
     /// Perform a complex query against data models. This always returns cursors,
     /// so you can keep querying to get any changes since the last query.
+    ///
+    /// # Arguments
+    ///
+    /// * `query` - Query to execute.
     pub async fn sync<TProperties: DeserializeOwned + Send + Sync + 'static>(
         &self,
         query: QueryInstancesRequest,
@@ -69,6 +81,10 @@ impl Instances {
     }
 
     /// Aggregate nodes and edges.
+    ///
+    /// # Arguments
+    ///
+    /// * `req` - Aggregates to compute.
     pub async fn aggregate(
         &self,
         req: AggregateInstancesRequest,
@@ -79,6 +95,10 @@ impl Instances {
     }
 
     /// Search nodes and edges.
+    ///
+    /// # Arguments
+    ///
+    /// * `req` - Search request.
     pub async fn search<TProperties: DeserializeOwned + Send + Sync + 'static>(
         &self,
         req: SearchInstancesRequest,
