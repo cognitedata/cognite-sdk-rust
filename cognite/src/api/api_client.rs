@@ -1,4 +1,5 @@
 use crate::AsParams;
+use anyhow::anyhow;
 use futures::{TryStream, TryStreamExt};
 use prost::Message;
 use reqwest::header::{HeaderMap, HeaderValue, ACCEPT, CONTENT_LENGTH, CONTENT_TYPE, USER_AGENT};
@@ -344,7 +345,7 @@ impl ApiClient {
     ) -> Result<()>
     where
         S: futures::TryStream + Send + Sync + 'static,
-        S::Error: Into<Box<dyn std::error::Error + Send + Sync>>,
+        S::Error: Into<Box<dyn std::error::Error + Send + Sync + 'static>>,
         bytes::Bytes: From<S::Ok>,
     {
         if stream_chunked {
@@ -365,7 +366,7 @@ impl ApiClient {
             let body: Vec<S::Ok> = stream
                 .try_collect()
                 .await
-                .map_err(|e| Error::new(crate::Kind::StreamError(e.into().to_string())))?;
+                .map_err(|e| Error::StreamError(anyhow!(e.into())))?;
             let body: Vec<u8> = body
                 .into_iter()
                 .flat_map(Into::<bytes::Bytes>::into)

@@ -10,7 +10,6 @@ use crate::api::data_modeling::Models;
 use crate::api::iam::groups::GroupsResource;
 use crate::api::iam::sessions::SessionsResource;
 use crate::auth::AuthenticatorMiddleware;
-use crate::error::Kind;
 use crate::retry::CustomRetryMiddleware;
 use crate::AuthHeaderManager;
 use crate::{
@@ -29,7 +28,7 @@ macro_rules! env_or_error {
             Err(err) => {
                 let error_message =
                     format!("{} is not defined in the environment. Error: {}", $e, err);
-                return Err(Error::new(Kind::EnvironmentVariableMissing(error_message)));
+                return Err(Error::EnvironmentVariableMissing(error_message));
             }
         }
     };
@@ -375,15 +374,15 @@ impl Builder {
     pub fn build(self) -> Result<CogniteClient> {
         let auth = self
             .auth
-            .ok_or_else(|| Error::new(Kind::Config("Some form of auth is required".to_string())))?;
+            .ok_or_else(|| Error::Config("Some form of auth is required".to_string()))?;
         let config = self.config.unwrap_or_default();
         let client = self.client;
         let app_name = self
             .app_name
-            .ok_or_else(|| Error::new(Kind::Config("App name is required".to_string())))?;
+            .ok_or_else(|| Error::Config("App name is required".to_string()))?;
         let project = self
             .project
-            .ok_or_else(|| Error::new(Kind::Config("Project is required".to_string())))?;
+            .ok_or_else(|| Error::Config("Project is required".to_string()))?;
         let base_url = self
             .base_url
             .unwrap_or_else(|| "https://api.cognitedata.com/".to_owned());

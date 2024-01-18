@@ -19,10 +19,8 @@ async fn ensure_test_file(client: &CogniteClient) {
     };
 
     let file = match client.files.upload(false, &new_file).await {
-        Err(cognite::Error { kind }) => match kind {
-            cognite::Kind::Conflict(_) => return,
-            e => panic!("{}", e),
-        },
+        Err(cognite::Error::Conflict(_)) => return,
+        Err(e) => panic!("{}", e),
         Ok(f) => f,
     };
 
