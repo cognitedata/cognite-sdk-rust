@@ -67,7 +67,7 @@ impl ApiClient {
         }
     }
 
-    async fn send_request<T: DeserializeOwned>(
+    async fn send_request_json<T: DeserializeOwned>(
         &self,
         mut request_builder: RequestBuilder,
     ) -> Result<T> {
@@ -128,7 +128,7 @@ impl ApiClient {
         let url = format!("{}/{}", self.api_base_url, path);
         let headers: HeaderMap = self.get_headers();
         let request_builder = self.client.get(&url).headers(headers);
-        self.send_request(request_builder).await
+        self.send_request_json(request_builder).await
     }
 
     /// Perform a get request to the given path, with a query given by `params`,
@@ -151,7 +151,7 @@ impl ApiClient {
         let url = format!("{}/{}", self.api_base_url, path);
         let headers: HeaderMap = self.get_headers();
         let request_builder = self.client.get(&url).headers(headers).query(&http_params);
-        self.send_request(request_builder).await
+        self.send_request_json(request_builder).await
     }
 
     /// Perform a get request to the given URL, returning a stream.
@@ -212,7 +212,7 @@ impl ApiClient {
         let url = format!("{}/{}", self.api_base_url, path);
         let headers: HeaderMap = self.get_headers();
         let request_builder = self.client.post(&url).headers(headers).body(body);
-        self.send_request(request_builder).await
+        self.send_request_json(request_builder).await
     }
 
     /// Perform a post request to the given path, with query parameters given by `params`.
@@ -243,7 +243,7 @@ impl ApiClient {
             .headers(headers)
             .query(&http_params)
             .body(json);
-        self.send_request(request_builder).await
+        self.send_request_json(request_builder).await
     }
 
     /// Perform a post request to the given path, posting `value` as protobuf.
@@ -269,7 +269,7 @@ impl ApiClient {
             .post(&url)
             .headers(headers)
             .body(value.encode_to_vec());
-        self.send_request(request_builder).await
+        self.send_request_json(request_builder).await
     }
 
     /// Perform a post request to the given path, send `object` as JSON in the body,
@@ -408,7 +408,7 @@ impl ApiClient {
             .put(&url)
             .headers(headers)
             .body(String::from(body));
-        self.send_request(request_builder).await
+        self.send_request_json(request_builder).await
     }
 
     /// Perform a delete request to `path`, expecting JSON as response.
@@ -420,7 +420,7 @@ impl ApiClient {
         let url = format!("{}/{}", self.api_base_url, path);
         let headers: HeaderMap = self.get_headers();
         let request_builder = self.client.delete(&url).headers(headers);
-        self.send_request::<T>(request_builder).await
+        self.send_request_json::<T>(request_builder).await
     }
 
     /// Perform a delete request to `path`, with query parameters given by `params`.
@@ -446,6 +446,19 @@ impl ApiClient {
             .delete(&url)
             .headers(headers)
             .query(&http_params);
-        self.send_request::<T>(request_builder).await
+        self.send_request_json::<T>(request_builder).await
+    }
+
+    /// Send an arbitrary HTTP request using the client. This will not parse the response,
+    /// but will append authentication headers and retry with the same semantics as any
+    /// normal API call.
+    ///
+    /// # Arguments
+    ///
+    /// * `request_builder` - Request to send.
+    pub async fn send_request(&self, mut request_builder: RequestBuilder) -> Result<Response> {
+        request_builder.extensions().insert(self.client.clone());
+
+        Ok(request_builder.send().await?)
     }
 }
