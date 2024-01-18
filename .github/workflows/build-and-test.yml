@@ -28,3 +28,36 @@ jobs:
           COGNITE_SCOPES: https://greenfield.cognitedata.com/.default
           COGNITE_CLIENT_ID: ${{ secrets.CLIENT_ID }}
           COGNITE_CLIENT_SECRET: ${{ secrets.CLIENT_SECRET }}
+      - name: Build docs
+        env:
+          RUSTDOCFLAGS: "-D warnings"
+        run: >
+          cargo doc --no-deps \
+          && rm -rf ./docs \
+          && echo "<meta http-equiv=\"refresh\" content=\"0; url=cognite/index.html\">" > target/doc/index.html \
+          && cp -r target/doc ./docs
+      - name: Fix permissions
+        run: |
+          chmod -c -R +rX "docs/" | while read line; do
+            echo "::warning title=Invalid file permissions automatically fixed::$line"
+          done
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v2
+        with:
+          path: "docs/"
+  deploy-docs:
+    needs: build_and_test
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+      
+        
