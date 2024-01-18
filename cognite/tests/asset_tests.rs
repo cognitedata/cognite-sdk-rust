@@ -11,7 +11,7 @@ async fn create_and_delete_asset() {
     let new_asset: Asset = Asset::new("asset1", "description", Some(asset_id), None, None, None);
     let assets = client.assets.create_from(&vec![new_asset]).await.unwrap();
     assert_eq!(assets.len(), 1);
-    let asset = assets.get(0).unwrap();
+    let asset = assets.first().unwrap();
     assert_eq!(asset.name, "asset1");
 
     let asset_ids: Vec<Identity> = assets.iter().map(|a| Identity::from(a.id)).collect();
