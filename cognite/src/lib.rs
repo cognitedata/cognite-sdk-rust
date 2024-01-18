@@ -1,4 +1,5 @@
 #![warn(missing_docs)]
+#![allow(clippy::needless_doctest_main)]
 
 //! Rust SDK for the Cognite API
 //!
