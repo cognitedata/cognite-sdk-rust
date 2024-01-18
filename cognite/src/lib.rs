@@ -26,12 +26,12 @@
 //!
 //! ```no_run
 //! use cognite::prelude::*;
-//! use cognite::{Asset, AssetFilter, AssetSearch, CogniteClient};
+//! use cognite::assets::{Asset, AssetFilter, AssetSearch, FilterAssetsRequest};
 //!
 //! #[tokio::main]
-//! fn main() {
+//! async fn main() {
 //!     // Create a client from environment variables
-//!     let cognite_client = CogniteClient::new("TestApp", None).unwrap();
+//!     let cognite_client = CogniteClient::new_oidc("TestApp", None).unwrap();
 //!
 //!     // List all assets
 //!     let mut filter: AssetFilter = AssetFilter::new();
@@ -39,14 +39,14 @@
 //!     let assets = cognite_client
 //!         .assets
 //!         .filter(FilterAssetsRequest {
-//!             filter,
+//!             filter: Some(filter),
 //!             ..Default::default()
 //!         })
 //!         .await
 //!         .unwrap();
 //!
 //!     // Retrieve asset
-//!     match cognite_client
+//!     cognite_client
 //!         .assets
 //!         .retrieve(&vec![Identity::from(6687602007296940)], false, None)
 //!         .await
@@ -58,13 +58,18 @@
 //!
 //! ```no_run
 //! use cognite::prelude::*;
+//! use cognite::AuthenticatorConfig;
 //!
 //! #[tokio::main]
-//! fn main() {
-//!     let builder = CogniteClient::builder();
+//! async fn main() {
+//!     let mut builder = CogniteClient::builder();
 //!     builder
 //!         .set_oidc_credentials(AuthenticatorConfig {
-//!             ...
+//!             client_id: "someclientid".to_owned(),
+//!             token_url: "sometokenurl".to_owned(),
+//!             secret: "someclientsecret".to_owned(),
+//!             scopes: Some("https://api.cognitedata.com/.default".to_owned()),
+//!             ..Default::default()
 //!         })
 //!         .set_project("my_project")
 //!         .set_app_name("TestApp")
