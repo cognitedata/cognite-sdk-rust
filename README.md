@@ -53,13 +53,13 @@ Since this is not published on crates.io, you'll have to reference the git repos
 
 Cargo.toml:
 
-```TOML
+```toml
 [dependencies]
 cognite = { git = "https://github.com/cognitedata/cognite-sdk-rust" }
 tokio = { version = "1.23", features = ["macros", "rt-multi-thread"] }
 ```
 
-```Rust
+```rust
 use cognite::prelude::*;
 use cognite::{Asset, AssetFilter, AssetSearch, CogniteClient};
 
@@ -91,7 +91,7 @@ fn main() {
 
 Using the builder pattern to set OIDC credentials:
 
-```Rust
+```rust
 use cognite::prelude::*;
 
 #[tokio::main]

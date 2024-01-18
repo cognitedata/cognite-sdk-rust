@@ -4,3 +4,4 @@
 **/*.rs.bk
 Cargo.lock
 env_variables
+docs/
