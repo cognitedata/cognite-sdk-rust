@@ -34,9 +34,9 @@ jobs:
         env:
           RUSTDOCFLAGS: "-D warnings"
         run: >
-          cargo doc --no-deps \
-          && rm -rf ./docs \
-          && echo "<meta http-equiv=\"refresh\" content=\"0; url=cognite/index.html\">" > target/doc/index.html \
+          cargo doc --no-deps
+          && rm -rf ./docs
+          && echo "<meta http-equiv=\"refresh\" content=\"0; url=cognite/index.html\">" > target/doc/index.html
           && cp -r target/doc ./docs
       - name: Fix permissions
         run: |
@@ -44,7 +44,7 @@ jobs:
             echo "::warning title=Invalid file permissions automatically fixed::$line"
           done
       - name: Upload Pages artifact
-        uses: actions/upload-pages-artifact@v2
+        uses: actions/upload-pages-artifact@v3
         with:
           path: "docs/"
   deploy-docs:
