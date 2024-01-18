@@ -127,27 +127,16 @@ impl CdfApiError {
     }
 }
 
-#[derive(Debug, Error)]
-/// Cognite SDK error.
-pub struct Error {
-    /// Error kind.
-    pub kind: Kind,
-}
-
 impl Error {
-    pub(crate) fn new(kind: Kind) -> Error {
-        Error { kind }
-    }
-
-    fn new_kind_from_code(code: StatusCode, err: CdfApiError) -> Kind {
+    fn new_from_code(code: StatusCode, err: CdfApiError) -> Error {
         match code {
-            StatusCode::BAD_REQUEST => Kind::BadRequest(err),
-            StatusCode::UNAUTHORIZED => Kind::Unauthorized(err),
-            StatusCode::FORBIDDEN => Kind::Forbidden(err),
-            StatusCode::NOT_FOUND => Kind::NotFound(err),
-            StatusCode::CONFLICT => Kind::Conflict(err),
-            StatusCode::UNPROCESSABLE_ENTITY => Kind::UnprocessableEntity(err),
-            _ => Kind::OtherApiError(err),
+            StatusCode::BAD_REQUEST => Error::BadRequest(err),
+            StatusCode::UNAUTHORIZED => Error::Unauthorized(err),
+            StatusCode::FORBIDDEN => Error::Forbidden(err),
+            StatusCode::NOT_FOUND => Error::NotFound(err),
+            StatusCode::CONFLICT => Error::Conflict(err),
+            StatusCode::UNPROCESSABLE_ENTITY => Error::UnprocessableEntity(err),
+            _ => Error::OtherApiError(err),
         }
     }
 
@@ -157,8 +146,7 @@ impl Error {
         request_id: Option<String>,
     ) -> Error {
         let cdf_err = CdfApiError::new(err.error, request_id);
-        let kind = Self::new_kind_from_code(code, cdf_err);
-        Error { kind }
+        Self::new_from_code(code, cdf_err)
     }
 
     pub(crate) fn new_without_json(
@@ -172,23 +160,16 @@ impl Error {
             request_id,
             ..Default::default()
         };
-        let kind = Self::new_kind_from_code(code, err);
-        Error { kind }
+        Self::new_from_code(code, err)
     }
 }
 
 /// A `Result` alias where the `Err` case is `cognite::Error`.
 pub type Result<T> = ::std::result::Result<T, Error>;
 
-impl fmt::Display for Error {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        self.kind.fmt(f)
-    }
-}
-
 #[derive(Debug, Error)]
-/// Error kind.
-pub enum Kind {
+/// Cognite SDK Error.
+pub enum Error {
     #[error("Bad request (400): {0}")]
     /// A bad request error (400)
     BadRequest(CdfApiError),
@@ -212,115 +193,43 @@ pub enum Kind {
     #[error("Other Api Error: {0}")]
     /// A different CDF error not covered by the common variants in this enum.
     OtherApiError(CdfApiError),
-    #[error("Other HTTP error: {0}")]
-    /// Some other HTTP error.
-    Http(String),
     #[error("Environment Variable Missing: {0}")]
     /// Error returned due to a missing environment variable
     EnvironmentVariableMissing(String),
-    #[error("{0}")]
-    /// Error from some external library.
-    ExternalLib(ExternalKind),
     #[error("Error from authenticator: {0}")]
     /// Error from the authenticator.
     Authenticator(AuthenticatorError),
     #[error("Invalid header value: {0}")]
     /// Error caused by an invalid header, for example one containing non-ascii symbols.
-    InvalidHeader(InvalidHeaderValue),
+    InvalidHeader(#[from] InvalidHeaderValue),
     #[error("Error accessing file: {0}")]
     /// Error reading from a file.
     IOError(#[from] std::io::Error),
     #[error("Error collecting stream: {0}")]
     /// Error collecting a stream.
-    StreamError(String),
+    StreamError(anyhow::Error),
     #[error("Error in middleware: {0}")]
     /// Error in middleware.
-    Middleware(String),
+    Middleware(anyhow::Error),
     #[error("Error in configuration: {0}")]
     /// Error in configuration.
     Config(String),
-}
-
-#[derive(Debug, Error)]
-/// Variant of error referencing an external dependency.
-pub enum ExternalKind {
     #[error("Unexpected request error: {0}")]
     /// Reqwest error
-    Reqwest(::reqwest::Error, Option<Box<Kind>>),
+    Reqwest(#[from] ::reqwest::Error),
+    /// Serde JSON error.
     #[error("Unexpected JSON error: {0}")]
     /// Serde JSON error.
-    SerdeJson(::serde_json::Error, Option<Box<Kind>>),
+    SerdeJson(#[from] ::serde_json::Error),
     #[error("Unexpected protobuf error: {0}")]
-    /// Prost (protobuf deserializer) error.
-    Prost(::prost::DecodeError, Option<Box<Kind>>),
-}
-
-impl From<::reqwest::Error> for Kind {
-    fn from(err: ::reqwest::Error) -> Kind {
-        Kind::ExternalLib(ExternalKind::Reqwest(err, None))
-    }
-}
-impl From<::reqwest::Error> for Error {
-    fn from(err: ::reqwest::Error) -> Error {
-        Error::new(Kind::from(err))
-    }
-}
-
-impl From<::serde_json::Error> for Kind {
-    fn from(err: ::serde_json::Error) -> Kind {
-        Kind::ExternalLib(ExternalKind::SerdeJson(err, None))
-    }
-}
-impl From<::serde_json::Error> for Error {
-    fn from(err: ::serde_json::Error) -> Error {
-        Error::new(Kind::from(err))
-    }
-}
-
-impl From<::prost::DecodeError> for Kind {
-    fn from(err: ::prost::DecodeError) -> Kind {
-        Kind::ExternalLib(ExternalKind::Prost(err, None))
-    }
-}
-impl From<::prost::DecodeError> for Error {
-    fn from(err: ::prost::DecodeError) -> Error {
-        Error::new(Kind::from(err))
-    }
-}
-
-impl From<AuthenticatorError> for Kind {
-    fn from(err: AuthenticatorError) -> Kind {
-        Kind::Authenticator(err)
-    }
-}
-impl From<AuthenticatorError> for Error {
-    fn from(err: AuthenticatorError) -> Error {
-        Error::new(Kind::from(err))
-    }
-}
-
-impl From<InvalidHeaderValue> for Kind {
-    fn from(err: InvalidHeaderValue) -> Self {
-        Kind::InvalidHeader(err)
-    }
-}
-
-impl From<InvalidHeaderValue> for Error {
-    fn from(err: InvalidHeaderValue) -> Error {
-        Error::new(Kind::from(err))
-    }
-}
-
-impl From<std::io::Error> for Error {
-    fn from(err: std::io::Error) -> Error {
-        Error::new(Kind::from(err))
-    }
+    /// Prost (protobuf deserializer) error
+    Prost(#[from] ::prost::DecodeError),
 }
 
 impl From<reqwest_middleware::Error> for Error {
     fn from(err: reqwest_middleware::Error) -> Self {
         match err {
-            reqwest_middleware::Error::Middleware(x) => Error::new(Kind::Middleware(x.to_string())),
+            reqwest_middleware::Error::Middleware(x) => Error::Middleware(x),
             reqwest_middleware::Error::Reqwest(x) => Self::from(x),
         }
     }

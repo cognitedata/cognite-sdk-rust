@@ -1,4 +1,4 @@
-use crate::{Identity, Kind, Result};
+use crate::{Error, Identity, Result};
 
 /// Given a result object from CDF, if it is a "conflict" error,
 /// return the list of identities.
@@ -9,8 +9,8 @@ use crate::{Identity, Kind, Result};
 pub fn get_duplicates_from_result<T>(res: &Result<T>) -> Option<Vec<Identity>> {
     match res {
         Ok(_) => None,
-        Err(e) => match &e.kind {
-            Kind::Conflict(c) => c
+        Err(e) => match &e {
+            Error::Conflict(c) => c
                 .duplicated
                 .as_ref()
                 .map(|dup| dup.get_identities().collect()),
@@ -28,9 +28,9 @@ pub fn get_duplicates_from_result<T>(res: &Result<T>) -> Option<Vec<Identity>> {
 pub fn get_missing_from_result<T>(res: &Result<T>) -> Option<Vec<Identity>> {
     match res {
         Ok(_) => None,
-        Err(e) => match &e.kind {
-            Kind::BadRequest(c) => c.missing.as_ref().map(|mis| mis.get_identities().collect()),
-            Kind::NotFound(c) => c.missing.as_ref().map(|mis| mis.get_identities().collect()),
+        Err(e) => match &e {
+            Error::BadRequest(c) => c.missing.as_ref().map(|mis| mis.get_identities().collect()),
+            Error::NotFound(c) => c.missing.as_ref().map(|mis| mis.get_identities().collect()),
             _ => None,
         },
     }
