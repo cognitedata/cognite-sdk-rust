@@ -73,10 +73,11 @@ impl From<ItemId> for TaggedContainerReference {
     }
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug)]
+#[derive(Serialize, Deserialize, Clone, Debug, Default)]
 #[serde(rename_all = "camelCase")]
 /// Enum for whether a resource is used for nodes, edges, or both.
 pub enum UsedFor {
+    #[default]
     /// Used for nodes.
     Node,
     /// Used for edges.

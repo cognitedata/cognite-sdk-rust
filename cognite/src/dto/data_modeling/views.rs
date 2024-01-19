@@ -17,7 +17,7 @@ use super::{
     query::{QueryDirection, ViewPropertyReference},
 };
 
-#[derive(Serialize, Deserialize, Clone, Debug)]
+#[derive(Serialize, Deserialize, Clone, Debug, Default)]
 #[serde(rename_all = "camelCase")]
 /// Reference to a view.
 pub struct ViewReference {
@@ -98,7 +98,7 @@ pub enum ViewDefinitionOrReference {
 }
 
 #[skip_serializing_none]
-#[derive(Serialize, Deserialize, Clone, Debug)]
+#[derive(Serialize, Deserialize, Clone, Debug, Default)]
 #[serde(rename_all = "camelCase")]
 /// Create a new view.
 pub struct ViewCreateDefinition {
@@ -249,7 +249,7 @@ pub enum ConnectionDefinition {
 }
 
 #[skip_serializing_none]
-#[derive(Serialize, Deserialize, Clone, Debug)]
+#[derive(Serialize, Deserialize, Clone, Debug, Default)]
 #[serde(rename_all = "camelCase")]
 /// Definition of a view.
 pub struct ViewDefinition {
