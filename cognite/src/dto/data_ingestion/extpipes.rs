@@ -257,7 +257,7 @@ pub struct ExtPipeRun {
     /// Time this run happened, in milliseconds since epoch.
     pub created_time: i64,
     /// Extraction pipeline external ID.
-    pub external_id: String,
+    pub external_id: Option<String>,
 }
 
 #[skip_serializing_none]
