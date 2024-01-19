@@ -7,7 +7,7 @@ use crate::{
 };
 
 #[skip_serializing_none]
-#[derive(Serialize, Deserialize, Clone, Debug)]
+#[derive(Serialize, Deserialize, Clone, Debug, Default)]
 #[serde(rename_all = "camelCase")]
 /// Create a data model.
 pub struct DataModelCreate {
@@ -41,7 +41,7 @@ impl From<DataModel> for DataModelCreate {
 }
 
 #[skip_serializing_none]
-#[derive(Serialize, Deserialize, Clone, Debug)]
+#[derive(Serialize, Deserialize, Clone, Debug, Default)]
 #[serde(rename_all = "camelCase")]
 /// A CDF data model.
 pub struct DataModel {
@@ -66,7 +66,7 @@ pub struct DataModel {
 }
 
 #[skip_serializing_none]
-#[derive(Serialize, Deserialize, Clone, Debug)]
+#[derive(Serialize, Deserialize, Clone, Debug, Default)]
 #[serde(rename_all = "camelCase")]
 /// ID of a data model
 pub struct DataModelId {
