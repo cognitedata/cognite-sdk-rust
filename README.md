@@ -1,6 +1,9 @@
 Cognite Rust SDK
 ==========================
 
+
+dads
+
 Rust SDK to ensure excellent user experience for developers and data scientists working with the Cognite Data Fusion.
 
 ## Documentation
