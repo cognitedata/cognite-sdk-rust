@@ -1,12 +1,15 @@
-Cognite Rust SDK
+# Cognite Rust SDK
+
 ==========================
 
 Rust SDK to ensure excellent user experience for developers and data scientists working with the Cognite Data Fusion.
 
 ## Documentation
+
 * [API Documentation](https://docs.cognite.com/api/v1/)
 
 ## Prerequisites
+
 Install rust. See [instructions here](https://rustup.rs/).
 
 To build the SDK, you will also need a version of protobuf-compiler, on debian based systems that can be installed using `sudo apt-get install protobuf-compiler`.
@@ -14,38 +17,47 @@ To build the SDK, you will also need a version of protobuf-compiler, on debian b
 Set environment variables:
 
 ```bash
-$ export COGNITE_BASE_URL="https://api.cognitedata.com"
-$ export COGNITE_CLIENT_ID=<your client id>
-$ export COGNITE_CLIENT_SECRET=<your client secret>
-$ export COGNITE_TOKEN_URL=<your token url>
-$ export COGNITE_SCOPES=<space separated list of scopes>
-$ export COGNITE_PROJECT=<your project name>
+export COGNITE_BASE_URL="https://api.cognitedata.com"
+export COGNITE_CLIENT_ID=<your client id>
+export COGNITE_CLIENT_SECRET=<your client secret>
+export COGNITE_TOKEN_URL=<your token url>
+export COGNITE_SCOPES=<space separated list of scopes>
+export COGNITE_PROJECT=<your project name>
 ```
 
 ## Supported features for API v1
 
 ### Core
-- Assets
-- Events
-- Files
-- TimeSeries
-  - With protobuf support
-- Sequences
+
+* Assets
+* Events
+* Files
+* TimeSeries
+  * With protobuf support
+* Sequences
+
 ### IAM
-- Groups
-- SecurityCategories
-- Sessions
+
+* Groups
+* SecurityCategories
+* Sessions
+
 ### Data Ingestion
-- Extraction pipelines
-- Raw
+
+* Extraction pipelines
+* Raw
+
 ### Data Organization
-- Datasets
-- Labels
-- Relationships
+
+* Datasets
+* Labels
+* Relationships
+
 ### Data Modeling
-- Instances 
-- Spaces
-- Views
+
+* Instances
+* Spaces
+* Views
 
 ## Example
 
