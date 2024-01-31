@@ -125,8 +125,8 @@ async fn create_update_ignore_missing() {
 
 #[tokio::test]
 async fn upsert_assets() {
-    let asset_id = format!("{}-asset5", PREFIX.as_str());
-    let mut new_asset = Asset::new("asset5", "desc", Some(asset_id.clone()), None, None, None);
+    let asset_id = format!("{}-asset6", PREFIX.as_str());
+    let mut new_asset = Asset::new("asset6", "desc", Some(asset_id.clone()), None, None, None);
 
     let client = get_client();
 
