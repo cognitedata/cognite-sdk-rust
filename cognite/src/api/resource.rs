@@ -1,5 +1,6 @@
 use std::collections::VecDeque;
 use std::future::Future;
+use std::time::Duration;
 use std::{marker::PhantomData, sync::Arc};
 
 use futures::future::try_join_all;
@@ -312,13 +313,27 @@ where
                     result.append(&mut create_response.items);
                 }
                 if !to_update.is_empty() {
-                    let mut update_response: ItemsWithoutCursor<TResponse> = self
-                        .get_client()
-                        .post(
-                            &format!("{}/update", Self::BASE_PATH),
-                            &Items::from(&to_update),
-                        )
-                        .await?;
+                    let items = Items::from(&to_update);
+                    let mut cnt = 0;
+                    let mut update_response: ItemsWithoutCursor<TResponse> = loop {
+                        match self
+                            .get_client()
+                            .post(&format!("{}/update", Self::BASE_PATH), &items)
+                            .await
+                        {
+                            Ok(updated) => break updated,
+                            Err(crate::Error::BadRequest(c))
+                                if c.missing.as_ref().is_some_and(|m| !m.0.is_empty())
+                                    && cnt < 5 =>
+                            {
+                                futures_timer::Delay::new(Duration::from_millis(200)).await;
+                                cnt += 1;
+                                continue;
+                            }
+                            Err(e) => return Err(e),
+                        }
+                    };
+
                     result.append(&mut update_response.items);
                 }
 
