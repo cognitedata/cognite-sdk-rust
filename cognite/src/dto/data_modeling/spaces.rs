@@ -14,8 +14,6 @@ pub struct SpaceCreate {
     pub description: Option<String>,
     /// Human readable space name.
     pub name: Option<String>,
-    /// Whether this space is a global space.
-    pub intentionally_breaking_change: bool,
 }
 
 #[skip_serializing_none]
