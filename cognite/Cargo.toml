@@ -18,7 +18,7 @@ futures-locks = "0.7.1"
 futures-timer = "3.0.2"
 prost = "0.12.3"
 prost-types = "0.12.3"
-reqwest = { version = "0.11.23", features = [
+reqwest = { version = "0.11.24", features = [
     "gzip",
     "json",
     "multipart",
