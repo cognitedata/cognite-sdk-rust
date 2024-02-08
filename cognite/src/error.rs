@@ -45,7 +45,7 @@ impl IntegerOrString {
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
 /// Details about API errors.
-pub struct ApiErrorDetail(Vec<HashMap<String, IntegerOrString>>);
+pub struct ApiErrorDetail(pub Vec<HashMap<String, IntegerOrString>>);
 
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
