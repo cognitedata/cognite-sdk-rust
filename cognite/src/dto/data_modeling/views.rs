@@ -234,7 +234,7 @@ pub struct ReverseDirectRelationConnection {
 
 #[skip_serializing_none]
 #[derive(Serialize, Deserialize, Clone, Debug)]
-#[serde(rename_all = "camelCase", tag = "connectionType")]
+#[serde(rename_all = "snake_case", tag = "connectionType")]
 /// Definition of a connection. Describes edges or reverse direct relations
 /// that are expected to exist.
 pub enum ConnectionDefinition {
