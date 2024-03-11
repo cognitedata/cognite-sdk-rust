@@ -1,11 +1,14 @@
 use std::collections::HashSet;
 use std::iter::FromIterator;
 
+use futures::FutureExt;
+
 use crate::api::resource::*;
 use crate::dto::core::datapoint::*;
 use crate::dto::core::time_series::*;
 use crate::error::Result;
 use crate::get_missing_from_result;
+use crate::utils::execute_with_parallelism;
 use crate::Identity;
 use crate::Items;
 use crate::ItemsWithIgnoreUnknownIds;
@@ -101,7 +104,12 @@ impl TimeSeriesResource {
             None => return result,
         };
         let to_create = generator(&missing_idts).collect::<Vec<_>>();
-        self.create(&to_create).await?;
+        let futures = to_create
+            .chunks(1000)
+            // Since we're discarding the output, don't collect it here.
+            .map(|c| self.create(c).map(|r| r.map(|_| ())));
+
+        execute_with_parallelism(futures, 4).await?;
 
         self.insert_datapoints_proto(add_datapoints).await
     }
