@@ -107,7 +107,7 @@ impl TimeSeriesResource {
         let futures = to_create
             .chunks(1000)
             // Since we're discarding the output, don't collect it here.
-            .map(|c| self.create(&c).map(|r| r.map(|_| ())));
+            .map(|c| self.create(c).map(|r| r.map(|_| ())));
 
         execute_with_parallelism(futures, 4).await?;
 

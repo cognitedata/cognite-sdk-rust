@@ -68,7 +68,7 @@ pub fn chunk_map<'a, TKey: Hash + Eq + 'a + Clone, TValue: 'a>(
     Box::new(res.into_iter())
 }
 
-/// Execute a list of futures concurrently, with a maximum parllelism.
+/// Execute a list of futures concurrently, with a maximum parallelism.
 ///
 /// # Arguments
 ///
