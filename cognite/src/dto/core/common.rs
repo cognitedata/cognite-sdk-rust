@@ -40,7 +40,7 @@ pub struct CoreSortItem {
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
-#[serde(rename_all = "camelCase", tag = "type")]
+#[serde(tag = "type")]
 /// Geographic metadata.
 pub enum GeoLocation {
     /// GeoJson Feature.
