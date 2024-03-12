@@ -30,7 +30,7 @@ serde = { version = "1.0.197", features = ["derive"] }
 serde_with = "3.6.1"
 serde_json = "1.0.105"
 task-local-extensions = "0.1.4"
-thiserror = "1.0.57"
+thiserror = "1.0.58"
 anyhow = "1.0.80"
 
 [target.'cfg(not(target_arch = "wasm32"))'.dev-dependencies]
