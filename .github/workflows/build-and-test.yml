@@ -28,3 +28,5 @@ jobs:
           COGNITE_SCOPES: https://greenfield.cognitedata.com/.default
           COGNITE_CLIENT_ID: ${{ secrets.CLIENT_ID }}
           COGNITE_CLIENT_SECRET: ${{ secrets.CLIENT_SECRET }}
+      - name: Check semver
+        uses: obi1kenobi/cargo-semver-checks-action@v2

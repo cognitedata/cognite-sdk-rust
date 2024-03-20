@@ -12,6 +12,7 @@ async fn create_retrieve_delete_spaces() {
         space: space_id.clone(),
         description: Some("Some description".to_owned()),
         name: Some("Test space".to_owned()),
+        intentionally_breaking: Some(false),
     };
     let created = client.models.spaces.create(&[new_space]).await.unwrap();
     assert_eq!(created.len(), 1);
