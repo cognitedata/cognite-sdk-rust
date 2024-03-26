@@ -1,5 +1,5 @@
 use crate::api::resource::*;
-use crate::dto::{data_organization::datasets::*, items::ItemsWithCursor};
+use crate::dto::{data_organization::datasets::*, items::ItemsVec};
 use crate::error::Result;
 use crate::{Filter, Identity, Patch};
 
@@ -23,7 +23,7 @@ impl DataSetsResource {
     /// * `filter` - Optional filter.
     pub async fn count(&self, filter: DataSetFilter) -> Result<DataSetsCount> {
         let query = Filter::<DataSetFilter>::new(filter, None, None);
-        let result: ItemsWithCursor<DataSetsCount> =
+        let result: ItemsVec<DataSetsCount> =
             self.api_client.post("datasets/aggregate", &query).await?;
         Ok(result.items.into_iter().next().unwrap())
     }

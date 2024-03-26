@@ -2,7 +2,7 @@ use crate::api::resource::Resource;
 use crate::dto::items::Items;
 use crate::error::Result;
 use crate::raw::*;
-use crate::{ItemsWithCursor, LimitCursorQuery};
+use crate::{ItemsVec, LimitCursorQuery};
 
 /// Raw is a NoSQL JSON store. Each project can have a variable number of databases,
 /// each of which will have a variable number of tables, each of which will have a variable
@@ -20,7 +20,7 @@ impl RawResource {
         &self,
         limit: Option<i32>,
         cursor: Option<String>,
-    ) -> Result<ItemsWithCursor<Database>> {
+    ) -> Result<ItemsVec<Database>> {
         let query = LimitCursorQuery { limit, cursor };
         self.api_client
             .get_with_params("raw/dbs", Some(query))
@@ -33,8 +33,8 @@ impl RawResource {
     ///
     /// * `dbs` - Databases to create.
     pub async fn create_databases(&self, dbs: &[Database]) -> Result<Vec<Database>> {
-        let items = Items::from(dbs);
-        let result: ItemsWithCursor<Database> = self.api_client.post("raw/dbs", &items).await?;
+        let items = Items::new(dbs);
+        let result: ItemsVec<Database> = self.api_client.post("raw/dbs", &items).await?;
         Ok(result.items)
     }
 
@@ -62,7 +62,7 @@ impl RawResource {
         db_name: &str,
         limit: Option<i32>,
         cursor: Option<String>,
-    ) -> Result<ItemsWithCursor<Table>> {
+    ) -> Result<ItemsVec<Table>> {
         let query = LimitCursorQuery { limit, cursor };
         let path = format!("raw/dbs/{db_name}/tables");
         self.api_client.get_with_params(&path, Some(query)).await
@@ -85,8 +85,8 @@ impl RawResource {
             ensure_parent: Some(ensure_parent),
         };
         let path = format!("raw/dbs/{db_name}/tables");
-        let items = Items::from(tables);
-        let result: ItemsWithCursor<Table> = self
+        let items = Items::new(tables);
+        let result: ItemsVec<Table> = self
             .api_client
             .post_with_query(&path, &items, Some(query))
             .await?;
@@ -101,7 +101,7 @@ impl RawResource {
     /// * `to_delete` - Tables to delete.
     pub async fn delete_tables(&self, db_name: &str, to_delete: &[Table]) -> Result<()> {
         let path = format!("raw/dbs/{db_name}/tables/delete");
-        let items = Items::from(to_delete);
+        let items = Items::new(to_delete);
         self.api_client
             .post::<::serde_json::Value, _>(&path, &items)
             .await?;
@@ -123,8 +123,7 @@ impl RawResource {
         params: Option<RetrieveCursorsQuery>,
     ) -> Result<Vec<String>> {
         let path = format!("raw/dbs/{db_name}/tables/{table_name}/cursors");
-        let result: ItemsWithCursor<String> =
-            self.api_client.get_with_params(&path, params).await?;
+        let result: ItemsVec<String> = self.api_client.get_with_params(&path, params).await?;
         Ok(result.items)
     }
 
@@ -140,7 +139,7 @@ impl RawResource {
         db_name: &str,
         table_name: &str,
         params: Option<RetrieveRowsQuery>,
-    ) -> Result<ItemsWithCursor<RawRow>> {
+    ) -> Result<ItemsVec<RawRow>> {
         let path = format!("raw/dbs/{db_name}/tables/{table_name}/rows");
         self.api_client.get_with_params(&path, params).await
     }
@@ -164,7 +163,7 @@ impl RawResource {
     ) -> Result<()> {
         let path = format!("raw/dbs/{db_name}/tables/{table_name}/rows");
         let query = EnsureParentQuery { ensure_parent };
-        let items = Items::from(rows);
+        let items = Items::new(rows);
         self.api_client
             .post_with_query::<::serde_json::Value, _, EnsureParentQuery>(
                 &path,
@@ -201,7 +200,7 @@ impl RawResource {
         to_delete: &[DeleteRow],
     ) -> Result<()> {
         let path = format!("raw/dbs/{db_name}/tables/{table_name}/rows/delete");
-        let items = Items::from(to_delete);
+        let items = Items::new(to_delete);
         self.api_client
             .post::<::serde_json::Value, _>(&path, &items)
             .await?;

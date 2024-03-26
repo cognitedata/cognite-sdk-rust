@@ -1,5 +1,5 @@
 use crate::api::resource::*;
-use crate::dto::{data_organization::relationships::*, items::ItemsWithCursor};
+use crate::dto::{data_organization::relationships::*, items::ItemsVec};
 use crate::error::Result;
 use crate::{CogniteExternalId, Patch};
 
@@ -34,7 +34,7 @@ impl RelationshipsResource {
         let mut id_items = RetrieveRelationshipsRequest::from(relationship_ids);
         id_items.fetch_resources = fetch_resources;
         id_items.ignore_unknown_ids = ignore_unknown_ids;
-        let rel_response: ItemsWithCursor<Relationship> = self
+        let rel_response: ItemsVec<Relationship> = self
             .api_client
             .post("relationships/byids", &id_items)
             .await?;

@@ -10,9 +10,9 @@ use crate::error::Result;
 use crate::get_missing_from_result;
 use crate::utils::execute_with_parallelism;
 use crate::Identity;
+use crate::IgnoreUnknownIds;
 use crate::Items;
-use crate::ItemsWithIgnoreUnknownIds;
-use crate::ItemsWithoutCursor;
+use crate::ItemsVec;
 use crate::Patch;
 
 /// A time series consists of a sequence of data points connected to a single asset.
@@ -245,7 +245,7 @@ impl TimeSeriesResource {
         items: &[LatestDatapointsQuery],
         ignore_unknown_ids: bool,
     ) -> Result<Vec<DatapointsResponse>> {
-        let query = ItemsWithIgnoreUnknownIds::new(items, ignore_unknown_ids);
+        let query = Items::new_with_extra(items, IgnoreUnknownIds { ignore_unknown_ids });
         let datapoints_response: DatapointsListResponse = self
             .api_client
             .post("timeseries/data/latest", &query)
@@ -259,7 +259,7 @@ impl TimeSeriesResource {
     ///
     /// * `query` - Ranges of datapoints to delete.
     pub async fn delete_datapoints(&self, query: &[DeleteDatapointsQuery]) -> Result<()> {
-        let items = Items::from(query);
+        let items = Items::new(query);
         self.api_client
             .post::<::serde_json::Value, _>("timeseries/data/delete", &items)
             .await?;
@@ -279,9 +279,9 @@ impl TimeSeriesResource {
         &self,
         query: &[SyntheticTimeSeriesQuery],
     ) -> Result<Vec<SyntheticQueryResponse>> {
-        let res: ItemsWithoutCursor<SyntheticQueryResponse> = self
+        let res: ItemsVec<SyntheticQueryResponse> = self
             .api_client
-            .post("timeseries/synthetic/query", &Items::from(query))
+            .post("timeseries/synthetic/query", &Items::new(query))
             .await?;
         Ok(res.items)
     }
