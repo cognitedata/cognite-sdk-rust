@@ -70,7 +70,7 @@ where
     fn list(
         &self,
         params: Option<TParams>,
-    ) -> impl Future<Output = Result<ItemsVec<TResponse>>> + Send {
+    ) -> impl Future<Output = Result<ItemsVec<TResponse, Cursor>>> + Send {
         async move {
             self.get_client()
                 .get_with_params(Self::BASE_PATH, params)
@@ -670,10 +670,10 @@ where
         filter: TFilter,
         cursor: Option<String>,
         limit: Option<u32>,
-    ) -> impl Future<Output = Result<ItemsVec<TResponse>>> + Send {
+    ) -> impl Future<Output = Result<ItemsVec<TResponse, Cursor>>> + Send {
         async move {
             let filter = Filter::<TFilter>::new(filter, cursor, limit);
-            let response: ItemsVec<TResponse> = self
+            let response: ItemsVec<TResponse, Cursor> = self
                 .get_client()
                 .post(&format!("{}/list", Self::BASE_PATH), &filter)
                 .await?;
@@ -717,9 +717,12 @@ where
     /// # Arguments
     ///
     /// * `filter` - Filter which items to retrieve.
-    fn filter(&self, filter: TFilter) -> impl Future<Output = Result<ItemsVec<TResponse>>> + Send {
+    fn filter(
+        &self,
+        filter: TFilter,
+    ) -> impl Future<Output = Result<ItemsVec<TResponse, Cursor>>> + Send {
         async move {
-            let response: ItemsVec<TResponse> = self
+            let response: ItemsVec<TResponse, Cursor> = self
                 .get_client()
                 .post(&format!("{}/list", Self::BASE_PATH), &filter)
                 .await?;

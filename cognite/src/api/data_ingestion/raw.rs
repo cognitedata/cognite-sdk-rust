@@ -2,7 +2,7 @@ use crate::api::resource::Resource;
 use crate::dto::items::Items;
 use crate::error::Result;
 use crate::raw::*;
-use crate::{ItemsVec, LimitCursorQuery};
+use crate::{Cursor, ItemsVec, LimitCursorQuery};
 
 /// Raw is a NoSQL JSON store. Each project can have a variable number of databases,
 /// each of which will have a variable number of tables, each of which will have a variable
@@ -20,7 +20,7 @@ impl RawResource {
         &self,
         limit: Option<i32>,
         cursor: Option<String>,
-    ) -> Result<ItemsVec<Database>> {
+    ) -> Result<ItemsVec<Database, Cursor>> {
         let query = LimitCursorQuery { limit, cursor };
         self.api_client
             .get_with_params("raw/dbs", Some(query))
@@ -34,7 +34,7 @@ impl RawResource {
     /// * `dbs` - Databases to create.
     pub async fn create_databases(&self, dbs: &[Database]) -> Result<Vec<Database>> {
         let items = Items::new(dbs);
-        let result: ItemsVec<Database> = self.api_client.post("raw/dbs", &items).await?;
+        let result: ItemsVec<Database, Cursor> = self.api_client.post("raw/dbs", &items).await?;
         Ok(result.items)
     }
 
@@ -62,7 +62,7 @@ impl RawResource {
         db_name: &str,
         limit: Option<i32>,
         cursor: Option<String>,
-    ) -> Result<ItemsVec<Table>> {
+    ) -> Result<ItemsVec<Table, Cursor>> {
         let query = LimitCursorQuery { limit, cursor };
         let path = format!("raw/dbs/{db_name}/tables");
         self.api_client.get_with_params(&path, Some(query)).await
@@ -86,7 +86,7 @@ impl RawResource {
         };
         let path = format!("raw/dbs/{db_name}/tables");
         let items = Items::new(tables);
-        let result: ItemsVec<Table> = self
+        let result: ItemsVec<Table, Cursor> = self
             .api_client
             .post_with_query(&path, &items, Some(query))
             .await?;
@@ -123,7 +123,8 @@ impl RawResource {
         params: Option<RetrieveCursorsQuery>,
     ) -> Result<Vec<String>> {
         let path = format!("raw/dbs/{db_name}/tables/{table_name}/cursors");
-        let result: ItemsVec<String> = self.api_client.get_with_params(&path, params).await?;
+        let result: ItemsVec<String, Cursor> =
+            self.api_client.get_with_params(&path, params).await?;
         Ok(result.items)
     }
 
@@ -139,7 +140,7 @@ impl RawResource {
         db_name: &str,
         table_name: &str,
         params: Option<RetrieveRowsQuery>,
-    ) -> Result<ItemsVec<RawRow>> {
+    ) -> Result<ItemsVec<RawRow, Cursor>> {
         let path = format!("raw/dbs/{db_name}/tables/{table_name}/rows");
         self.api_client.get_with_params(&path, params).await
     }
