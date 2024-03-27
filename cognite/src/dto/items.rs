@@ -9,20 +9,26 @@ pub struct Items<C, E = ()> {
     pub items: C,
     /// Additional fields, delegated to the `E` type.
     #[serde(flatten)]
-    pub extra: E,
+    pub extra_fields: E,
 }
 
 impl<C> Items<C> {
     /// Create a new `Items` instance with the provided items and no extra fields.
     pub fn new(items: C) -> Self {
-        Self { items, extra: () }
+        Self {
+            items,
+            extra_fields: (),
+        }
     }
 }
 
 impl<C, E> Items<C, E> {
     /// Create a new `Items` instance with the provided items and extra fields.
-    pub fn new_with_extra(items: C, extra: E) -> Self {
-        Self { items, extra }
+    pub fn new_with_extra_fields(items: C, extra_fields: E) -> Self {
+        Self {
+            items,
+            extra_fields,
+        }
     }
 }
 
@@ -30,7 +36,7 @@ impl<C, E: Default> From<C> for Items<C, E> {
     fn from(items: C) -> Self {
         Items {
             items,
-            extra: E::default(),
+            extra_fields: E::default(),
         }
     }
 }

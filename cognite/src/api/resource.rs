@@ -99,7 +99,7 @@ where
                 for it in response.items {
                     result.push(it);
                 }
-                match response.extra.next_cursor {
+                match response.extra_fields.next_cursor {
                     Some(cursor) => params.set_cursor(Some(cursor)),
                     None => return Ok(result),
                 }
@@ -148,7 +148,7 @@ where
                     .await?;
 
                 state.responses.extend(response.items);
-                state.next_cursor = match response.extra.next_cursor {
+                state.next_cursor = match response.extra_fields.next_cursor {
                     Some(x) => CursorState::Some(x),
                     None => CursorState::End,
                 };
@@ -429,7 +429,8 @@ where
         Self: Sync,
     {
         async move {
-            let req = Items::new_with_extra(deletes, IgnoreUnknownIds { ignore_unknown_ids });
+            let req =
+                Items::new_with_extra_fields(deletes, IgnoreUnknownIds { ignore_unknown_ids });
             self.get_client()
                 .post::<::serde_json::Value, _>(&format!("{}/delete", Self::BASE_PATH), &req)
                 .await?;
@@ -639,7 +640,7 @@ where
         ignore_unknown_ids: bool,
     ) -> impl Future<Output = Result<Vec<TResponse>>> + Send {
         async move {
-            let items = Items::new_with_extra(ids, IgnoreUnknownIds { ignore_unknown_ids });
+            let items = Items::new_with_extra_fields(ids, IgnoreUnknownIds { ignore_unknown_ids });
             let response: ItemsVec<TResponse> = self
                 .get_client()
                 .post(&format!("{}/byids", Self::BASE_PATH), &items)
@@ -746,7 +747,7 @@ where
                 for it in response.items {
                     result.push(it);
                 }
-                match response.extra.next_cursor {
+                match response.extra_fields.next_cursor {
                     Some(cursor) => filter.set_cursor(Some(cursor)),
                     None => return Ok(result),
                 }
@@ -795,7 +796,7 @@ where
                     .await?;
 
                 state.responses.extend(response.items);
-                state.next_cursor = match response.extra.next_cursor {
+                state.next_cursor = match response.extra_fields.next_cursor {
                     Some(x) => CursorState::Some(x),
                     None => CursorState::End,
                 };
