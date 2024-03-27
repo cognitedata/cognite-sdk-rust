@@ -1,7 +1,7 @@
 use crate::api::resource::*;
 use crate::dto::core::asset::*;
 use crate::error::Result;
-use crate::{Identity, ItemsWithoutCursor, Patch};
+use crate::{Identity, ItemsVec, Patch};
 
 /// Assets represent objects or groups of objects from the physical world.
 /// Assets are organized in hierarchies. For example, a water pump asset can
@@ -40,7 +40,7 @@ impl AssetsResource {
         let mut id_items = RetrieveAssetsRequest::from(asset_ids);
         id_items.ignore_unknown_ids = ignore_unknown_ids;
         id_items.aggregated_properties = aggregated_properties;
-        let assets_response: ItemsWithoutCursor<Asset> =
+        let assets_response: ItemsVec<Asset> =
             self.api_client.post("assets/byids", &id_items).await?;
         Ok(assets_response.items)
     }
@@ -57,7 +57,7 @@ impl AssetsResource {
         &self,
         aggregate: AssetAggregateRequest,
     ) -> Result<Vec<AssetAggregateResponse>> {
-        let resp: ItemsWithoutCursor<AssetAggregateResponse> =
+        let resp: ItemsVec<AssetAggregateResponse> =
             self.api_client.post("assets/aggregate", &aggregate).await?;
         Ok(resp.items)
     }

@@ -1,7 +1,7 @@
 use crate::api::resource::*;
 use crate::dto::core::event::*;
 use crate::error::Result;
-use crate::{Identity, ItemsWithoutCursor, Patch};
+use crate::{Identity, ItemsVec, Patch};
 
 /// Event objects store complex information about multiple assets over a time period.
 /// Typical types of events might include Alarms, Process Data, and Logs.
@@ -37,7 +37,7 @@ impl EventsResource {
         &self,
         aggregate: EventAggregateRequest,
     ) -> Result<Vec<EventAggregateResponse>> {
-        let resp: ItemsWithoutCursor<EventAggregateResponse> =
+        let resp: ItemsVec<EventAggregateResponse> =
             self.api_client.post("events/aggregate", &aggregate).await?;
         Ok(resp.items)
     }
