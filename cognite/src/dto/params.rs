@@ -3,9 +3,15 @@ use std::fmt::Display;
 use crate::Partition;
 
 /// Trait for query parameters.
-pub trait AsParams {
+pub trait IntoParams {
     /// Convert self to a list of query parameter tuples.
-    fn to_tuples(self) -> Vec<(String, String)>;
+    fn into_params(self) -> Vec<(String, String)>;
+}
+
+impl IntoParams for Vec<(String, String)> {
+    fn into_params(self) -> Vec<(String, String)> {
+        self
+    }
 }
 
 /// Push the item given in `item` to the query with name `name` if it is Some.
@@ -61,8 +67,8 @@ pub struct LimitCursorQuery {
     pub cursor: Option<String>,
 }
 
-impl AsParams for LimitCursorQuery {
-    fn to_tuples(self) -> Vec<(String, String)> {
+impl IntoParams for LimitCursorQuery {
+    fn into_params(self) -> Vec<(String, String)> {
         let mut params = Vec::<(String, String)>::new();
         to_query("limit", &self.limit, &mut params);
         to_query("cursor", &self.cursor, &mut params);
@@ -80,8 +86,8 @@ pub struct LimitCursorPartitionQuery {
     pub partition: Option<Partition>,
 }
 
-impl AsParams for LimitCursorPartitionQuery {
-    fn to_tuples(self) -> Vec<(String, String)> {
+impl IntoParams for LimitCursorPartitionQuery {
+    fn into_params(self) -> Vec<(String, String)> {
         let mut params = Vec::<(String, String)>::new();
         to_query("limit", &self.limit, &mut params);
         to_query("cursor", &self.cursor, &mut params);

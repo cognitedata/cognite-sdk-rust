@@ -1,4 +1,4 @@
-use crate::AsParams;
+use crate::IntoParams;
 use anyhow::anyhow;
 use futures::{TryStream, TryStreamExt};
 use prost::Message;
@@ -139,13 +139,13 @@ impl ApiClient {
     ///
     /// * `path` - Request path, without leading slash.
     /// * `params` - Optional object converted to query parameters.
-    pub async fn get_with_params<T: DeserializeOwned, R: AsParams>(
+    pub async fn get_with_params<T: DeserializeOwned, R: IntoParams>(
         &self,
         path: &str,
         params: Option<R>,
     ) -> Result<T> {
         let http_params = match params {
-            Some(params) => params.to_tuples(),
+            Some(params) => params.into_params(),
             None => return self.get::<T>(path).await,
         };
 
@@ -222,14 +222,14 @@ impl ApiClient {
     /// * `path` - Request path, without leading slash.
     /// * `object` - Object converted to JSON body.
     /// * `params` - Object converted to query parameters.
-    pub async fn post_with_query<D: DeserializeOwned, S: Serialize, R: AsParams>(
+    pub async fn post_with_query<D: DeserializeOwned, S: Serialize, R: IntoParams>(
         &self,
         path: &str,
         object: &S,
         params: Option<R>,
     ) -> Result<D> {
         let http_params = match params {
-            Some(params) => params.to_tuples(),
+            Some(params) => params.into_params(),
             None => return self.post::<D, S>(path, object).await,
         };
         let json = match serde_json::to_string(object) {
@@ -430,13 +430,13 @@ impl ApiClient {
     ///
     /// * `path` - Request path without leading slash.
     /// * `params` - Object converted to query parameters.
-    pub async fn delete_with_params<T: DeserializeOwned, R: AsParams>(
+    pub async fn delete_with_params<T: DeserializeOwned, R: IntoParams>(
         &self,
         path: &str,
         params: Option<R>,
     ) -> Result<T> {
         let http_params = match params {
-            Some(params) => params.to_tuples(),
+            Some(params) => params.into_params(),
             None => return self.delete::<T>(path).await,
         };
 

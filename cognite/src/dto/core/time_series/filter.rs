@@ -2,7 +2,7 @@ use crate::dto::core::common::CoreSortItem;
 use crate::{
     to_query, to_query_vec_i64, AdvancedFilter, Identity, Partition, SetCursor, WithPartition,
 };
-use crate::{AsParams, Range};
+use crate::{IntoParams, Range};
 use serde::{Deserialize, Serialize};
 use serde_with::skip_serializing_none;
 use std::collections::HashMap;
@@ -96,8 +96,8 @@ pub struct TimeSeriesQuery {
     pub root_asset_ids: Option<Vec<i64>>,
 }
 
-impl AsParams for TimeSeriesQuery {
-    fn to_tuples(self) -> Vec<(String, String)> {
+impl IntoParams for TimeSeriesQuery {
+    fn into_params(self) -> Vec<(String, String)> {
         let mut params = Vec::<(String, String)>::new();
         to_query("limit", &self.limit, &mut params);
         to_query("includeMetadata", &self.include_metadata, &mut params);

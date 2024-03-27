@@ -5,7 +5,7 @@ use serde_with::skip_serializing_none;
 
 use crate::{
     models::{TaggedContainerReference, UsedFor},
-    to_query, AsParams, RawValue, SetCursor,
+    to_query, IntoParams, RawValue, SetCursor,
 };
 
 use super::common::{CDFExternalIdReference, PrimitiveProperty, TextProperty};
@@ -202,8 +202,8 @@ pub struct ContainerQuery {
     pub include_global: Option<bool>,
 }
 
-impl AsParams for ContainerQuery {
-    fn to_tuples(self) -> Vec<(String, String)> {
+impl IntoParams for ContainerQuery {
+    fn into_params(self) -> Vec<(String, String)> {
         let mut params = Vec::new();
         to_query("limit", &self.limit, &mut params);
         to_query("cursor", &self.cursor, &mut params);

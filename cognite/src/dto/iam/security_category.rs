@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use crate::{models::SortDirection, to_query, AsParams, SetCursor};
+use crate::{models::SortDirection, to_query, IntoParams, SetCursor};
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
@@ -31,8 +31,8 @@ pub struct SecurityCategoryQuery {
     pub limit: Option<i32>,
 }
 
-impl AsParams for SecurityCategoryQuery {
-    fn to_tuples(self) -> Vec<(String, String)> {
+impl IntoParams for SecurityCategoryQuery {
+    fn into_params(self) -> Vec<(String, String)> {
         let mut params = Vec::<(String, String)>::new();
         to_query(
             "sort",

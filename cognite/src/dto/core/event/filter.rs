@@ -1,6 +1,6 @@
 use crate::{
     dto::core::common::CoreSortItem, to_query, to_query_vec, to_query_vec_i64, AdvancedFilter,
-    AsParams, Identity, Partition, Range, SetCursor, WithPartition,
+    Identity, IntoParams, Partition, Range, SetCursor, WithPartition,
 };
 use serde::{Deserialize, Serialize};
 use serde_with::skip_serializing_none;
@@ -71,8 +71,8 @@ pub struct EventQuery {
     pub sort: Option<Vec<String>>,
 }
 
-impl AsParams for EventQuery {
-    fn to_tuples(self) -> Vec<(String, String)> {
+impl IntoParams for EventQuery {
+    fn into_params(self) -> Vec<(String, String)> {
         let mut params = Vec::<(String, String)>::new();
         to_query("limit", &self.limit, &mut params);
         to_query("cursor", &self.cursor, &mut params);

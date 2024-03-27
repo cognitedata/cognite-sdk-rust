@@ -9,8 +9,8 @@ use serde::{de::DeserializeOwned, Serialize};
 
 use crate::dto::items::*;
 use crate::{
-    ApiClient, AsParams, EqIdentity, Filter, Identity, IntoPatch, Partition, Patch, Result, Search,
-    SetCursor, WithPartition,
+    ApiClient, EqIdentity, Filter, Identity, IntoParams, IntoPatch, Partition, Patch, Result,
+    Search, SetCursor, WithPartition,
 };
 
 use super::utils::{get_duplicates_from_result, get_missing_from_result};
@@ -58,7 +58,7 @@ pub trait WithBasePath {
 /// Trait for simple GET / endpoints.
 pub trait List<TParams, TResponse>
 where
-    TParams: AsParams + Send + Sync + 'static,
+    TParams: IntoParams + Send + Sync + 'static,
     TResponse: Serialize + DeserializeOwned + Send + Sync,
     Self: WithApiClient + WithBasePath + Sync,
 {

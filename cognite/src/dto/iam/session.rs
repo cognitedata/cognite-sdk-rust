@@ -3,7 +3,7 @@ use std::fmt::Display;
 use serde::{Deserialize, Serialize};
 use serde_with::skip_serializing_none;
 
-use crate::{to_query, AsParams, SetCursor};
+use crate::{to_query, IntoParams, SetCursor};
 
 #[derive(Serialize, Deserialize, Clone, Copy, Debug)]
 #[serde(rename_all = "snake_case")]
@@ -50,8 +50,8 @@ impl SetCursor for SessionQuery {
     }
 }
 
-impl AsParams for SessionQuery {
-    fn to_tuples(self) -> Vec<(String, String)> {
+impl IntoParams for SessionQuery {
+    fn into_params(self) -> Vec<(String, String)> {
         let mut params = vec![];
         to_query("status", &self.status, &mut params);
         to_query("cursor", &self.cursor, &mut params);

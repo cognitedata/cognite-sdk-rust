@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 use serde_with::skip_serializing_none;
 
-use crate::{to_query, AsParams, SetCursor};
+use crate::{to_query, IntoParams, SetCursor};
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
@@ -68,8 +68,8 @@ pub struct RetrieveCursorsQuery {
     pub number_of_cursors: Option<i32>,
 }
 
-impl AsParams for RetrieveCursorsQuery {
-    fn to_tuples(self) -> Vec<(String, String)> {
+impl IntoParams for RetrieveCursorsQuery {
+    fn into_params(self) -> Vec<(String, String)> {
         let mut params = Vec::<(String, String)>::new();
         to_query(
             "minLastUpdatedTime",
@@ -102,8 +102,8 @@ pub struct RetrieveRowsQuery {
     pub max_last_updated_time: Option<i64>,
 }
 
-impl AsParams for RetrieveRowsQuery {
-    fn to_tuples(self) -> Vec<(String, String)> {
+impl IntoParams for RetrieveRowsQuery {
+    fn into_params(self) -> Vec<(String, String)> {
         let mut params = Vec::<(String, String)>::new();
         to_query("limit", &self.limit, &mut params);
         if let Some(columns) = self.columns {
@@ -151,8 +151,8 @@ impl EnsureParentQuery {
     }
 }
 
-impl AsParams for EnsureParentQuery {
-    fn to_tuples(self) -> Vec<(String, String)> {
+impl IntoParams for EnsureParentQuery {
+    fn into_params(self) -> Vec<(String, String)> {
         let mut params = Vec::<(String, String)>::new();
         to_query("ensureParent", &self.ensure_parent, &mut params);
         params
