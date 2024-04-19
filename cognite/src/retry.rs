@@ -67,8 +67,9 @@ impl CustomRetryMiddleware {
                     if retry_delay > self.max_delay_ms {
                         retry_delay = self.max_delay_ms;
                     }
-                    // Jitter so we land between initial * 2 ** attempt / 2 and initial * 2 ** attempt
-                    retry_delay = retry_delay / 2 + thread_rng().gen_range(0..=(retry_delay / 2));
+                    // Jitter so we land between initial * 2 ** attempt * 3/4 and initial * 2 ** attempt * 5/4
+                    retry_delay =
+                        retry_delay / 4 * 3 + thread_rng().gen_range(0..=(retry_delay / 2));
                     futures_timer::Delay::new(Duration::from_millis(retry_delay)).await;
                     n_past_retries += 1;
                     continue;
