@@ -2,6 +2,7 @@
 // https://github.com/TrueLayer/reqwest-middleware
 
 use async_trait::async_trait;
+use rand::{thread_rng, Rng};
 use reqwest::{Request, Response, StatusCode};
 use reqwest_middleware::{Middleware, Next, Result};
 use std::time::Duration;
@@ -11,6 +12,7 @@ use task_local_extensions::Extensions;
 pub struct CustomRetryMiddleware {
     max_retries: u32,
     max_delay_ms: u64,
+    initial_delay_ms: u64,
 }
 
 #[async_trait]
@@ -27,10 +29,11 @@ impl Middleware for CustomRetryMiddleware {
 
 impl CustomRetryMiddleware {
     /// Create a new retry middleware instance.
-    pub fn new(max_retries: u32, max_delay_ms: u64) -> Self {
+    pub fn new(max_retries: u32, max_delay_ms: u64, initial_delay_ms: u64) -> Self {
         Self {
             max_retries: max_retries.min(10),
             max_delay_ms,
+            initial_delay_ms,
         }
     }
 
@@ -60,10 +63,12 @@ impl CustomRetryMiddleware {
                     last_req_401 = retryable == Retryable::Unauthorized;
                     // If the response failed and the error type was transient
                     // we can safely try to retry the request.
-                    let mut retry_delay = 125u64 * 2u64.pow(n_past_retries);
+                    let mut retry_delay = self.initial_delay_ms * 2u64.pow(n_past_retries);
                     if retry_delay > self.max_delay_ms {
                         retry_delay = self.max_delay_ms;
                     }
+                    // Jitter so we land between initial * 2 ** attempt / 2 and initial * 2 ** attempt
+                    retry_delay = retry_delay / 2 + thread_rng().gen_range(0..=(retry_delay / 2));
                     futures_timer::Delay::new(Duration::from_millis(retry_delay)).await;
                     n_past_retries += 1;
                     continue;
