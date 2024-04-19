@@ -59,7 +59,7 @@ pub struct ClientConfig {
     pub max_retries: u32,
     /// Maximum delay between retries.
     pub max_retry_delay_ms: Option<u64>,
-    /// Timeout in milliseconds before no more retries will be started.
+    /// Request timeout in milliseconds.
     pub timeout_ms: Option<u64>,
     /// Initial delay for exponential backoff, defaults to 125 milliseconds.
     pub initial_delay_ms: Option<u64>,
