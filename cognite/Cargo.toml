@@ -10,29 +10,29 @@ publish = false
 version = "0.3.0"
 
 [dependencies]
-async-trait = "0.1.80"
-bytes = "1.6.0"
-derivative = "2.2.0"
-futures = "0.3.30"
-futures-locks = "0.7.1"
-futures-timer = "3.0.3"
-prost = "0.12.4"
-prost-types = "0.12.4"
-reqwest = { version = "0.11.24", features = [
+async-trait = "^0.1"
+bytes = "^1"
+derivative = "^2"
+futures = "^0.3"
+futures-locks = "^0.7"
+futures-timer = "^3"
+prost = "^0.12"
+prost-types = "^0.12"
+reqwest = { version = "^0.11", features = [
     "gzip",
     "json",
     "multipart",
     "rustls-tls-native-roots",
     "stream",
 ], default-features = false } # Default brings in openssl
-reqwest-middleware = "0.2.5"
-serde = { version = "1.0.198", features = ["derive"] }
-serde_with = "3.7.0"
-serde_json = "1.0.105"
-task-local-extensions = "0.1.4"
-thiserror = "1.0.59"
-anyhow = "1.0.82"
-rand = "0.8.5"
+reqwest-middleware = "^0.2"
+serde = { version = "^1", features = ["derive"] }
+serde_with = "^3"
+serde_json = "^1"
+task-local-extensions = "^0.1"
+thiserror = "^1"
+anyhow = "^1"
+rand = "^0.8"
 
 [target.'cfg(not(target_arch = "wasm32"))'.dev-dependencies]
 tokio = { version = "1.37.0", features = ["macros", "rt-multi-thread"] }
@@ -45,4 +45,4 @@ rand = "0.8.5"
 wiremock = "0.6.0"
 
 [build-dependencies]
-prost-build = "0.12.4"
+prost-build = "^0.12"
