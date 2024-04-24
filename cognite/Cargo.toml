@@ -31,7 +31,7 @@ serde_with = "^3"
 serde_json = "^1"
 task-local-extensions = "^0.1"
 thiserror = "^1"
-anyhow = "^1"
+anyhow = "^1.0.82"
 rand = "^0.8"
 
 [target.'cfg(not(target_arch = "wasm32"))'.dev-dependencies]
