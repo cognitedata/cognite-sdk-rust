@@ -3,8 +3,7 @@ use crate::{
         ContainerComponentId, ContainerCreate, ContainerDefinition, ContainerQuery,
     },
     models::ItemId,
-    Create, DeleteWithResponse, Items, ItemsWithoutCursor, List, Resource, Result, Retrieve,
-    WithBasePath,
+    Create, DeleteWithResponse, Items, ItemsVec, List, Resource, Result, Retrieve, WithBasePath,
 };
 
 /// A container represents a bag of properties, each property has a type.
@@ -30,11 +29,11 @@ impl ContainersResource {
         &self,
         items: &[ContainerComponentId],
     ) -> Result<Vec<ContainerComponentId>> {
-        let r: ItemsWithoutCursor<ContainerComponentId> = self
+        let r: ItemsVec<ContainerComponentId> = self
             .api_client
             .post(
                 &format!("{}/constraints/delete", Self::BASE_PATH),
-                &Items::from(items),
+                &Items::new(items),
             )
             .await?;
         Ok(r.items)
@@ -49,11 +48,11 @@ impl ContainersResource {
         &self,
         items: &[ContainerComponentId],
     ) -> Result<Vec<ContainerComponentId>> {
-        let r: ItemsWithoutCursor<ContainerComponentId> = self
+        let r: ItemsVec<ContainerComponentId> = self
             .api_client
             .post(
                 &format!("{}/indexes/delete", Self::BASE_PATH),
-                &Items::from(items),
+                &Items::new(items),
             )
             .await?;
         Ok(r.items)
