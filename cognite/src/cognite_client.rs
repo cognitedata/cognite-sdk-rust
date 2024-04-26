@@ -59,8 +59,10 @@ pub struct ClientConfig {
     pub max_retries: u32,
     /// Maximum delay between retries.
     pub max_retry_delay_ms: Option<u64>,
-    /// Timeout in milliseconds before no more retries will be started.
+    /// Request timeout in milliseconds.
     pub timeout_ms: Option<u64>,
+    /// Initial delay for exponential backoff, defaults to 125 milliseconds.
+    pub initial_delay_ms: Option<u64>,
 }
 
 /// Client object for the CDF API.
@@ -187,6 +189,7 @@ impl CogniteClient {
             builder = builder.with(CustomRetryMiddleware::new(
                 config.max_retries,
                 config.max_retry_delay_ms.unwrap_or(5 * 60 * 1000),
+                config.initial_delay_ms.unwrap_or(125),
             ));
         }
         builder = builder.with(AuthenticatorMiddleware::new(authenticator)?);
