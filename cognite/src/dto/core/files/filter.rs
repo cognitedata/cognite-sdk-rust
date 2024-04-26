@@ -1,4 +1,4 @@
-use crate::{AsParams, Identity, LabelsFilter, Range};
+use crate::{Identity, IntoParams, LabelsFilter, Range};
 use serde::{Deserialize, Serialize};
 use serde_with::skip_serializing_none;
 
@@ -73,8 +73,8 @@ pub struct FileUploadQuery {
     pub overwrite: bool,
 }
 
-impl AsParams for FileUploadQuery {
-    fn to_tuples(self) -> Vec<(String, String)> {
+impl IntoParams for FileUploadQuery {
+    fn into_params(self) -> Vec<(String, String)> {
         if self.overwrite {
             vec![("overwrite".to_string(), "true".to_string())]
         } else {

@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use serde::{Deserialize, Serialize};
 use serde_with::skip_serializing_none;
 
-use crate::{to_query, AsParams};
+use crate::{to_query, IntoParams};
 
 #[skip_serializing_none]
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -63,8 +63,8 @@ pub struct GroupQuery {
     pub all: Option<bool>,
 }
 
-impl AsParams for GroupQuery {
-    fn to_tuples(self) -> Vec<(String, String)> {
+impl IntoParams for GroupQuery {
+    fn into_params(self) -> Vec<(String, String)> {
         let mut params = Vec::<(String, String)>::new();
         to_query("all", &self.all, &mut params);
         params

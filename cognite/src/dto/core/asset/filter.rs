@@ -1,5 +1,5 @@
 use crate::{
-    dto::core::common::CoreSortItem, to_query, AdvancedFilter, AsParams, Identity, LabelsFilter,
+    dto::core::common::CoreSortItem, to_query, AdvancedFilter, Identity, IntoParams, LabelsFilter,
     Partition, Range, SetCursor, WithPartition,
 };
 use serde::{Deserialize, Serialize};
@@ -141,8 +141,8 @@ pub struct AssetQuery {
     pub partition: Option<Partition>,
 }
 
-impl AsParams for AssetQuery {
-    fn to_tuples(self) -> Vec<(String, String)> {
+impl IntoParams for AssetQuery {
+    fn into_params(self) -> Vec<(String, String)> {
         let mut params = Vec::<(String, String)>::new();
         to_query("limit", &self.limit, &mut params);
         to_query("cursor", &self.cursor, &mut params);

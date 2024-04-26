@@ -9,7 +9,7 @@ use crate::{
         CDFExternalIdReference, PrimitiveProperty, SourceReference, TaggedContainerReference,
         TaggedViewReference, TextProperty, UsedFor,
     },
-    to_query, AdvancedFilter, AsParams, RawValue, SetCursor,
+    to_query, AdvancedFilter, IntoParams, RawValue, SetCursor,
 };
 
 use super::{
@@ -46,8 +46,8 @@ pub struct ViewQuery {
     pub include_global: Option<bool>,
 }
 
-impl AsParams for ViewQuery {
-    fn to_tuples(self) -> Vec<(String, String)> {
+impl IntoParams for ViewQuery {
+    fn into_params(self) -> Vec<(String, String)> {
         let mut params = Vec::<(String, String)>::new();
         to_query("limit", &self.limit, &mut params);
         to_query("cursor", &self.cursor, &mut params);
