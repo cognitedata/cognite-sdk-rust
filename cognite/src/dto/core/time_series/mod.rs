@@ -6,6 +6,7 @@ pub use self::synthetic::*;
 
 use crate::IntoPatch;
 use crate::IntoPatchItem;
+use crate::UpsertOptions;
 use crate::{EqIdentity, Identity, Patch, UpdateList, UpdateMap, UpdateSet, UpdateSetNull};
 
 use serde::{Deserialize, Serialize};
@@ -136,44 +137,44 @@ pub struct PatchTimeSeries {
 }
 
 impl IntoPatch<Patch<PatchTimeSeries>> for TimeSeries {
-    fn patch(self, ignore_nulls: bool) -> Patch<PatchTimeSeries> {
+    fn patch(self, options: &UpsertOptions) -> Patch<PatchTimeSeries> {
         Patch::<PatchTimeSeries> {
             id: to_idt!(self),
             update: PatchTimeSeries {
-                name: self.name.patch(ignore_nulls),
-                external_id: self.external_id.patch(ignore_nulls),
-                metadata: self.metadata.patch(ignore_nulls),
-                unit: self.unit.patch(ignore_nulls),
-                unit_external_id: self.unit_external_id.patch(ignore_nulls),
-                asset_id: self.asset_id.patch(ignore_nulls),
-                description: self.description.patch(ignore_nulls),
-                security_categories: self.security_categories.patch(ignore_nulls),
-                data_set_id: self.data_set_id.patch(ignore_nulls),
-                is_step: self.is_step.patch(ignore_nulls),
+                name: self.name.patch(options),
+                external_id: self.external_id.patch(options),
+                metadata: self.metadata.patch(options),
+                unit: self.unit.patch(options),
+                unit_external_id: self.unit_external_id.patch(options),
+                asset_id: self.asset_id.patch(options),
+                description: self.description.patch(options),
+                security_categories: self.security_categories.patch(options),
+                data_set_id: self.data_set_id.patch(options),
+                is_step: self.is_step.patch(options),
             },
         }
     }
 }
 
 impl IntoPatch<PatchTimeSeries> for AddTimeSeries {
-    fn patch(self, ignore_nulls: bool) -> PatchTimeSeries {
+    fn patch(self, options: &UpsertOptions) -> PatchTimeSeries {
         PatchTimeSeries {
-            name: self.name.patch(ignore_nulls),
-            external_id: self.external_id.patch(ignore_nulls),
-            metadata: self.metadata.patch(ignore_nulls),
-            unit: self.unit.patch(ignore_nulls),
-            unit_external_id: self.unit_external_id.patch(ignore_nulls),
-            asset_id: self.asset_id.patch(ignore_nulls),
-            description: self.description.patch(ignore_nulls),
-            security_categories: self.security_categories.patch(ignore_nulls),
-            data_set_id: self.data_set_id.patch(ignore_nulls),
-            is_step: self.is_step.patch(ignore_nulls),
+            name: self.name.patch(options),
+            external_id: self.external_id.patch(options),
+            metadata: self.metadata.patch(options),
+            unit: self.unit.patch(options),
+            unit_external_id: self.unit_external_id.patch(options),
+            asset_id: self.asset_id.patch(options),
+            description: self.description.patch(options),
+            security_categories: self.security_categories.patch(options),
+            data_set_id: self.data_set_id.patch(options),
+            is_step: self.is_step.patch(options),
         }
     }
 }
 
 impl From<TimeSeries> for Patch<PatchTimeSeries> {
     fn from(time_serie: TimeSeries) -> Patch<PatchTimeSeries> {
-        IntoPatch::<Patch<PatchTimeSeries>>::patch(time_serie, false)
+        IntoPatch::<Patch<PatchTimeSeries>>::patch(time_serie, &Default::default())
     }
 }

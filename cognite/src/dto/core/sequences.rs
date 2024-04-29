@@ -1,6 +1,6 @@
 use crate::{
     AdvancedFilter, EqIdentity, Identity, IntoPatch, IntoPatchItem, Partition, Patch, Range,
-    SetCursor, UpdateList, UpdateMap, UpdateSet, UpdateSetNull, WithPartition,
+    SetCursor, UpdateList, UpdateMap, UpdateSet, UpdateSetNull, UpsertOptions, WithPartition,
 };
 
 use serde::{Deserialize, Serialize};
@@ -196,16 +196,16 @@ pub struct PatchSequence {
 }
 
 impl IntoPatch<Patch<PatchSequence>> for Sequence {
-    fn patch(self, ignore_nulls: bool) -> Patch<PatchSequence> {
+    fn patch(self, options: &UpsertOptions) -> Patch<PatchSequence> {
         Patch::<PatchSequence> {
             id: to_idt!(self),
             update: PatchSequence {
-                name: self.name.patch(ignore_nulls),
-                description: self.description.patch(ignore_nulls),
-                asset_id: self.asset_id.patch(ignore_nulls),
-                external_id: self.external_id.patch(ignore_nulls),
-                metadata: self.metadata.patch(ignore_nulls),
-                data_set_id: self.data_set_id.patch(ignore_nulls),
+                name: self.name.patch(options),
+                description: self.description.patch(options),
+                asset_id: self.asset_id.patch(options),
+                external_id: self.external_id.patch(options),
+                metadata: self.metadata.patch(options),
+                data_set_id: self.data_set_id.patch(options),
                 columns: None,
             },
         }
@@ -213,14 +213,14 @@ impl IntoPatch<Patch<PatchSequence>> for Sequence {
 }
 
 impl IntoPatch<PatchSequence> for AddSequence {
-    fn patch(self, ignore_nulls: bool) -> PatchSequence {
+    fn patch(self, options: &UpsertOptions) -> PatchSequence {
         PatchSequence {
-            name: self.name.patch(ignore_nulls),
-            description: self.description.patch(ignore_nulls),
-            asset_id: self.asset_id.patch(ignore_nulls),
-            external_id: self.external_id.patch(ignore_nulls),
-            metadata: self.metadata.patch(ignore_nulls),
-            data_set_id: self.data_set_id.patch(ignore_nulls),
+            name: self.name.patch(options),
+            description: self.description.patch(options),
+            asset_id: self.asset_id.patch(options),
+            external_id: self.external_id.patch(options),
+            metadata: self.metadata.patch(options),
+            data_set_id: self.data_set_id.patch(options),
             columns: None,
         }
     }
@@ -228,7 +228,7 @@ impl IntoPatch<PatchSequence> for AddSequence {
 
 impl From<Sequence> for Patch<PatchSequence> {
     fn from(sequence: Sequence) -> Self {
-        IntoPatch::<Patch<PatchSequence>>::patch(sequence, false)
+        IntoPatch::<Patch<PatchSequence>>::patch(sequence, &Default::default())
     }
 }
 

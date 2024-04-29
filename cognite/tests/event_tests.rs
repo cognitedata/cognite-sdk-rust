@@ -56,7 +56,10 @@ async fn upsert_events() {
 
     let events = client
         .events
-        .upsert(&[new_event.clone()], true)
+        .upsert(
+            &[new_event.clone()],
+            &UpsertOptions::default().ignore_nulls(true),
+        )
         .await
         .unwrap();
     assert_eq!(1, events.len());
@@ -65,7 +68,10 @@ async fn upsert_events() {
 
     let events = client
         .events
-        .upsert(&[new_event.clone()], true)
+        .upsert(
+            &[new_event.clone()],
+            &UpsertOptions::default().ignore_nulls(true),
+        )
         .await
         .unwrap();
 

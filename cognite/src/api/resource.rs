@@ -10,7 +10,7 @@ use serde::{de::DeserializeOwned, Serialize};
 use crate::dto::items::*;
 use crate::{
     ApiClient, EqIdentity, Filter, Identity, IntoParams, IntoPatch, Partition, Patch, Result,
-    Search, SetCursor, WithPartition,
+    Search, SetCursor, UpsertOptions, WithPartition,
 };
 
 use super::utils::{get_duplicates_from_result, get_missing_from_result};
@@ -273,13 +273,11 @@ where
     /// # Arguments
     ///
     /// * `upserts` - Resources to insert or update.
-    /// * `ignore_nulls` - Behavior for values that are `None`. If this is `true`,
-    /// `None` values will simply be ignored. Otherwise, fields with `None` values
-    /// will be set to null in CDF.
+    /// * `options` - Configuration for upserts, which fields are kept and which are overwritten.
     fn upsert(
         &'a self,
         upserts: &'a [TCreate],
-        ignore_nulls: bool,
+        options: &UpsertOptions,
     ) -> impl Future<Output = Result<Vec<TResponse>>> + Send {
         async move {
             let items = Items::new(upserts);
@@ -296,7 +294,7 @@ where
                     if let Some(idt) = idt {
                         to_update.push(Patch::<TUpdate> {
                             id: idt.clone(),
-                            update: it.clone().patch(ignore_nulls),
+                            update: it.clone().patch(options),
                         });
                     } else {
                         to_create.push(it);
