@@ -66,6 +66,7 @@ pub struct StatusCode {
 }
 
 impl StatusCode {
+    /// Create a new status code from a given symbol.
     pub fn new(symbol: impl Into<String>) -> Self {
         Self {
             symbol: Some(symbol.into()),
@@ -73,6 +74,7 @@ impl StatusCode {
         }
     }
 
+    /// Create a new status code from a numeric code.
     pub fn new_code(code: i64) -> Self {
         Self {
             code: Some(code),
@@ -98,11 +100,11 @@ impl From<Status> for StatusCode {
     }
 }
 
-impl Into<Status> for StatusCode {
-    fn into(self) -> Status {
+impl From<StatusCode> for Status {
+    fn from(code: StatusCode) -> Status {
         Status {
-            code: self.code.unwrap_or_default(),
-            symbol: self.symbol.unwrap_or_default(),
+            code: code.code.unwrap_or_default(),
+            symbol: code.symbol.unwrap_or_default(),
         }
     }
 }
