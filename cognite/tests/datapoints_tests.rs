@@ -52,7 +52,8 @@ async fn create_retrieve_delete_double_datapoints() {
                 (0..100)
                     .map(|i| DatapointDouble {
                         timestamp: start + i * 1000,
-                        value: i as f64,
+                        value: Some(i as f64),
+                        status: None,
                     })
                     .collect(),
             ),
@@ -135,7 +136,8 @@ async fn create_retrieve_delete_string_datapoints() {
                 (0..100)
                     .map(|i| DatapointString {
                         timestamp: start + i * 1000,
-                        value: format!("{i}-dp"),
+                        value: Some(format!("{i}-dp")),
+                        status: None,
                     })
                     .collect(),
             ),
@@ -218,7 +220,8 @@ async fn retrieve_latest() {
                 (0..100)
                     .map(|i| DatapointDouble {
                         timestamp: start + i * 1000,
-                        value: i as f64,
+                        value: Some(i as f64),
+                        status: None,
                     })
                     .collect(),
             ),
@@ -230,8 +233,9 @@ async fn retrieve_latest() {
         .time_series
         .retrieve_latest_datapoints(
             &[LatestDatapointsQuery {
-                before: format!("{}", start + 200_000),
+                before: Some(format!("{}", start + 200_000)),
                 id: Identity::Id { id: ts.id },
+                ..Default::default()
             }],
             false,
         )
@@ -242,7 +246,103 @@ async fn retrieve_latest() {
     let latest = latest.into_iter().next().unwrap();
     assert_eq!(
         99.0,
-        latest.datapoints.numeric().unwrap().first().unwrap().value
+        latest
+            .datapoints
+            .numeric()
+            .unwrap()
+            .first()
+            .unwrap()
+            .value
+            .unwrap()
+    );
+
+    delete_test_ts(&client, ts.id).await;
+}
+
+#[tokio::test]
+async fn create_retrieve_double_datapoints_with_status() {
+    use std::time::{SystemTime, UNIX_EPOCH};
+
+    let start = SystemTime::now();
+    let since_the_epoch = start.duration_since(UNIX_EPOCH).unwrap();
+    let start = since_the_epoch.as_millis() as i64;
+
+    let client = get_client();
+
+    let ts = create_test_ts(&client, false, 4).await;
+
+    client
+        .time_series
+        .insert_datapoints(vec![AddDatapoints {
+            id: Identity::Id { id: ts.id },
+            datapoints: DatapointsEnumType::NumericDatapoints(vec![
+                DatapointDouble {
+                    timestamp: start + 1000,
+                    value: Some(123.0),
+                    status: Some(StatusCode::new("GoodClamped")),
+                },
+                DatapointDouble {
+                    timestamp: start + 2000,
+                    value: None,
+                    status: Some(StatusCode::new("Bad")),
+                },
+                DatapointDouble {
+                    timestamp: start + 3000,
+                    value: Some(f64::NAN),
+                    status: Some(StatusCode::new("Bad")),
+                },
+                DatapointDouble {
+                    timestamp: start + 4000,
+                    value: Some(f64::INFINITY),
+                    status: Some(StatusCode::new("Bad")),
+                },
+            ]),
+        }])
+        .await
+        .unwrap();
+
+    let dps = client
+        .time_series
+        .retrieve_datapoints(DatapointsFilter {
+            items: vec![DatapointsQuery {
+                id: Identity::from(ts.id),
+                include_status: Some(true),
+                ignore_bad_data_points: Some(false),
+                ..Default::default()
+            }],
+            start: Some(start.into()),
+            end: Some((start + 5000).into()),
+            ..Default::default()
+        })
+        .await
+        .unwrap();
+
+    let dpl = dps.into_iter().next().unwrap();
+    let dpl = match dpl.datapoints {
+        DatapointsEnumType::NumericDatapoints(d) => d,
+        _ => unreachable!(),
+    };
+
+    assert_eq!(4, dpl.len());
+
+    assert_eq!(
+        "GoodClamped",
+        dpl[0].status.as_ref().unwrap().symbol.as_ref().unwrap()
+    );
+    assert!(dpl[1].value.is_none());
+    assert_eq!(
+        "Bad",
+        dpl[1].status.as_ref().unwrap().symbol.as_ref().unwrap()
+    );
+    assert!(dpl[2].value.unwrap().is_nan());
+    assert_eq!(
+        "Bad",
+        dpl[2].status.as_ref().unwrap().symbol.as_ref().unwrap()
+    );
+    assert!(dpl[3].value.unwrap().is_infinite());
+    assert_eq!(
+        "Bad",
+        dpl[3].status.as_ref().unwrap().symbol.as_ref().unwrap()
     );
 
     delete_test_ts(&client, ts.id).await;
