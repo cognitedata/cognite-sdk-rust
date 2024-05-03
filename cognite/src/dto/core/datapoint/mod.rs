@@ -31,6 +31,24 @@ pub enum DatapointsEnumType {
     AggregateDatapoints(Vec<DatapointAggregate>),
 }
 
+impl From<Vec<DatapointDouble>> for DatapointsEnumType {
+    fn from(value: Vec<DatapointDouble>) -> Self {
+        Self::NumericDatapoints(value)
+    }
+}
+
+impl From<Vec<DatapointString>> for DatapointsEnumType {
+    fn from(value: Vec<DatapointString>) -> Self {
+        Self::StringDatapoints(value)
+    }
+}
+
+impl From<Vec<DatapointAggregate>> for DatapointsEnumType {
+    fn from(value: Vec<DatapointAggregate>) -> Self {
+        Self::AggregateDatapoints(value)
+    }
+}
+
 impl DatapointsEnumType {
     /// Get self as numeric datapoints, or none if a different type.
     pub fn numeric(self) -> Option<Vec<DatapointDouble>> {
