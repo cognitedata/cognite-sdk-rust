@@ -132,7 +132,10 @@ async fn upsert_assets() {
 
     let res = client
         .assets
-        .upsert(&[new_asset.clone().into()], true)
+        .upsert(
+            &[new_asset.clone().into()],
+            &UpsertOptions::default().ignore_nulls(true),
+        )
         .await
         .unwrap();
     assert_eq!(res[0].description.as_ref().unwrap(), "desc");
@@ -141,7 +144,10 @@ async fn upsert_assets() {
 
     let res = client
         .assets
-        .upsert(&[new_asset.into()], true)
+        .upsert(
+            &[new_asset.into()],
+            &UpsertOptions::default().ignore_nulls(true),
+        )
         .await
         .unwrap();
     assert_eq!(res[0].description.as_ref().unwrap(), "desc 2");

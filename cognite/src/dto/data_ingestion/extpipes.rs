@@ -3,7 +3,10 @@ use std::collections::HashMap;
 use serde::{Deserialize, Serialize};
 use serde_with::skip_serializing_none;
 
-use crate::{Identity, IntoPatch, IntoPatchItem, Patch, Range, UpdateList, UpdateMap, UpdateSet};
+use crate::{
+    Identity, IntoPatch, IntoPatchItem, Patch, Range, UpdateList, UpdateMap, UpdateSet,
+    UpsertOptions,
+};
 
 #[derive(Serialize, Deserialize, Clone, Default, Debug)]
 #[serde(rename_all = "camelCase")]
@@ -149,47 +152,47 @@ pub struct PatchExtPipe {
 }
 
 impl IntoPatch<Patch<PatchExtPipe>> for ExtPipe {
-    fn patch(self, ignore_nulls: bool) -> Patch<PatchExtPipe> {
+    fn patch(self, options: &UpsertOptions) -> Patch<PatchExtPipe> {
         Patch::<PatchExtPipe> {
             id: Identity::ExternalId {
                 external_id: self.external_id,
             },
             update: PatchExtPipe {
                 external_id: None,
-                name: self.name.patch(ignore_nulls),
-                description: self.description.patch(ignore_nulls),
-                data_set_id: self.data_set_id.patch(ignore_nulls),
-                schedule: self.schedule.patch(ignore_nulls),
-                raw_tables: self.raw_tables.patch(ignore_nulls),
-                contacts: self.contacts.patch(ignore_nulls),
-                metadata: self.metadata.patch(ignore_nulls),
-                source: self.source.patch(ignore_nulls),
-                documentation: self.documentation.patch(ignore_nulls),
+                name: self.name.patch(options),
+                description: self.description.patch(options),
+                data_set_id: self.data_set_id.patch(options),
+                schedule: self.schedule.patch(options),
+                raw_tables: self.raw_tables.patch(options),
+                contacts: self.contacts.patch(options),
+                metadata: self.metadata.patch(options),
+                source: self.source.patch(options),
+                documentation: self.documentation.patch(options),
             },
         }
     }
 }
 
 impl IntoPatch<PatchExtPipe> for AddExtPipe {
-    fn patch(self, ignore_nulls: bool) -> PatchExtPipe {
+    fn patch(self, options: &UpsertOptions) -> PatchExtPipe {
         PatchExtPipe {
-            external_id: self.external_id.patch(ignore_nulls),
-            name: self.name.patch(ignore_nulls),
-            description: self.description.patch(ignore_nulls),
-            data_set_id: self.data_set_id.patch(ignore_nulls),
-            schedule: self.schedule.patch(ignore_nulls),
-            raw_tables: self.raw_tables.patch(ignore_nulls),
-            contacts: self.contacts.patch(ignore_nulls),
-            metadata: self.metadata.patch(ignore_nulls),
-            source: self.source.patch(ignore_nulls),
-            documentation: self.documentation.patch(ignore_nulls),
+            external_id: self.external_id.patch(options),
+            name: self.name.patch(options),
+            description: self.description.patch(options),
+            data_set_id: self.data_set_id.patch(options),
+            schedule: self.schedule.patch(options),
+            raw_tables: self.raw_tables.patch(options),
+            contacts: self.contacts.patch(options),
+            metadata: self.metadata.patch(options),
+            source: self.source.patch(options),
+            documentation: self.documentation.patch(options),
         }
     }
 }
 
 impl From<ExtPipe> for Patch<PatchExtPipe> {
     fn from(sequence: ExtPipe) -> Self {
-        IntoPatch::<Patch<PatchExtPipe>>::patch(sequence, false)
+        IntoPatch::<Patch<PatchExtPipe>>::patch(sequence, &Default::default())
     }
 }
 
