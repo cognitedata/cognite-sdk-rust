@@ -25,7 +25,7 @@ reqwest = { version = "^0.11", features = [
     "rustls-tls-native-roots",
     "stream",
 ], default-features = false } # Default brings in openssl
-reqwest-middleware = "^0.2"
+reqwest-middleware = "^0.3"
 serde = { version = "^1", features = ["derive"] }
 serde_with = "^3"
 serde_json = "^1"
