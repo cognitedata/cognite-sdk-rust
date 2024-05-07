@@ -7,12 +7,16 @@ mod proto {
         "/com.cognite.v1.timeseries.proto.rs"
     ));
 }
+mod status_code;
+
+use std::convert::TryFrom;
 
 pub use self::filter::*;
 pub use self::proto::data_point_insertion_item::DatapointType as InsertDatapointType;
 pub use self::proto::data_point_insertion_item::IdOrExternalId;
 pub use self::proto::data_point_list_item::DatapointType as ListDatapointType;
 pub use self::proto::*;
+pub use self::status_code::*;
 
 use serde::{Deserialize, Serialize};
 
@@ -73,7 +77,7 @@ impl DatapointsEnumType {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone)]
+/* #[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 /// A data point status code.
 pub struct StatusCode {
@@ -99,21 +103,16 @@ impl StatusCode {
             symbol: None,
         }
     }
-}
+} */
 
 impl From<Status> for StatusCode {
     fn from(value: Status) -> Self {
-        Self {
-            code: if value.code == 0 {
-                None
-            } else {
-                Some(value.code)
-            },
-            symbol: if value.symbol.is_empty() {
-                None
-            } else {
-                Some(value.symbol)
-            },
+        if value.code != 0 {
+            return StatusCode::try_from(value.code).unwrap_or(StatusCode::Invalid);
+        } else if !value.symbol.is_empty() {
+            return StatusCode::try_parse(&value.symbol).unwrap_or(StatusCode::Invalid);
+        } else {
+            StatusCode::Good
         }
     }
 }
@@ -121,8 +120,8 @@ impl From<Status> for StatusCode {
 impl From<StatusCode> for Status {
     fn from(code: StatusCode) -> Status {
         Status {
-            code: code.code.unwrap_or_default(),
-            symbol: code.symbol.unwrap_or_default(),
+            code: code.bits() as i64,
+            symbol: String::new(),
         }
     }
 }
