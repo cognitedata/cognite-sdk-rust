@@ -122,7 +122,7 @@ impl StatusCode {
         self.0 = self.0 & !(1 << 10) | ((value as u32) & 1) << 10;
         // Clear the info bits if we are setting info type to not used.
         if matches!(value, StatusCodeInfoType::NotUsed) {
-            self.0 = self.0 & !INFO_BITS_MASK;
+            self.0 &= !INFO_BITS_MASK;
         }
         self
     }
@@ -406,6 +406,7 @@ macro_rules! value_enum_impl {
         #[allow(non_camel_case_types)]
         #[derive(Copy, Clone, PartialEq, Eq, Hash)]
         #[doc = $edoc]
+        #[repr(u32)]
         pub enum $type {
             $(#[doc = $comment] $code = $val),*
         }

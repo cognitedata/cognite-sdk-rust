@@ -108,9 +108,9 @@ impl StatusCode {
 impl From<Status> for StatusCode {
     fn from(value: Status) -> Self {
         if value.code != 0 {
-            return StatusCode::try_from(value.code).unwrap_or(StatusCode::Invalid);
+            StatusCode::try_from(value.code).unwrap_or(StatusCode::Invalid)
         } else if !value.symbol.is_empty() {
-            return StatusCode::try_parse(&value.symbol).unwrap_or(StatusCode::Invalid);
+            StatusCode::try_parse(&value.symbol).unwrap_or(StatusCode::Invalid)
         } else {
             StatusCode::Good
         }
