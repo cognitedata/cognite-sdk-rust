@@ -276,7 +276,7 @@ impl StatusCode {
             }
         }
 
-        if limit_args > 0 {
+        if limit_args > 1 {
             return Err(ParseStatusCodeError::TooManyLimits);
         }
 
@@ -990,10 +990,21 @@ mod tests {
                 .unwrap()
                 .to_string()
         );
+        assert_eq!(
+            "Good, Low, Calculated",
+            StatusCode::try_parse("Good, Low, Calculated")
+                .unwrap()
+                .to_string()
+        );
 
         assert!(matches!(
             StatusCode::try_parse("Bad_SomethingWrong").unwrap_err(),
             ParseStatusCodeError::UnknownSubStatusCode(_)
+        ));
+
+        assert!(matches!(
+            StatusCode::try_parse("Bad, Low, High").unwrap_err(),
+            ParseStatusCodeError::TooManyLimits
         ));
 
         assert!(matches!(
