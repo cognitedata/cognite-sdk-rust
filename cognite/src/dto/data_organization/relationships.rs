@@ -6,7 +6,7 @@ use crate::sequences::Sequence;
 use crate::time_series::TimeSeries;
 use crate::{
     CogniteExternalId, Identity, IntoPatch, IntoPatchItem, LabelsFilter, Partition, Patch, Range,
-    SetCursor, UpdateList, UpdateSet, UpdateSetNull, WithPartition,
+    SetCursor, UpdateList, UpdateSet, UpdateSetNull, UpsertOptions, WithPartition,
 };
 
 use crate::{assets::Asset, events::Event, files::FileMetadata};
@@ -158,45 +158,45 @@ pub struct PatchRelationship {
 }
 
 impl IntoPatch<Patch<PatchRelationship>> for Relationship {
-    fn patch(self, ignore_nulls: bool) -> Patch<PatchRelationship> {
+    fn patch(self, options: &UpsertOptions) -> Patch<PatchRelationship> {
         Patch::<PatchRelationship> {
             id: Identity::ExternalId {
                 external_id: self.external_id,
             },
             update: PatchRelationship {
-                source_type: self.source_type.patch(ignore_nulls),
-                source_external_id: self.source_external_id.patch(ignore_nulls),
-                target_type: self.target_type.patch(ignore_nulls),
-                target_external_id: self.target_external_id.patch(ignore_nulls),
-                confidence: self.confidence.patch(ignore_nulls),
-                start_time: self.start_time.patch(ignore_nulls),
-                end_time: self.end_time.patch(ignore_nulls),
-                data_set_id: self.data_set_id.patch(ignore_nulls),
-                labels: self.labels.patch(ignore_nulls),
+                source_type: self.source_type.patch(options),
+                source_external_id: self.source_external_id.patch(options),
+                target_type: self.target_type.patch(options),
+                target_external_id: self.target_external_id.patch(options),
+                confidence: self.confidence.patch(options),
+                start_time: self.start_time.patch(options),
+                end_time: self.end_time.patch(options),
+                data_set_id: self.data_set_id.patch(options),
+                labels: self.labels.patch(options),
             },
         }
     }
 }
 
 impl IntoPatch<PatchRelationship> for AddRelationship {
-    fn patch(self, ignore_nulls: bool) -> PatchRelationship {
+    fn patch(self, options: &UpsertOptions) -> PatchRelationship {
         PatchRelationship {
-            source_type: self.source_type.patch(ignore_nulls),
-            source_external_id: self.source_external_id.patch(ignore_nulls),
-            target_type: self.target_type.patch(ignore_nulls),
-            target_external_id: self.target_external_id.patch(ignore_nulls),
-            confidence: self.confidence.patch(ignore_nulls),
-            start_time: self.start_time.patch(ignore_nulls),
-            end_time: self.end_time.patch(ignore_nulls),
-            data_set_id: self.data_set_id.patch(ignore_nulls),
-            labels: self.labels.patch(ignore_nulls),
+            source_type: self.source_type.patch(options),
+            source_external_id: self.source_external_id.patch(options),
+            target_type: self.target_type.patch(options),
+            target_external_id: self.target_external_id.patch(options),
+            confidence: self.confidence.patch(options),
+            start_time: self.start_time.patch(options),
+            end_time: self.end_time.patch(options),
+            data_set_id: self.data_set_id.patch(options),
+            labels: self.labels.patch(options),
         }
     }
 }
 
 impl From<Relationship> for Patch<PatchRelationship> {
     fn from(rel: Relationship) -> Self {
-        IntoPatch::<Patch<PatchRelationship>>::patch(rel, false)
+        IntoPatch::<Patch<PatchRelationship>>::patch(rel, &Default::default())
     }
 }
 

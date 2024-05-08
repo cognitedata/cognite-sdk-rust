@@ -3,7 +3,9 @@ use std::collections::HashMap;
 use serde::{Deserialize, Serialize};
 use serde_with::skip_serializing_none;
 
-use crate::{Identity, IntoPatch, IntoPatchItem, Patch, Range, UpdateMap, UpdateSetNull};
+use crate::{
+    Identity, IntoPatch, IntoPatchItem, Patch, Range, UpdateMap, UpdateSetNull, UpsertOptions,
+};
 
 #[derive(Serialize, Deserialize, Debug, Default)]
 #[serde(rename_all = "camelCase")]
@@ -105,32 +107,32 @@ pub struct PatchDataSet {
 }
 
 impl IntoPatch<Patch<PatchDataSet>> for DataSet {
-    fn patch(self, ignore_nulls: bool) -> Patch<PatchDataSet> {
+    fn patch(self, options: &UpsertOptions) -> Patch<PatchDataSet> {
         Patch::<PatchDataSet> {
             id: to_idt!(self),
             update: PatchDataSet {
                 external_id: None,
-                name: self.name.patch(ignore_nulls),
-                description: self.description.patch(ignore_nulls),
-                metadata: self.metadata.patch(ignore_nulls),
+                name: self.name.patch(options),
+                description: self.description.patch(options),
+                metadata: self.metadata.patch(options),
             },
         }
     }
 }
 
 impl IntoPatch<PatchDataSet> for AddDataSet {
-    fn patch(self, ignore_nulls: bool) -> PatchDataSet {
+    fn patch(self, options: &UpsertOptions) -> PatchDataSet {
         PatchDataSet {
             external_id: None,
-            name: self.name.patch(ignore_nulls),
-            description: self.description.patch(ignore_nulls),
-            metadata: self.metadata.patch(ignore_nulls),
+            name: self.name.patch(options),
+            description: self.description.patch(options),
+            metadata: self.metadata.patch(options),
         }
     }
 }
 
 impl From<DataSet> for Patch<PatchDataSet> {
     fn from(data_set: DataSet) -> Patch<PatchDataSet> {
-        IntoPatch::<Patch<PatchDataSet>>::patch(data_set, false)
+        IntoPatch::<Patch<PatchDataSet>>::patch(data_set, &Default::default())
     }
 }
