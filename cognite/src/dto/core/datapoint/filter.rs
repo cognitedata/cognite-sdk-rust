@@ -28,6 +28,23 @@ pub enum Aggregate {
     ContinuousVariance,
     /// The variance of the discrete set of data points, no weighting for density of points in time.
     DiscreteVariance,
+    /// The number of data points in the aggregate period that have a Good status code.
+    /// Uncertain does not count, irrespective of treatUncertainAsBad parameter.
+    CountGood,
+    /// The number of data points in the aggregate period that have an Uncertain status code.
+    CountUncertain,
+    /// The number of data points in the aggregate period that have a Bad status code.
+    /// Uncertain does not count, irrespective of treatUncertainAsBad parameter.
+    CountBad,
+    /// The duration the aggregate is defined and marked as good (regardless of ignoreBadDataPoints parameter).
+    /// Measured in milliseconds. Equivalent to duration that the previous data point is good and in range.
+    DurationGood,
+    /// The duration the aggregate is defined and marked as uncertain (regardless of ignoreBadDataPoints parameter).
+    /// Measured in milliseconds. Equivalent to duration that the previous data point is uncertain and in range.
+    DurationUncertain,
+    /// The duration the aggregate is defined but marked as bad (regardless of ignoreBadDataPoints parameter).
+    /// Measured in milliseconds. Equivalent to duration that the previous data point is bad and in range.
+    DurationBad,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -100,7 +117,7 @@ pub struct DatapointsFilter {
 }
 
 #[skip_serializing_none]
-#[derive(Serialize, Deserialize, Debug, Clone)]
+#[derive(Serialize, Deserialize, Debug, Clone, Default)]
 #[serde(rename_all = "camelCase")]
 /// Query data points
 pub struct DatapointsQuery {
@@ -129,23 +146,38 @@ pub struct DatapointsQuery {
     /// Whether to include the last data points before the requsted time period and the first
     /// one after.
     pub include_outside_points: Option<bool>,
+    /// The unit externalId of the data points returned.
+    /// If the time series does not have a unitExternalId that can be converted to the targetUnit,
+    /// an error will be returned. Cannot be used with targetUnitSystem.
+    pub target_unit: Option<String>,
+    /// The unit system of the data points returned. Cannot be used with targetUnit.
+    pub target_unit_system: Option<String>,
+    /// Show the status code for each data point in the response.
+    /// Good (code = 0) status codes are always omitted. Only relevant for raw data points queries, not aggregates.
+    ///
+    /// Default `false`
+    pub include_status: Option<bool>,
+    /// Treat data points with a Bad status code as if they do not exist.
+    ///
+    /// If set to false, raw queries will include bad data points in the response,
+    /// and aggregates will in general omit the time period between a bad data point and the next good data point.
+    /// Also, the period between a bad data point and the previous good data point will be considered constant.
+    ///
+    /// Default `true`
+    pub ignore_bad_data_points: Option<bool>,
+    /// Treat data points with Uncertain status codes as Bad.
+    /// If false, treat data points with Uncertain status codes as Good.
+    /// Used for both raw queries and aggregates.
+    ///
+    /// Default `true`
+    pub treat_uncertain_as_bad: Option<bool>,
+    /// To retrieve next page, insert the nextCursor from a previous response.
+    /// Be sure to match with the corresponding time series. Not compatible with includeOutsidePoints.
+    pub cursor: Option<String>,
 }
 
-impl Default for DatapointsQuery {
-    fn default() -> Self {
-        Self {
-            id: Identity::Id { id: 0 },
-            start: Default::default(),
-            end: Default::default(),
-            limit: Default::default(),
-            aggregates: Default::default(),
-            granularity: Default::default(),
-            include_outside_points: Default::default(),
-        }
-    }
-}
-
-#[derive(Serialize, Deserialize, Debug, Clone)]
+#[skip_serializing_none]
+#[derive(Serialize, Deserialize, Debug, Clone, Default)]
 #[serde(rename_all = "camelCase")]
 /// Query for retrieving the latest datapoint in a time series.
 pub struct LatestDatapointsQuery {
@@ -153,7 +185,32 @@ pub struct LatestDatapointsQuery {
     /// The format is 'now' or `N[timeunit]-ago` where timeunit is `w,d,h,m,s`.
     /// Example: `2d-ago` gets data that is up to two days old.
     /// You can also specify time in milliseconds since epoch.
-    pub before: String,
+    pub before: Option<String>,
+    /// The unit externalId of the data points returned.
+    /// If the time series does not have a unitExternalId that can be converted to the targetUnit,
+    /// an error will be returned. Cannot be used with targetUnitSystem.
+    pub target_unit: Option<String>,
+    /// The unit system of the data points returned. Cannot be used with targetUnit.
+    pub target_unit_system: Option<String>,
+    /// Show the status code for each data point in the response.
+    /// Good (code = 0) status codes are always omitted. Only relevant for raw data points queries, not aggregates.
+    ///
+    /// Default `false`
+    pub include_status: Option<bool>,
+    /// Treat data points with a Bad status code as if they do not exist.
+    ///
+    /// If set to false, raw queries will include bad data points in the response,
+    /// and aggregates will in general omit the time period between a bad data point and the next good data point.
+    /// Also, the period between a bad data point and the previous good data point will be considered constant.
+    ///
+    /// Default `true`
+    pub ignore_bad_data_points: Option<bool>,
+    /// Treat data points with Uncertain status codes as Bad.
+    /// If false, treat data points with Uncertain status codes as Good.
+    /// Used for both raw queries and aggregates.
+    ///
+    /// Default `true`
+    pub treat_uncertain_as_bad: Option<bool>,
     #[serde(flatten)]
     /// ID or external ID of time series to retrieve data from.
     pub id: Identity,
@@ -169,7 +226,12 @@ impl LatestDatapointsQuery {
     pub fn new(id: Identity, before: impl Into<String>) -> LatestDatapointsQuery {
         LatestDatapointsQuery {
             id,
-            before: before.into(),
+            before: Some(before.into()),
+            target_unit: Default::default(),
+            target_unit_system: Default::default(),
+            include_status: Default::default(),
+            ignore_bad_data_points: Default::default(),
+            treat_uncertain_as_bad: Default::default(),
         }
     }
 }

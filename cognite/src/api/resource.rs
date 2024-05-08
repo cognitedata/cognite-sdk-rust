@@ -490,12 +490,12 @@ where
     /// # Arguments
     ///
     /// * `updates` - Items to update.
-    fn update_from<'a, T: 'a>(
+    fn update_from<'a, T>(
         &self,
         updates: &'a [T],
     ) -> impl Future<Output = Result<Vec<TResponse>>> + Send
     where
-        T: std::marker::Sync + Clone,
+        T: std::marker::Sync + Clone + 'a,
         TUpdate: From<T>,
     {
         async move {
@@ -553,12 +553,12 @@ where
     /// # Arguments
     ///
     /// * `updates` - Items to update.
-    fn update_from_ignore_unknown_ids<'a, T: 'a>(
+    fn update_from_ignore_unknown_ids<'a, T>(
         &self,
         updates: &'a [T],
     ) -> impl Future<Output = Result<Vec<TResponse>>> + Send
     where
-        T: Sync + Clone,
+        T: Sync + Clone + 'a,
         TUpdate: From<T> + EqIdentity,
         TResponse: Send,
     {
