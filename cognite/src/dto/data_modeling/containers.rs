@@ -5,7 +5,7 @@ use serde_with::skip_serializing_none;
 
 use crate::{
     models::{TaggedContainerReference, UsedFor},
-    to_query, AsParams, RawValue, SetCursor,
+    to_query, IntoParams, RawValue, SetCursor,
 };
 
 use super::common::{CDFExternalIdReference, PrimitiveProperty, TextProperty};
@@ -43,7 +43,7 @@ pub enum ContainerPropertyType {
 }
 
 #[skip_serializing_none]
-#[derive(Serialize, Deserialize, Clone, Debug)]
+#[derive(Serialize, Deserialize, Clone, Debug, Default)]
 #[serde(rename_all = "camelCase")]
 /// Constraints for a property that is a reference to a node.
 pub struct DirectNodeRelationType {
@@ -110,7 +110,7 @@ pub struct ContainerPropertyDefinition {
 }
 
 #[skip_serializing_none]
-#[derive(Serialize, Deserialize, Clone, Debug)]
+#[derive(Serialize, Deserialize, Clone, Debug, Default)]
 #[serde(rename_all = "camelCase")]
 /// Create a container.
 pub struct ContainerCreate {
@@ -133,7 +133,7 @@ pub struct ContainerCreate {
 }
 
 #[skip_serializing_none]
-#[derive(Serialize, Deserialize, Clone, Debug)]
+#[derive(Serialize, Deserialize, Clone, Debug, Default)]
 #[serde(rename_all = "camelCase")]
 /// Data modeling container.
 pub struct ContainerDefinition {
@@ -177,7 +177,7 @@ impl From<ContainerDefinition> for ContainerCreate {
 }
 
 #[skip_serializing_none]
-#[derive(Serialize, Deserialize, Clone, Debug)]
+#[derive(Serialize, Deserialize, Clone, Debug, Default)]
 #[serde(rename_all = "camelCase")]
 /// ID of a container index or constraint.
 pub struct ContainerComponentId {
@@ -202,8 +202,8 @@ pub struct ContainerQuery {
     pub include_global: Option<bool>,
 }
 
-impl AsParams for ContainerQuery {
-    fn to_tuples(self) -> Vec<(String, String)> {
+impl IntoParams for ContainerQuery {
+    fn into_params(self) -> Vec<(String, String)> {
         let mut params = Vec::new();
         to_query("limit", &self.limit, &mut params);
         to_query("cursor", &self.cursor, &mut params);

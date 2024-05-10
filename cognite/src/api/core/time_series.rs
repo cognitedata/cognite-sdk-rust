@@ -1,15 +1,18 @@
 use std::collections::HashSet;
 use std::iter::FromIterator;
 
+use futures::FutureExt;
+
 use crate::api::resource::*;
 use crate::dto::core::datapoint::*;
 use crate::dto::core::time_series::*;
 use crate::error::Result;
 use crate::get_missing_from_result;
+use crate::utils::execute_with_parallelism;
 use crate::Identity;
+use crate::IgnoreUnknownIds;
 use crate::Items;
-use crate::ItemsWithIgnoreUnknownIds;
-use crate::ItemsWithoutCursor;
+use crate::ItemsVec;
 use crate::Patch;
 
 /// A time series consists of a sequence of data points connected to a single asset.
@@ -27,7 +30,7 @@ impl FilterItems<TimeSeriesFilter, TimeSeries> for TimeSeriesResource {}
 impl FilterWithRequest<TimeSeriesFilterRequest, TimeSeries> for TimeSeriesResource {}
 impl<'a> SearchItems<'a, TimeSeriesFilter, TimeSeriesSearch, TimeSeries> for TimeSeriesResource {}
 impl RetrieveWithIgnoreUnknownIds<Identity, TimeSeries> for TimeSeriesResource {}
-impl Update<Patch<PatchTimeSerie>, TimeSeries> for TimeSeriesResource {}
+impl Update<Patch<PatchTimeSeries>, TimeSeries> for TimeSeriesResource {}
 impl DeleteWithIgnoreUnknownIds<Identity> for TimeSeriesResource {}
 
 impl TimeSeriesResource {
@@ -101,7 +104,12 @@ impl TimeSeriesResource {
             None => return result,
         };
         let to_create = generator(&missing_idts).collect::<Vec<_>>();
-        self.create(&to_create).await?;
+        let futures = to_create
+            .chunks(1000)
+            // Since we're discarding the output, don't collect it here.
+            .map(|c| self.create_ignore_duplicates(c).map(|r| r.map(|_| ())));
+
+        execute_with_parallelism(futures, 4).await?;
 
         self.insert_datapoints_proto(add_datapoints).await
     }
@@ -237,7 +245,7 @@ impl TimeSeriesResource {
         items: &[LatestDatapointsQuery],
         ignore_unknown_ids: bool,
     ) -> Result<Vec<DatapointsResponse>> {
-        let query = ItemsWithIgnoreUnknownIds::new(items, ignore_unknown_ids);
+        let query = Items::new_with_extra_fields(items, IgnoreUnknownIds { ignore_unknown_ids });
         let datapoints_response: DatapointsListResponse = self
             .api_client
             .post("timeseries/data/latest", &query)
@@ -251,7 +259,7 @@ impl TimeSeriesResource {
     ///
     /// * `query` - Ranges of datapoints to delete.
     pub async fn delete_datapoints(&self, query: &[DeleteDatapointsQuery]) -> Result<()> {
-        let items = Items::from(query);
+        let items = Items::new(query);
         self.api_client
             .post::<::serde_json::Value, _>("timeseries/data/delete", &items)
             .await?;
@@ -271,9 +279,9 @@ impl TimeSeriesResource {
         &self,
         query: &[SyntheticTimeSeriesQuery],
     ) -> Result<Vec<SyntheticQueryResponse>> {
-        let res: ItemsWithoutCursor<SyntheticQueryResponse> = self
+        let res: ItemsVec<SyntheticQueryResponse> = self
             .api_client
-            .post("timeseries/synthetic/query", &Items::from(query))
+            .post("timeseries/synthetic/query", &Items::new(query))
             .await?;
         Ok(res.items)
     }

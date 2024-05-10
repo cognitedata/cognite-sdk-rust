@@ -5,7 +5,7 @@ use crate::dto::core::files::*;
 use crate::dto::items::Items;
 use crate::error::Result;
 use crate::PartitionedFilter;
-use crate::{Identity, ItemsWithoutCursor, Patch};
+use crate::{Identity, ItemsVec, Patch};
 
 /// Files store documents, binary blobs, and other file data and relate it to assets.
 pub type Files = Resource<FileMetadata>;
@@ -136,8 +136,8 @@ impl Files {
     ///
     /// * `ids` - List of file IDs or external IDs.
     pub async fn download_link(&self, ids: &[Identity]) -> Result<Vec<FileDownloadUrl>> {
-        let items = Items::from(ids);
-        let file_links_response: ItemsWithoutCursor<FileDownloadUrl> =
+        let items = Items::new(ids);
+        let file_links_response: ItemsVec<FileDownloadUrl> =
             self.api_client.post("files/downloadlink", &items).await?;
         Ok(file_links_response.items)
     }

@@ -3,11 +3,11 @@ use serde_with::skip_serializing_none;
 
 use crate::{
     models::views::{ViewCreateOrReference, ViewDefinitionOrReference},
-    to_query, AsParams, SetCursor,
+    to_query, IntoParams, SetCursor,
 };
 
 #[skip_serializing_none]
-#[derive(Serialize, Deserialize, Clone, Debug)]
+#[derive(Serialize, Deserialize, Clone, Debug, Default)]
 #[serde(rename_all = "camelCase")]
 /// Create a data model.
 pub struct DataModelCreate {
@@ -41,7 +41,7 @@ impl From<DataModel> for DataModelCreate {
 }
 
 #[skip_serializing_none]
-#[derive(Serialize, Deserialize, Clone, Debug)]
+#[derive(Serialize, Deserialize, Clone, Debug, Default)]
 #[serde(rename_all = "camelCase")]
 /// A CDF data model.
 pub struct DataModel {
@@ -66,7 +66,7 @@ pub struct DataModel {
 }
 
 #[skip_serializing_none]
-#[derive(Serialize, Deserialize, Clone, Debug)]
+#[derive(Serialize, Deserialize, Clone, Debug, Default)]
 #[serde(rename_all = "camelCase")]
 /// ID of a data model
 pub struct DataModelId {
@@ -101,8 +101,8 @@ impl SetCursor for DataModelQuery {
     }
 }
 
-impl AsParams for DataModelQuery {
-    fn to_tuples(self) -> Vec<(String, String)> {
+impl IntoParams for DataModelQuery {
+    fn into_params(self) -> Vec<(String, String)> {
         let mut params = Vec::new();
         to_query("cursor", &self.cursor, &mut params);
         to_query("limit", &self.limit, &mut params);

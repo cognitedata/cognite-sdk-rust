@@ -4,6 +4,7 @@ mod filter;
 pub use self::aggregate::*;
 pub use self::filter::*;
 
+use crate::UpsertOptions;
 use crate::{
     EqIdentity, Identity, IntoPatch, IntoPatchItem, Patch, UpdateList, UpdateMap, UpdateSetNull,
 };
@@ -133,44 +134,44 @@ pub struct PatchEvent {
 }
 
 impl IntoPatch<Patch<PatchEvent>> for Event {
-    fn patch(self, ignore_nulls: bool) -> Patch<PatchEvent> {
+    fn patch(self, options: &UpsertOptions) -> Patch<PatchEvent> {
         Patch::<PatchEvent> {
             id: to_idt!(self),
             update: PatchEvent {
-                external_id: self.external_id.patch(ignore_nulls),
-                data_set_id: self.data_set_id.patch(ignore_nulls),
-                start_time: self.start_time.patch(ignore_nulls),
-                end_time: self.end_time.patch(ignore_nulls),
-                description: self.description.patch(ignore_nulls),
-                metadata: self.metadata.patch(ignore_nulls),
-                asset_ids: self.asset_ids.patch(ignore_nulls),
-                source: self.source.patch(ignore_nulls),
-                r#type: self.r#type.patch(ignore_nulls),
-                subtype: self.subtype.patch(ignore_nulls),
+                external_id: self.external_id.patch(options),
+                data_set_id: self.data_set_id.patch(options),
+                start_time: self.start_time.patch(options),
+                end_time: self.end_time.patch(options),
+                description: self.description.patch(options),
+                metadata: self.metadata.patch(options),
+                asset_ids: self.asset_ids.patch(options),
+                source: self.source.patch(options),
+                r#type: self.r#type.patch(options),
+                subtype: self.subtype.patch(options),
             },
         }
     }
 }
 
 impl IntoPatch<PatchEvent> for AddEvent {
-    fn patch(self, ignore_nulls: bool) -> PatchEvent {
+    fn patch(self, options: &UpsertOptions) -> PatchEvent {
         PatchEvent {
-            external_id: self.external_id.patch(ignore_nulls),
-            data_set_id: self.data_set_id.patch(ignore_nulls),
-            start_time: self.start_time.patch(ignore_nulls),
-            end_time: self.end_time.patch(ignore_nulls),
-            description: self.description.patch(ignore_nulls),
-            metadata: self.metadata.patch(ignore_nulls),
-            asset_ids: self.asset_ids.patch(ignore_nulls),
-            source: self.source.patch(ignore_nulls),
-            r#type: self.r#type.patch(ignore_nulls),
-            subtype: self.subtype.patch(ignore_nulls),
+            external_id: self.external_id.patch(options),
+            data_set_id: self.data_set_id.patch(options),
+            start_time: self.start_time.patch(options),
+            end_time: self.end_time.patch(options),
+            description: self.description.patch(options),
+            metadata: self.metadata.patch(options),
+            asset_ids: self.asset_ids.patch(options),
+            source: self.source.patch(options),
+            r#type: self.r#type.patch(options),
+            subtype: self.subtype.patch(options),
         }
     }
 }
 
 impl From<Event> for Patch<PatchEvent> {
     fn from(value: Event) -> Self {
-        IntoPatch::<Patch<PatchEvent>>::patch(value, false)
+        IntoPatch::<Patch<PatchEvent>>::patch(value, &Default::default())
     }
 }

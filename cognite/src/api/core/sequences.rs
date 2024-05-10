@@ -27,7 +27,7 @@ impl SequencesResource {
     ///
     /// * `rows` - Sequence row batches to insert.
     pub async fn insert_rows(&self, rows: &[InsertSequenceRows]) -> Result<()> {
-        let items = Items::from(rows);
+        let items = Items::new(rows);
         self.api_client
             .post(&format!("{}/{}", Self::BASE_PATH, "data"), &items)
             .await?;
@@ -69,7 +69,7 @@ impl SequencesResource {
     ///
     /// * `query` - Row ranges to delete.
     pub async fn delete_rows(&self, query: &[DeleteSequenceRows]) -> Result<()> {
-        let items = Items::from(query);
+        let items = Items::new(query);
         self.api_client
             .post(&format!("{}/{}", Self::BASE_PATH, "data/delete"), &items)
             .await

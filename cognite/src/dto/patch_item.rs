@@ -5,16 +5,54 @@ use serde_with::skip_serializing_none;
 
 use crate::{EqIdentity, Identity};
 
+/// Options for performing automatic upserts.
+#[derive(Clone, Copy, Debug, Default)]
+#[non_exhaustive]
+pub struct UpsertOptions {
+    /// Ignore null values of fields when updating. If this is `false` (the default),
+    /// missing values will be set to `null`.
+    pub ignore_nulls: bool,
+    /// Merge maps when updating. If this is `false` (the default),
+    /// maps (like metadata) will be overwritten.
+    pub merge_maps: bool,
+    /// Merge lists when updating. If this is `false` (the default),
+    /// lists will be overwritten.
+    pub merge_lists: bool,
+}
+
+impl UpsertOptions {
+    /// Ignore null values of fields when updating. If this is `false` (the default),
+    /// missing values will be set to `null`.
+    pub fn ignore_nulls(mut self, ignore_nulls: bool) -> Self {
+        self.ignore_nulls = ignore_nulls;
+        self
+    }
+
+    /// Merge metadata maps when updating. If this is `false` (the default),
+    /// metadata will be overwritten.
+    pub fn merge_metadata(mut self, merge_metadata: bool) -> Self {
+        self.merge_maps = merge_metadata;
+        self
+    }
+
+    /// Merge lists when updating. If this is `false` (the default),
+    /// lists will be overwritten.
+    pub fn merge_lists(mut self, merge_lists: bool) -> Self {
+        self.merge_lists = merge_lists;
+        self
+    }
+}
+
 /// Trait for converting a value into a patch item, used for upsert.
 pub trait IntoPatchItem<TPatch> {
     /// Convert self into a patch, optionally ignoring null values.
-    fn patch(self, ignore_nulls: bool) -> Option<TPatch>;
+    fn patch(self, options: &UpsertOptions) -> Option<TPatch>;
 }
 
 /// Trait for converting a value into a patch, used for upsert.
 pub trait IntoPatch<TPatch> {
     /// Convert self into a patch, optionally ignoring null values.
-    fn patch(self, ignore_nulls: bool) -> TPatch;
+    fn patch(self, options: &UpsertOptions) -> TPatch;
 }
 
 #[skip_serializing_none]
@@ -42,8 +80,8 @@ impl<T> Default for UpdateSetNull<T> {
 }
 
 impl<T> IntoPatchItem<UpdateSetNull<T>> for Option<T> {
-    fn patch(self, ignore_nulls: bool) -> Option<UpdateSetNull<T>> {
-        match (self, ignore_nulls) {
+    fn patch(self, options: &UpsertOptions) -> Option<UpdateSetNull<T>> {
+        match (self, options.ignore_nulls) {
             (None, true) => None,
             (None, false) => Some(UpdateSetNull::SetNull { set_null: true }),
             (Some(x), _) => Some(UpdateSetNull::Set { set: x }),
@@ -92,7 +130,7 @@ impl<T> UpdateSet<T> {
 }
 
 impl<T> IntoPatchItem<UpdateSet<T>> for T {
-    fn patch(self, _ignore_nulls: bool) -> Option<UpdateSet<T>> {
+    fn patch(self, _options: &UpsertOptions) -> Option<UpdateSet<T>> {
         Some(UpdateSet { set: self })
     }
 }
@@ -165,17 +203,22 @@ impl<TAdd, TRemove> UpdateList<TAdd, TRemove> {
 }
 
 impl<TAdd, TRemove> IntoPatchItem<UpdateList<TAdd, TRemove>> for Vec<TAdd> {
-    fn patch(self, _ignore_nulls: bool) -> Option<UpdateList<TAdd, TRemove>> {
-        Some(UpdateList::set(self))
+    fn patch(self, options: &UpsertOptions) -> Option<UpdateList<TAdd, TRemove>> {
+        if options.merge_lists {
+            Some(UpdateList::add(self))
+        } else {
+            Some(UpdateList::set(self))
+        }
     }
 }
 
 impl<TAdd, TRemove> IntoPatchItem<UpdateList<TAdd, TRemove>> for Option<Vec<TAdd>> {
-    fn patch(self, ignore_nulls: bool) -> Option<UpdateList<TAdd, TRemove>> {
-        match (self, ignore_nulls) {
-            (Some(x), _) => Some(UpdateList::set(x)),
-            (None, true) => None,
-            (None, false) => Some(UpdateList::set(vec![])),
+    fn patch(self, options: &UpsertOptions) -> Option<UpdateList<TAdd, TRemove>> {
+        match (self, options.ignore_nulls, options.merge_lists) {
+            (Some(x), _, true) => Some(UpdateList::add(x)),
+            (Some(x), _, false) => Some(UpdateList::set(x)),
+            (None, false, false) => Some(UpdateList::set(vec![])),
+            (None, _, _) => None,
         }
     }
 }
@@ -256,19 +299,24 @@ where
 impl<TKey: std::hash::Hash + std::cmp::Eq, TValue> IntoPatchItem<UpdateMap<TKey, TValue>>
     for HashMap<TKey, TValue>
 {
-    fn patch(self, _ignore_nulls: bool) -> Option<UpdateMap<TKey, TValue>> {
-        Some(UpdateMap::set(self))
+    fn patch(self, options: &UpsertOptions) -> Option<UpdateMap<TKey, TValue>> {
+        if options.merge_maps {
+            Some(UpdateMap::add(self))
+        } else {
+            Some(UpdateMap::set(self))
+        }
     }
 }
 
 impl<TKey: std::hash::Hash + std::cmp::Eq, TValue> IntoPatchItem<UpdateMap<TKey, TValue>>
     for Option<HashMap<TKey, TValue>>
 {
-    fn patch(self, ignore_nulls: bool) -> Option<UpdateMap<TKey, TValue>> {
-        match (self, ignore_nulls) {
-            (None, true) => None,
-            (None, false) => Some(UpdateMap::set(HashMap::new())),
-            (Some(x), _) => Some(UpdateMap::set(x)),
+    fn patch(self, options: &UpsertOptions) -> Option<UpdateMap<TKey, TValue>> {
+        match (self, options.ignore_nulls, options.merge_lists) {
+            (Some(x), _, true) => Some(UpdateMap::add(x)),
+            (Some(x), _, false) => Some(UpdateMap::set(x)),
+            (None, false, false) => Some(UpdateMap::set(HashMap::new())),
+            (None, _, _) => None,
         }
     }
 }

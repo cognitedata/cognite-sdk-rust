@@ -1,6 +1,9 @@
 use std::collections::HashMap;
 use std::hash::Hash;
 
+use futures::stream::FuturesUnordered;
+use futures::{Future, StreamExt};
+
 /// Chunk a map of lists both by the maximum number of keys per map,
 /// and the number of total values.
 ///
@@ -65,11 +68,49 @@ pub fn chunk_map<'a, TKey: Hash + Eq + 'a + Clone, TValue: 'a>(
     Box::new(res.into_iter())
 }
 
+/// Execute a list of futures concurrently, with a maximum parallelism.
+///
+/// # Arguments
+///
+/// * `futures` - Iterator over futures to execute.
+/// * `parallelism` - Number of futures to execute in parallel. Must be greater than zero.
+///
+/// # Panics
+///
+/// This function panics if parallelism is 0.
+pub async fn execute_with_parallelism<T, TErr>(
+    mut futures: impl Iterator<Item = impl Future<Output = Result<T, TErr>>>,
+    parallelism: usize,
+) -> Result<Vec<T>, TErr> {
+    let mut res = Vec::new();
+
+    assert!(parallelism > 0, "Parallelism must be greater than 0");
+
+    let mut running = FuturesUnordered::new();
+
+    for fut in (&mut futures).take(parallelism) {
+        running.push(fut);
+    }
+
+    while let Some(r) = running.next().await {
+        res.push(r?);
+
+        if let Some(fut) = futures.next() {
+            running.push(fut);
+        }
+    }
+
+    Ok(res)
+}
+
 #[cfg(test)]
 mod test {
-    use std::collections::HashMap;
+    use std::sync::atomic::Ordering;
+    use std::{collections::HashMap, sync::atomic::AtomicU64, time::Duration};
 
     use crate::utils::chunk_map;
+
+    use crate::utils::execute_with_parallelism;
 
     fn chunk_map_t(
         data: HashMap<i64, Vec<i64>>,
@@ -116,5 +157,79 @@ mod test {
         chunk_map_t(gen_chunk_test(10, 1_000_000), 100_000, 10_000, 100);
         // Chunk on some irregular, large pieces
         chunk_map_t(gen_chunk_test(10, 888_888), 100_000, 10_000, 89);
+    }
+
+    #[tokio::test]
+    pub async fn test_run_parallel() {
+        let active = AtomicU64::new(0);
+        let count = AtomicU64::new(0);
+        let gen = || async {
+            let initial = active.fetch_add(1, std::sync::atomic::Ordering::Acquire);
+            assert!(initial < 4);
+            tokio::time::sleep(Duration::from_millis(200)).await;
+            let fin = active.fetch_sub(1, std::sync::atomic::Ordering::Release);
+            assert!(fin <= 4 && fin > 0);
+
+            count.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+            Result::<(), ()>::Ok(())
+        };
+
+        let futures = (0..10).map(|_| gen());
+        execute_with_parallelism(futures, 4).await.unwrap();
+
+        let c = count.load(Ordering::Relaxed);
+        assert_eq!(c, 10);
+    }
+
+    #[tokio::test]
+    pub async fn test_run_parallel_small() {
+        let active = AtomicU64::new(0);
+        let count = AtomicU64::new(0);
+        let gen = || async {
+            let initial = active.fetch_add(1, std::sync::atomic::Ordering::Acquire);
+            assert!(initial < 4);
+            tokio::time::sleep(Duration::from_millis(200)).await;
+            let fin = active.fetch_sub(1, std::sync::atomic::Ordering::Release);
+            assert!(fin <= 4 && fin > 0);
+
+            count.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+            Result::<(), ()>::Ok(())
+        };
+
+        let futures = (0..3).map(|_| gen());
+        execute_with_parallelism(futures, 4).await.unwrap();
+
+        let c = count.load(Ordering::Relaxed);
+        assert_eq!(c, 3);
+    }
+
+    #[tokio::test]
+    pub async fn test_run_parallel_early_fail() {
+        let active = AtomicU64::new(0);
+        let count = AtomicU64::new(0);
+        let gen = || async {
+            let initial = active.fetch_add(1, std::sync::atomic::Ordering::Acquire);
+            assert!(initial < 4);
+            tokio::time::sleep(Duration::from_millis(200)).await;
+            let fin = active.fetch_sub(1, std::sync::atomic::Ordering::Release);
+            assert!(fin <= 4 && fin > 0);
+
+            let c = count.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+
+            if c == 5 {
+                Result::<(), ()>::Err(())
+            } else {
+                Result::<(), ()>::Ok(())
+            }
+        };
+
+        let futures = (0..10).map(|_| gen());
+        assert!(execute_with_parallelism(futures, 4).await.is_err());
+
+        // This should actually work consistently, the final part of the last future shouldn't be ran
+        // after the first future fails. If this fails flakily, change this to a >= instead,
+        // though my understanding of Futures in rust is that it shouldn't.
+        let c = count.load(Ordering::Relaxed);
+        assert_eq!(c, 6);
     }
 }

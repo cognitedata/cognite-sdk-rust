@@ -125,14 +125,17 @@ async fn create_update_ignore_missing() {
 
 #[tokio::test]
 async fn upsert_assets() {
-    let asset_id = format!("{}-asset5", PREFIX.as_str());
-    let mut new_asset = Asset::new("asset5", "desc", Some(asset_id.clone()), None, None, None);
+    let asset_id = format!("{}-asset6", PREFIX.as_str());
+    let mut new_asset = Asset::new("asset6", "desc", Some(asset_id.clone()), None, None, None);
 
     let client = get_client();
 
     let res = client
         .assets
-        .upsert(&[new_asset.clone().into()], true)
+        .upsert(
+            &[new_asset.clone().into()],
+            &UpsertOptions::default().ignore_nulls(true),
+        )
         .await
         .unwrap();
     assert_eq!(res[0].description.as_ref().unwrap(), "desc");
@@ -141,7 +144,10 @@ async fn upsert_assets() {
 
     let res = client
         .assets
-        .upsert(&[new_asset.into()], true)
+        .upsert(
+            &[new_asset.into()],
+            &UpsertOptions::default().ignore_nulls(true),
+        )
         .await
         .unwrap();
     assert_eq!(res[0].description.as_ref().unwrap(), "desc 2");

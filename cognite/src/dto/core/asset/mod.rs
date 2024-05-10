@@ -5,6 +5,7 @@ pub use self::aggregate::*;
 pub use self::filter::*;
 
 use crate::dto::identity::Identity;
+use crate::UpsertOptions;
 use crate::{CogniteExternalId, CogniteId, EqIdentity, IntoPatch, IntoPatchItem, UpdateList};
 use crate::{Patch, UpdateMap, UpdateSet, UpdateSetNull};
 use serde::{Deserialize, Serialize};
@@ -210,52 +211,52 @@ pub struct PatchAsset {
 }
 
 impl IntoPatch<Patch<PatchAsset>> for Asset {
-    fn patch(self, ignore_nulls: bool) -> Patch<PatchAsset> {
+    fn patch(self, options: &UpsertOptions) -> Patch<PatchAsset> {
         Patch::<PatchAsset> {
             id: to_idt!(self),
             update: PatchAsset {
-                external_id: self.external_id.patch(ignore_nulls),
-                name: self.name.patch(ignore_nulls),
-                description: self.description.patch(ignore_nulls),
-                data_set_id: self.data_set_id.patch(ignore_nulls),
-                metadata: self.metadata.patch(ignore_nulls),
-                source: self.source.patch(ignore_nulls),
-                parent_id: self.parent_id.and_then(|p| p.patch(ignore_nulls)),
+                external_id: self.external_id.patch(options),
+                name: self.name.patch(options),
+                description: self.description.patch(options),
+                data_set_id: self.data_set_id.patch(options),
+                metadata: self.metadata.patch(options),
+                source: self.source.patch(options),
+                parent_id: self.parent_id.and_then(|p| p.patch(options)),
                 parent_external_id: None,
-                labels: self.labels.patch(ignore_nulls),
-                geo_location: self.geo_location.patch(ignore_nulls),
+                labels: self.labels.patch(options),
+                geo_location: self.geo_location.patch(options),
             },
         }
     }
 }
 
 impl IntoPatch<PatchAsset> for AddAsset {
-    fn patch(self, ignore_nulls: bool) -> PatchAsset {
+    fn patch(self, options: &UpsertOptions) -> PatchAsset {
         let mut parent_id = None;
         let mut parent_external_id = None;
         if let Some(p_id) = self.parent_id {
-            parent_id = p_id.patch(ignore_nulls);
+            parent_id = p_id.patch(options);
         } else if let Some(p_extid) = self.parent_external_id {
-            parent_external_id = p_extid.patch(ignore_nulls);
+            parent_external_id = p_extid.patch(options);
         }
         PatchAsset {
-            external_id: self.external_id.patch(ignore_nulls),
-            name: self.name.patch(ignore_nulls),
-            description: self.description.patch(ignore_nulls),
-            data_set_id: self.data_set_id.patch(ignore_nulls),
-            metadata: self.metadata.patch(ignore_nulls),
-            source: self.source.patch(ignore_nulls),
+            external_id: self.external_id.patch(options),
+            name: self.name.patch(options),
+            description: self.description.patch(options),
+            data_set_id: self.data_set_id.patch(options),
+            metadata: self.metadata.patch(options),
+            source: self.source.patch(options),
             parent_id,
             parent_external_id,
-            labels: self.labels.patch(ignore_nulls),
-            geo_location: self.geo_location.patch(ignore_nulls),
+            labels: self.labels.patch(options),
+            geo_location: self.geo_location.patch(options),
         }
     }
 }
 
 impl From<Asset> for Patch<PatchAsset> {
     fn from(value: Asset) -> Self {
-        IntoPatch::<Patch<PatchAsset>>::patch(value, false)
+        IntoPatch::<Patch<PatchAsset>>::patch(value, &Default::default())
     }
 }
 

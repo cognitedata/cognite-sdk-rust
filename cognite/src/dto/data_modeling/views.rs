@@ -9,7 +9,7 @@ use crate::{
         CDFExternalIdReference, PrimitiveProperty, SourceReference, TaggedContainerReference,
         TaggedViewReference, TextProperty, UsedFor,
     },
-    to_query, AdvancedFilter, AsParams, RawValue, SetCursor,
+    to_query, AdvancedFilter, IntoParams, RawValue, SetCursor,
 };
 
 use super::{
@@ -17,7 +17,7 @@ use super::{
     query::{QueryDirection, ViewPropertyReference},
 };
 
-#[derive(Serialize, Deserialize, Clone, Debug)]
+#[derive(Serialize, Deserialize, Clone, Debug, Default)]
 #[serde(rename_all = "camelCase")]
 /// Reference to a view.
 pub struct ViewReference {
@@ -46,8 +46,8 @@ pub struct ViewQuery {
     pub include_global: Option<bool>,
 }
 
-impl AsParams for ViewQuery {
-    fn to_tuples(self) -> Vec<(String, String)> {
+impl IntoParams for ViewQuery {
+    fn into_params(self) -> Vec<(String, String)> {
         let mut params = Vec::<(String, String)>::new();
         to_query("limit", &self.limit, &mut params);
         to_query("cursor", &self.cursor, &mut params);
@@ -98,7 +98,7 @@ pub enum ViewDefinitionOrReference {
 }
 
 #[skip_serializing_none]
-#[derive(Serialize, Deserialize, Clone, Debug)]
+#[derive(Serialize, Deserialize, Clone, Debug, Default)]
 #[serde(rename_all = "camelCase")]
 /// Create a new view.
 pub struct ViewCreateDefinition {
@@ -234,7 +234,7 @@ pub struct ReverseDirectRelationConnection {
 
 #[skip_serializing_none]
 #[derive(Serialize, Deserialize, Clone, Debug)]
-#[serde(rename_all = "camelCase", tag = "connectionType")]
+#[serde(rename_all = "snake_case", tag = "connectionType")]
 /// Definition of a connection. Describes edges or reverse direct relations
 /// that are expected to exist.
 pub enum ConnectionDefinition {
@@ -249,7 +249,7 @@ pub enum ConnectionDefinition {
 }
 
 #[skip_serializing_none]
-#[derive(Serialize, Deserialize, Clone, Debug)]
+#[derive(Serialize, Deserialize, Clone, Debug, Default)]
 #[serde(rename_all = "camelCase")]
 /// Definition of a view.
 pub struct ViewDefinition {

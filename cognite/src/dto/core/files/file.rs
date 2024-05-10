@@ -4,7 +4,7 @@ use std::collections::HashMap;
 
 use crate::{
     CogniteExternalId, EqIdentity, Identity, IntoPatch, IntoPatchItem, Patch, UpdateList,
-    UpdateMap, UpdateSetNull,
+    UpdateMap, UpdateSetNull, UpsertOptions,
 };
 
 #[skip_serializing_none]
@@ -146,47 +146,47 @@ pub struct PatchFile {
 }
 
 impl IntoPatch<Patch<PatchFile>> for FileMetadata {
-    fn patch(self, ignore_nulls: bool) -> Patch<PatchFile> {
+    fn patch(self, options: &UpsertOptions) -> Patch<PatchFile> {
         Patch::<PatchFile> {
             id: to_idt!(self),
             update: PatchFile {
-                external_id: self.external_id.patch(ignore_nulls),
-                directory: self.directory.patch(ignore_nulls),
-                source: self.source.patch(ignore_nulls),
-                mime_type: self.mime_type.patch(ignore_nulls),
-                metadata: self.metadata.patch(ignore_nulls),
-                asset_ids: self.asset_ids.patch(ignore_nulls),
-                source_created_time: self.source_created_time.patch(ignore_nulls),
-                source_modified_time: self.source_modified_time.patch(ignore_nulls),
-                data_set_id: self.data_set_id.patch(ignore_nulls),
-                security_categories: self.security_categories.patch(ignore_nulls),
-                labels: self.labels.patch(ignore_nulls),
+                external_id: self.external_id.patch(options),
+                directory: self.directory.patch(options),
+                source: self.source.patch(options),
+                mime_type: self.mime_type.patch(options),
+                metadata: self.metadata.patch(options),
+                asset_ids: self.asset_ids.patch(options),
+                source_created_time: self.source_created_time.patch(options),
+                source_modified_time: self.source_modified_time.patch(options),
+                data_set_id: self.data_set_id.patch(options),
+                security_categories: self.security_categories.patch(options),
+                labels: self.labels.patch(options),
             },
         }
     }
 }
 
 impl IntoPatch<PatchFile> for AddFile {
-    fn patch(self, ignore_nulls: bool) -> PatchFile {
+    fn patch(self, options: &UpsertOptions) -> PatchFile {
         PatchFile {
-            external_id: self.external_id.patch(ignore_nulls),
-            directory: self.directory.patch(ignore_nulls),
-            source: self.source.patch(ignore_nulls),
-            mime_type: self.mime_type.patch(ignore_nulls),
-            metadata: self.metadata.patch(ignore_nulls),
-            asset_ids: self.asset_ids.patch(ignore_nulls),
-            source_created_time: self.source_created_time.patch(ignore_nulls),
-            source_modified_time: self.source_modified_time.patch(ignore_nulls),
-            data_set_id: self.data_set_id.patch(ignore_nulls),
-            security_categories: self.security_categories.patch(ignore_nulls),
-            labels: self.labels.patch(ignore_nulls),
+            external_id: self.external_id.patch(options),
+            directory: self.directory.patch(options),
+            source: self.source.patch(options),
+            mime_type: self.mime_type.patch(options),
+            metadata: self.metadata.patch(options),
+            asset_ids: self.asset_ids.patch(options),
+            source_created_time: self.source_created_time.patch(options),
+            source_modified_time: self.source_modified_time.patch(options),
+            data_set_id: self.data_set_id.patch(options),
+            security_categories: self.security_categories.patch(options),
+            labels: self.labels.patch(options),
         }
     }
 }
 
 impl From<FileMetadata> for Patch<PatchFile> {
     fn from(file: FileMetadata) -> Self {
-        IntoPatch::<Patch<PatchFile>>::patch(file, false)
+        IntoPatch::<Patch<PatchFile>>::patch(file, &Default::default())
     }
 }
 

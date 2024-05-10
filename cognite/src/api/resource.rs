@@ -9,8 +9,8 @@ use serde::{de::DeserializeOwned, Serialize};
 
 use crate::dto::items::*;
 use crate::{
-    ApiClient, AsParams, EqIdentity, Filter, Identity, IntoPatch, Partition, Patch, Result, Search,
-    SetCursor, WithPartition,
+    ApiClient, EqIdentity, Filter, Identity, IntoParams, IntoPatch, Partition, Patch, Result,
+    Search, SetCursor, UpsertOptions, WithPartition,
 };
 
 use super::utils::{get_duplicates_from_result, get_missing_from_result};
@@ -58,7 +58,7 @@ pub trait WithBasePath {
 /// Trait for simple GET / endpoints.
 pub trait List<TParams, TResponse>
 where
-    TParams: AsParams + Send + Sync + 'static,
+    TParams: IntoParams + Send + Sync + 'static,
     TResponse: Serialize + DeserializeOwned + Send + Sync,
     Self: WithApiClient + WithBasePath + Sync,
 {
@@ -70,7 +70,7 @@ where
     fn list(
         &self,
         params: Option<TParams>,
-    ) -> impl Future<Output = Result<ItemsWithCursor<TResponse>>> + Send {
+    ) -> impl Future<Output = Result<ItemsVec<TResponse, Cursor>>> + Send {
         async move {
             self.get_client()
                 .get_with_params(Self::BASE_PATH, params)
@@ -92,14 +92,14 @@ where
             let mut result = vec![];
             loop {
                 let lparams = params.clone();
-                let response: ItemsWithCursor<TResponse> = self
+                let response: ItemsVec<TResponse, Cursor> = self
                     .get_client()
                     .get_with_params(Self::BASE_PATH, Some(lparams))
                     .await?;
                 for it in response.items {
                     result.push(it);
                 }
-                match response.next_cursor {
+                match response.extra_fields.next_cursor {
                     Some(cursor) => params.set_cursor(Some(cursor)),
                     None => return Ok(result),
                 }
@@ -142,13 +142,13 @@ where
                     }
                 };
                 state.req.set_cursor(cursor);
-                let response: ItemsWithCursor<TResponse> = self
+                let response: ItemsVec<TResponse, Cursor> = self
                     .get_client()
                     .get_with_params(Self::BASE_PATH, Some(state.req.clone()))
                     .await?;
 
                 state.responses.extend(response.items);
-                state.next_cursor = match response.next_cursor {
+                state.next_cursor = match response.extra_fields.next_cursor {
                     Some(x) => CursorState::Some(x),
                     None => CursorState::End,
                 };
@@ -176,8 +176,8 @@ where
     /// `creates` - List of resources to create.
     fn create(&self, creates: &[TCreate]) -> impl Future<Output = Result<Vec<TResponse>>> + Send {
         async move {
-            let items = Items::from(creates);
-            let response: ItemsWithoutCursor<TResponse> =
+            let items = Items::new(creates);
+            let response: ItemsVec<TResponse> =
                 self.get_client().post(Self::BASE_PATH, &items).await?;
             Ok(response.items)
         }
@@ -228,8 +228,8 @@ where
                     return resp;
                 }
 
-                let items = Items::from(next);
-                let response: ItemsWithoutCursor<TResponse> =
+                let items = Items::new(next);
+                let response: ItemsVec<TResponse> =
                     self.get_client().post(Self::BASE_PATH, &items).await?;
                 Ok(response.items)
             } else {
@@ -273,17 +273,15 @@ where
     /// # Arguments
     ///
     /// * `upserts` - Resources to insert or update.
-    /// * `ignore_nulls` - Behavior for values that are `None`. If this is `true`,
-    /// `None` values will simply be ignored. Otherwise, fields with `None` values
-    /// will be set to null in CDF.
+    /// * `options` - Configuration for upserts, which fields are kept and which are overwritten.
     fn upsert(
         &'a self,
         upserts: &'a [TCreate],
-        ignore_nulls: bool,
+        options: &UpsertOptions,
     ) -> impl Future<Output = Result<Vec<TResponse>>> + Send {
         async move {
-            let items = Items::from(upserts);
-            let resp: Result<ItemsWithoutCursor<TResponse>> =
+            let items = Items::new(upserts);
+            let resp: Result<ItemsVec<TResponse>> =
                 self.get_client().post(Self::BASE_PATH, &items).await;
 
             let duplicates: Option<Vec<Identity>> = get_duplicates_from_result(&resp);
@@ -296,7 +294,7 @@ where
                     if let Some(idt) = idt {
                         to_update.push(Patch::<TUpdate> {
                             id: idt.clone(),
-                            update: it.clone().patch(ignore_nulls),
+                            update: it.clone().patch(options),
                         });
                     } else {
                         to_create.push(it);
@@ -305,18 +303,18 @@ where
 
                 let mut result = Vec::with_capacity(to_create.len() + to_update.len());
                 if !to_create.is_empty() {
-                    let mut create_response: ItemsWithoutCursor<TResponse> = self
+                    let mut create_response: ItemsVec<TResponse> = self
                         .get_client()
-                        .post(Self::BASE_PATH, &Items::from(to_create))
+                        .post(Self::BASE_PATH, &Items::new(to_create))
                         .await?;
                     result.append(&mut create_response.items);
                 }
                 if !to_update.is_empty() {
-                    let mut update_response: ItemsWithoutCursor<TResponse> = self
+                    let mut update_response: ItemsVec<TResponse> = self
                         .get_client()
                         .post(
                             &format!("{}/update", Self::BASE_PATH),
-                            &Items::from(&to_update),
+                            &Items::new(&to_update),
                         )
                         .await?;
                     result.append(&mut update_response.items);
@@ -353,7 +351,7 @@ pub trait UpsertCollection<TUpsert, TResponse> {
         Self: WithApiClient + WithBasePath + Sync,
     {
         async move {
-            let response: ItemsWithoutCursor<TResponse> =
+            let response: ItemsVec<TResponse> =
                 self.get_client().post(Self::BASE_PATH, &collection).await?;
             Ok(response.items)
         }
@@ -373,7 +371,7 @@ where
     /// * `deletes` - IDs of items to delete.
     fn delete(&self, deletes: &[TIdt]) -> impl Future<Output = Result<()>> + Send {
         async move {
-            let items = Items::from(deletes);
+            let items = Items::new(deletes);
             self.get_client()
                 .post::<::serde_json::Value, Items<&[TIdt]>>(
                     &format!("{}/delete", Self::BASE_PATH),
@@ -429,8 +427,8 @@ where
         Self: Sync,
     {
         async move {
-            let mut req = ItemsWithIgnoreUnknownIds::from(deletes);
-            req.ignore_unknown_ids = ignore_unknown_ids;
+            let req =
+                Items::new_with_extra_fields(deletes, IgnoreUnknownIds { ignore_unknown_ids });
             self.get_client()
                 .post::<::serde_json::Value, _>(&format!("{}/delete", Self::BASE_PATH), &req)
                 .await?;
@@ -452,13 +450,10 @@ where
     /// # Arguments
     ///
     /// * `deletes` - IDs of items to delete.
-    fn delete(
-        &self,
-        deletes: &[TIdt],
-    ) -> impl Future<Output = Result<ItemsWithoutCursor<TResponse>>> + Send {
+    fn delete(&self, deletes: &[TIdt]) -> impl Future<Output = Result<ItemsVec<TResponse>>> + Send {
         async move {
-            let items = Items::from(deletes);
-            let response: ItemsWithoutCursor<TResponse> = self
+            let items = Items::new(deletes);
+            let response: ItemsVec<TResponse> = self
                 .get_client()
                 .post(&format!("{}/delete", Self::BASE_PATH), &items)
                 .await?;
@@ -481,8 +476,8 @@ where
     /// * `updates` - Items to update.
     fn update(&self, updates: &[TUpdate]) -> impl Future<Output = Result<Vec<TResponse>>> + Send {
         async move {
-            let items = Items::from(updates);
-            let response: ItemsWithoutCursor<TResponse> = self
+            let items = Items::new(updates);
+            let response: ItemsVec<TResponse> = self
                 .get_client()
                 .post(&format!("{}/update", Self::BASE_PATH), &items)
                 .await?;
@@ -495,12 +490,12 @@ where
     /// # Arguments
     ///
     /// * `updates` - Items to update.
-    fn update_from<'a, T: 'a>(
+    fn update_from<'a, T>(
         &self,
         updates: &'a [T],
     ) -> impl Future<Output = Result<Vec<TResponse>>> + Send
     where
-        T: std::marker::Sync + Clone,
+        T: std::marker::Sync + Clone + 'a,
         TUpdate: From<T>,
     {
         async move {
@@ -540,8 +535,8 @@ where
                     return response;
                 }
 
-                let items = Items::from(next);
-                let response: ItemsWithoutCursor<TResponse> = self
+                let items = Items::new(next);
+                let response: ItemsVec<TResponse> = self
                     .get_client()
                     .post(&format!("{}/update", Self::BASE_PATH), &items)
                     .await?;
@@ -558,12 +553,12 @@ where
     /// # Arguments
     ///
     /// * `updates` - Items to update.
-    fn update_from_ignore_unknown_ids<'a, T: 'a>(
+    fn update_from_ignore_unknown_ids<'a, T>(
         &self,
         updates: &'a [T],
     ) -> impl Future<Output = Result<Vec<TResponse>>> + Send
     where
-        T: Sync + Clone,
+        T: Sync + Clone + 'a,
         TUpdate: From<T> + EqIdentity,
         TResponse: Send,
     {
@@ -589,8 +584,8 @@ where
     /// * `ids` - IDs of items to retrieve.
     fn retrieve(&self, ids: &[TIdt]) -> impl Future<Output = Result<Vec<TResponse>>> + Send {
         async move {
-            let items = Items::from(ids);
-            let response: ItemsWithoutCursor<TResponse> = self
+            let items = Items::new(ids);
+            let response: ItemsVec<TResponse> = self
                 .get_client()
                 .post(&format!("{}/byids", Self::BASE_PATH), &items)
                 .await?;
@@ -643,9 +638,8 @@ where
         ignore_unknown_ids: bool,
     ) -> impl Future<Output = Result<Vec<TResponse>>> + Send {
         async move {
-            let mut items = ItemsWithIgnoreUnknownIds::from(ids);
-            items.ignore_unknown_ids = ignore_unknown_ids;
-            let response: ItemsWithoutCursor<TResponse> = self
+            let items = Items::new_with_extra_fields(ids, IgnoreUnknownIds { ignore_unknown_ids });
+            let response: ItemsVec<TResponse> = self
                 .get_client()
                 .post(&format!("{}/byids", Self::BASE_PATH), &items)
                 .await?;
@@ -674,10 +668,10 @@ where
         filter: TFilter,
         cursor: Option<String>,
         limit: Option<u32>,
-    ) -> impl Future<Output = Result<ItemsWithCursor<TResponse>>> + Send {
+    ) -> impl Future<Output = Result<ItemsVec<TResponse, Cursor>>> + Send {
         async move {
             let filter = Filter::<TFilter>::new(filter, cursor, limit);
-            let response: ItemsWithCursor<TResponse> = self
+            let response: ItemsVec<TResponse, Cursor> = self
                 .get_client()
                 .post(&format!("{}/list", Self::BASE_PATH), &filter)
                 .await?;
@@ -724,9 +718,9 @@ where
     fn filter(
         &self,
         filter: TFilter,
-    ) -> impl Future<Output = Result<ItemsWithCursor<TResponse>>> + Send {
+    ) -> impl Future<Output = Result<ItemsVec<TResponse, Cursor>>> + Send {
         async move {
-            let response: ItemsWithCursor<TResponse> = self
+            let response: ItemsVec<TResponse, Cursor> = self
                 .get_client()
                 .post(&format!("{}/list", Self::BASE_PATH), &filter)
                 .await?;
@@ -747,14 +741,14 @@ where
         async move {
             let mut result = vec![];
             loop {
-                let response: ItemsWithCursor<TResponse> = self
+                let response: ItemsVec<TResponse, Cursor> = self
                     .get_client()
                     .post(&format!("{}/list", Self::BASE_PATH), &filter)
                     .await?;
                 for it in response.items {
                     result.push(it);
                 }
-                match response.next_cursor {
+                match response.extra_fields.next_cursor {
                     Some(cursor) => filter.set_cursor(Some(cursor)),
                     None => return Ok(result),
                 }
@@ -797,13 +791,13 @@ where
                     }
                 };
                 state.req.set_cursor(cursor);
-                let response: ItemsWithCursor<TResponse> = self
+                let response: ItemsVec<TResponse, Cursor> = self
                     .get_client()
                     .post(&format!("{}/list", Self::BASE_PATH), &state.req)
                     .await?;
 
                 state.responses.extend(response.items);
-                state.next_cursor = match response.next_cursor {
+                state.next_cursor = match response.extra_fields.next_cursor {
                     Some(x) => CursorState::Some(x),
                     None => CursorState::End,
                 };
@@ -872,7 +866,7 @@ where
     ) -> impl Future<Output = Result<Vec<TResponse>>> + Send {
         async move {
             let req = Search::<TFilter, TSearch>::new(filter, search, limit);
-            let response: ItemsWithoutCursor<TResponse> = self
+            let response: ItemsVec<TResponse> = self
                 .get_client()
                 .post(&format!("{}/search", Self::BASE_PATH), &req)
                 .await?;
