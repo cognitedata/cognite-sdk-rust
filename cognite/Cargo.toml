@@ -26,7 +26,7 @@ prost = "^0.12"
 prost-types = "^0.12"
 
 http = { "version" = "^1", optional = true }
-reqwest-011 = { package = "reqwest", version = "^0.11", optional = true, features = [
+reqwest-011 = { package = "reqwest", version = "^0.12", optional = true, features = [
     "gzip",
     "json",
     "multipart",
