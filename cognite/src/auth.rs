@@ -1,7 +1,7 @@
+use crate::reqwest::{Request, Response};
+use crate::reqwest_middleware::{ClientWithMiddleware, Middleware, Next, Result};
+use crate::Extensions;
 use async_trait::async_trait;
-use reqwest::{Request, Response};
-use reqwest_middleware::{ClientWithMiddleware, Middleware, Next, Result};
-use task_local_extensions::Extensions;
 
 use crate::AuthHeaderManager;
 
@@ -13,6 +13,7 @@ pub struct AuthenticatorMiddleware {
     authenticator: AuthHeaderManager,
 }
 
+#[derive(Clone)]
 struct AuthenticatorFlag;
 
 impl AuthenticatorMiddleware {
@@ -36,7 +37,7 @@ impl Middleware for AuthenticatorMiddleware {
     ) -> Result<Response> {
         // Since we are reusing the client, we want to avoid infinitely calling the authenticator recursively,
         // so we add a flag indicating that we have already called the authenticator in this chain.
-        if !extensions.contains::<AuthenticatorFlag>() {
+        if extensions.get::<AuthenticatorFlag>().is_none() {
             // Add the flag before we call the authenticator, this prevents the authenticator from
             // attempting to add headers to its own request, which would deadlock.
             extensions.insert(AuthenticatorFlag);
@@ -48,7 +49,7 @@ impl Middleware for AuthenticatorMiddleware {
                 self.authenticator
                     .set_headers(req.headers_mut(), client)
                     .await
-                    .map_err(|e| reqwest_middleware::Error::Middleware(e.into()))?;
+                    .map_err(|e| crate::reqwest_middleware::Error::Middleware(e.into()))?;
             }
             // Once we're done, remove the flag
             extensions.remove::<AuthenticatorFlag>();

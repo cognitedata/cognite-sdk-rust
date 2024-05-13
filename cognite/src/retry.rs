@@ -1,12 +1,12 @@
 // This file is adapted from reqwest-retry, which was a bit too opinionated for our use.
 // https://github.com/TrueLayer/reqwest-middleware
 
+use crate::reqwest::{Request, Response, StatusCode};
+use crate::reqwest_middleware::{Middleware, Next, Result};
+use crate::Extensions;
 use async_trait::async_trait;
 use rand::{thread_rng, Rng};
-use reqwest::{Request, Response, StatusCode};
-use reqwest_middleware::{Middleware, Next, Result};
 use std::time::Duration;
-use task_local_extensions::Extensions;
 
 /// Middleware for retrying requests.
 pub struct CustomRetryMiddleware {
@@ -99,7 +99,7 @@ impl Retryable {
     ///
     /// * `res` - Request response.
     pub fn from_reqwest_response(
-        res: &reqwest_middleware::Result<reqwest::Response>,
+        res: &crate::reqwest_middleware::Result<crate::reqwest::Response>,
     ) -> Option<Self> {
         match res {
             Ok(success) => {
@@ -118,8 +118,8 @@ impl Retryable {
                 }
             }
             Err(error) => match error {
-                reqwest_middleware::Error::Middleware(_) => Some(Retryable::Fatal),
-                reqwest_middleware::Error::Reqwest(error) => {
+                crate::reqwest_middleware::Error::Middleware(_) => Some(Retryable::Fatal),
+                crate::reqwest_middleware::Error::Reqwest(error) => {
                     if error.is_timeout() || error.is_connect() {
                         Some(Retryable::Transient)
                     } else if error.is_body()

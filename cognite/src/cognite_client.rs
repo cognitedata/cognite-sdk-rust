@@ -1,5 +1,5 @@
-use reqwest::Client;
-use reqwest_middleware::{ClientBuilder, ClientWithMiddleware, Middleware};
+use crate::reqwest::Client;
+use crate::reqwest_middleware::{ClientBuilder, ClientWithMiddleware, Middleware};
 use std::env;
 use std::sync::Arc;
 use std::time::Duration;

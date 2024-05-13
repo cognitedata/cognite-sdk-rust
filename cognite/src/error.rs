@@ -1,6 +1,6 @@
+use crate::reqwest::header::InvalidHeaderValue;
+use crate::reqwest::StatusCode;
 use crate::{AuthenticatorError, Identity};
-use reqwest::header::InvalidHeaderValue;
-use reqwest::StatusCode;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::fmt;
@@ -216,7 +216,7 @@ pub enum Error {
     Config(String),
     #[error("Unexpected request error: {0}")]
     /// Reqwest error
-    Reqwest(#[from] ::reqwest::Error),
+    Reqwest(#[from] crate::reqwest::Error),
     /// Serde JSON error.
     #[error("Unexpected JSON error: {0}")]
     /// Serde JSON error.
@@ -226,11 +226,11 @@ pub enum Error {
     Prost(#[from] ::prost::DecodeError),
 }
 
-impl From<reqwest_middleware::Error> for Error {
-    fn from(err: reqwest_middleware::Error) -> Self {
+impl From<crate::reqwest_middleware::Error> for Error {
+    fn from(err: crate::reqwest_middleware::Error) -> Self {
         match err {
-            reqwest_middleware::Error::Middleware(x) => Error::Middleware(x),
-            reqwest_middleware::Error::Reqwest(x) => Self::from(x),
+            crate::reqwest_middleware::Error::Middleware(x) => Error::Middleware(x),
+            crate::reqwest_middleware::Error::Reqwest(x) => Self::from(x),
         }
     }
 }
