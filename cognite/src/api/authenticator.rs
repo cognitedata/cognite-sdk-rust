@@ -1,10 +1,10 @@
-use async_trait::async_trait;
-use futures_locks::RwLock;
-use reqwest::{
+use crate::reqwest::{
     header::{HeaderMap, HeaderValue},
     StatusCode,
 };
-use reqwest_middleware::ClientWithMiddleware;
+use crate::reqwest_middleware::ClientWithMiddleware;
+use async_trait::async_trait;
+use futures_locks::RwLock;
 use serde::{Deserialize, Serialize};
 use std::{
     fmt::Display,

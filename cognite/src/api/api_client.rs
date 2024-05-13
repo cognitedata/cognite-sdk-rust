@@ -1,11 +1,13 @@
+use crate::reqwest::header::{
+    HeaderMap, HeaderValue, ACCEPT, CONTENT_LENGTH, CONTENT_TYPE, USER_AGENT,
+};
+use crate::reqwest::{Body, Response, StatusCode};
+use crate::reqwest_middleware::ClientWithMiddleware;
+use crate::reqwest_middleware::RequestBuilder;
 use crate::IntoParams;
 use anyhow::anyhow;
 use futures::{TryStream, TryStreamExt};
 use prost::Message;
-use reqwest::header::{HeaderMap, HeaderValue, ACCEPT, CONTENT_LENGTH, CONTENT_TYPE, USER_AGENT};
-use reqwest::{Body, Response, StatusCode};
-use reqwest_middleware::ClientWithMiddleware;
-use reqwest_middleware::RequestBuilder;
 use serde::de::DeserializeOwned;
 use serde::ser::Serialize;
 
@@ -163,7 +165,7 @@ impl ApiClient {
     pub async fn get_stream(
         &self,
         url: &str,
-    ) -> Result<impl TryStream<Ok = bytes::Bytes, Error = reqwest::Error>> {
+    ) -> Result<impl TryStream<Ok = bytes::Bytes, Error = crate::reqwest::Error>> {
         let mut headers = HeaderMap::new();
         headers.insert("x-cdp-sdk", HeaderValue::from_str(SDK_VERSION).expect(""));
         headers.insert(

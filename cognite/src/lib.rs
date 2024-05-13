@@ -7,6 +7,10 @@ mod auth;
 mod dto;
 mod error;
 mod retry;
+mod rustls_shim;
+
+// Reqwest shim
+use rustls_shim::*;
 
 /// Utility methods and tooling.
 pub mod utils;

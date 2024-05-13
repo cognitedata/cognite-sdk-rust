@@ -150,7 +150,7 @@ impl Files {
     pub async fn download(
         &self,
         url: &str,
-    ) -> Result<impl TryStream<Ok = bytes::Bytes, Error = reqwest::Error>> {
+    ) -> Result<impl TryStream<Ok = bytes::Bytes, Error = crate::reqwest::Error>> {
         self.api_client.get_stream(url).await
     }
 
@@ -162,7 +162,7 @@ impl Files {
     pub async fn download_file(
         &self,
         id: Identity,
-    ) -> Result<impl TryStream<Ok = bytes::Bytes, Error = reqwest::Error>> {
+    ) -> Result<impl TryStream<Ok = bytes::Bytes, Error = crate::reqwest::Error>> {
         let items = vec![id];
         let links = self.download_link(&items).await?;
         let link = links.first().unwrap();
