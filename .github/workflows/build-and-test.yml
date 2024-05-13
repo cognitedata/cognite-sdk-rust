@@ -17,6 +17,8 @@ jobs:
           components: rustfmt, clippy
       - name: Run clippy
         run: cargo clippy -- -D warnings
+      - name: Check for non-default features
+        run: cargo check --no-default-features --features rustls-021
       - name: Run cargo format
         run: cargo fmt --check
       - name: Test
