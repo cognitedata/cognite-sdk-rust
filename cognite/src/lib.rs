@@ -8,6 +8,8 @@ mod dto;
 mod error;
 mod retry;
 mod rustls_shim;
+/// Utils for request tracing.
+pub mod tracing;
 
 // Reqwest shim
 use rustls_shim::*;
