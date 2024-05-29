@@ -1,5 +1,6 @@
 use crate::reqwest::Client;
 use crate::reqwest_middleware::{ClientBuilder, ClientWithMiddleware, Middleware};
+use crate::tracing::{RequestTracer, TracingMiddleware};
 use std::env;
 use std::sync::Arc;
 use std::time::Duration;
@@ -362,6 +363,18 @@ impl Builder {
             None => self.custom_middleware = Some(vec![middleware]),
         }
         self
+    }
+
+    /// Add request tracing to the end of the current list of middleware.
+    ///
+    /// # Arguments
+    ///
+    /// * `tracer` - Request tracer.
+    pub fn with_tracing(
+        &mut self,
+        tracer: impl RequestTracer + Send + Sync + 'static,
+    ) -> &mut Self {
+        self.with_custom_middleware(Arc::new(TracingMiddleware::new(tracer)))
     }
 
     /// Create a cognite client. This may fail if not all required parameters are provided.
