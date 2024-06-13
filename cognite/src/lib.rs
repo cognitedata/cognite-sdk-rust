@@ -147,7 +147,7 @@ pub use self::{
     api::{api_client::*, authenticator::*, resource::*, utils::*},
     auth::*,
     cognite_client::*,
-    dto::{filter::*, filter_types::*, identity::*, items::*, params::*, patch_item::*},
+    dto::{filter::*, filter_types::*, identity::*, items::*, params::*, patch_item::*, utils::*},
     error::*,
     retry::*,
 };
