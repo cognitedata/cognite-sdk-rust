@@ -1,3 +1,5 @@
+#![cfg(feature = "integration_tests")]
+
 #[cfg(test)]
 mod common;
 pub use common::*;

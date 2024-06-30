@@ -1,7 +1,13 @@
-use cognite::models::*;
-use cognite::*;
+#![cfg(feature = "integration_tests")]
+
 mod common;
+
 use cognite::models::spaces::SpaceCreate;
+
+use cognite::models::*;
+
+use cognite::*;
+
 use common::*;
 
 #[tokio::test]

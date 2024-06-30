@@ -1,7 +1,10 @@
+#![cfg(feature = "integration_tests")]
+
+mod common;
+
 #[cfg(test)]
 use cognite::assets::*;
 use cognite::*;
-mod common;
 pub use common::*;
 
 #[tokio::test]

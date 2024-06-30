@@ -1,3 +1,5 @@
+#![cfg(feature = "integration_tests")]
+
 #[cfg(test)]
 use bytes::Bytes;
 use cognite::files::*;
