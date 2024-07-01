@@ -10,4 +10,4 @@ Do you want to use the Cognite SDK in your project? Check out [these docs](cogni
 
 ## Do you want to contibute to the SDK?
 
-See [Contributing](CONTRIBUTING.md) for details.
+See [Contributing](cognite/CONTRIBUTING.md) for details.
