@@ -10,10 +10,10 @@ publish = false
 version = "0.3.0"
 
 [features]
+default = ["rustls-022"]
+integration_tests = []
 rustls-021 = ["reqwest-011", "reqwest-middleware-02", "task-local-extensions"]
 rustls-022 = ["http", "reqwest-012", "reqwest-middleware-03"]
-
-default = ["rustls-022"]
 
 [dependencies]
 async-trait = "^0.1"
