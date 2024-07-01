@@ -127,4 +127,4 @@ cargo run --example client
 
 ## Contributing
 
-See [Contributing](CONTRIBUTING.md) for details.
+See [Contributing](../CONTRIBUTING.md) for details.
