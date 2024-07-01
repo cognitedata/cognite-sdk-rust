@@ -8,7 +8,6 @@ edition = "2021"
 name = "cognite"
 publish = false
 version = "0.3.0"
-include = ["../CONTRIBUTING.md"]
 
 [features]
 rustls-021 = ["reqwest-011", "reqwest-middleware-02", "task-local-extensions"]
