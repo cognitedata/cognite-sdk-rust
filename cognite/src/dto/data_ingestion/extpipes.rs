@@ -216,6 +216,7 @@ impl Default for ExtPipeRunStatus {
 
 #[skip_serializing_none]
 #[derive(Serialize, Deserialize, Default, Clone)]
+#[serde(rename_all = "camelCase")]
 /// Filter extraction pipelines.
 pub struct ExtPipeFilter {
     /// Filter using this (case-sensitive) prefix on external ID.

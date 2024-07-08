@@ -75,7 +75,7 @@ async fn main() {
     // List all events
     let time_series: Vec<TimeSeries> = cognite_client.time_series.list(None).await.unwrap().items;
     println!("{} time series retrieved.", time_series.len());
-    // Search time serie
+    // Search time series
     let time_serie_search: TimeSeriesSearch = TimeSeriesSearch::new();
     let time_serie_filter: TimeSeriesFilter = TimeSeriesFilter::new();
     let time_series_search_result: Vec<TimeSeries> = cognite_client

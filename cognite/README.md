@@ -4,13 +4,13 @@ Rust SDK to ensure excellent user experience for developers and data scientists 
 
 ## Documentation
 
-* [API Documentation](https://docs.cognite.com/api/v1/)
+* [API Documentation][api-docs]
 
 ## Prerequisites
 
-Install rust. See [instructions here](https://rustup.rs/).
+Install rust. See [instructions here][rustup].
 
-To build the SDK, you will also need a version of protobuf-compiler, on debian based systems that can be installed using `sudo apt-get install protobuf-compiler`.
+To build the SDK, you will also need a version of protobuf-compiler, on debian-based systems that can be installed using `sudo apt-get install protobuf-compiler`.
 
 Set environment variables:
 
@@ -127,4 +127,8 @@ cargo run --example client
 
 ## Contributing
 
-See [Contributing](CONTRIBUTING.md) for details.
+See [Contributing][contributing] for details.
+
+[api-docs]: https://docs.cognite.com/api/v1/
+[rustup]: https://rustup.rs/
+[contributing]: https://github.com/cognitedata/cognite-sdk-rust/tree/master/CONTRIBUTING.md
