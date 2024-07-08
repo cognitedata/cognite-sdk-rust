@@ -1,8 +1,11 @@
-use crate::reqwest::{
-    header::{HeaderMap, HeaderValue},
-    StatusCode,
-};
 use crate::reqwest_middleware::ClientWithMiddleware;
+use crate::{
+    dto::utils::MaybeStringU64,
+    reqwest::{
+        header::{HeaderMap, HeaderValue},
+        StatusCode,
+    },
+};
 use async_trait::async_trait;
 use futures_locks::RwLock;
 use serde::{Deserialize, Serialize};
@@ -142,7 +145,7 @@ impl AuthenticatorRequest {
 #[derive(Serialize, Deserialize, Debug)]
 struct AuthenticatorResponse {
     access_token: String,
-    expires_in: u64,
+    expires_in: MaybeStringU64,
 }
 
 #[derive(Serialize, Deserialize, Debug, Error)]
@@ -285,7 +288,7 @@ impl Authenticator {
         {
             let state = &*self.state.read().await;
             if let Some(last) = &state.last_response {
-                if state.last_request_time + last.expires_in > now + 60 {
+                if state.last_request_time + last.expires_in.0 > now + 60 {
                     return Ok(last.access_token.clone());
                 }
             }
@@ -297,7 +300,7 @@ impl Authenticator {
         // Need to check here too, in case we were blocked in this write lock by another thread
         // fetching the token.
         if let Some(last) = &write.last_response {
-            if write.last_request_time + last.expires_in > now {
+            if write.last_request_time + last.expires_in.0 > now {
                 return Ok(last.access_token.clone());
             }
         }
