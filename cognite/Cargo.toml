@@ -22,8 +22,8 @@ derivative = "^2"
 futures = "^0.3"
 futures-locks = "^0.7"
 futures-timer = "^3"
-prost = "^0.12"
-prost-types = "^0.12"
+prost = "^0.13"
+prost-types = "^0.13"
 
 http = { "version" = "^1", optional = true }
 reqwest-011 = { package = "reqwest", version = "^0.11", optional = true, features = [
@@ -62,4 +62,4 @@ rand = "0.8.5"
 wiremock = "0.6.0"
 
 [build-dependencies]
-prost-build = "^0.12"
+prost-build = "^0.13"
