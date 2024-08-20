@@ -117,6 +117,7 @@ pub mod models {
     pub mod instances {
         pub use crate::dto::data_modeling::instances::*;
         pub use crate::dto::data_modeling::query::*;
+        pub use crate::dto::filter::filter;
     }
     /// Spaces group and namespace data modeling resources.
     pub mod spaces {
