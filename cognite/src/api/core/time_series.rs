@@ -10,6 +10,7 @@ use crate::error::Result;
 use crate::get_missing_from_result;
 use crate::utils::execute_with_parallelism;
 use crate::Identity;
+use crate::IdentityOrInstance;
 use crate::IgnoreUnknownIds;
 use crate::Items;
 use crate::ItemsVec;
@@ -95,7 +96,7 @@ impl TimeSeriesResource {
     pub async fn insert_datapoints_proto_create_missing<T: Iterator<Item = AddTimeSeries>>(
         &self,
         add_datapoints: &DataPointInsertionRequest,
-        generator: &impl Fn(&[Identity]) -> T,
+        generator: &impl Fn(&[IdentityOrInstance]) -> T,
     ) -> Result<()> {
         let result = self.insert_datapoints_proto(add_datapoints).await;
         let missing = get_missing_from_result(&result);
@@ -138,7 +139,7 @@ impl TimeSeriesResource {
     pub async fn insert_datapoints_create_missing<T: Iterator<Item = AddTimeSeries>>(
         &self,
         add_datapoints: Vec<AddDatapoints>,
-        generator: &impl Fn(&[Identity]) -> T,
+        generator: &impl Fn(&[IdentityOrInstance]) -> T,
     ) -> Result<()> {
         let request = DataPointInsertionRequest::from(add_datapoints);
         self.insert_datapoints_proto_create_missing(&request, generator)
@@ -162,12 +163,12 @@ impl TimeSeriesResource {
             Some(m) => m,
             None => return result,
         };
-        let idt_set = HashSet::<Identity>::from_iter(missing_idts.into_iter());
+        let idt_set = HashSet::<IdentityOrInstance>::from_iter(missing_idts.into_iter());
 
         let mut items = vec![];
         for elem in add_datapoints.items.iter() {
-            let idt = match &elem.id_or_external_id {
-                Some(x) => Identity::from(x.clone()),
+            let idt = match &elem.time_series_reference {
+                Some(x) => IdentityOrInstance::from(x.clone()),
                 None => continue,
             };
             if !idt_set.contains(&idt) {

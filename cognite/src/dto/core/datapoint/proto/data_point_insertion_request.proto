@@ -7,9 +7,10 @@ import "data_points.proto";
 option java_multiple_files = true;
 
 message DataPointInsertionItem {
-    oneof idOrExternalId {
+    oneof timeSeriesReference {
         int64 id = 1;
         string externalId = 2;
+        InstanceId instanceId = 5;
     }
 
     oneof datapointType {
