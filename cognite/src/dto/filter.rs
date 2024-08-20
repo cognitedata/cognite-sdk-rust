@@ -1,4 +1,5 @@
 use serde::{Deserialize, Serialize};
+use serde_with::skip_serializing_none;
 
 use crate::models::SourceReference;
 
@@ -9,6 +10,7 @@ pub use aggregate::*;
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 #[serde(rename_all = "camelCase")]
+#[skip_serializing_none]
 /// Advanced filter
 pub enum AdvancedFilter {
     /// Require the value of `property` to be equal to `value`
@@ -31,12 +33,16 @@ pub enum AdvancedFilter {
         /// Left hand side property.
         property: Vec<String>,
         /// Greater than or equal to
+        #[serde(skip_serializing_if = "Option::is_none")]
         gte: Option<QueryValue>,
         /// Greater than
+        #[serde(skip_serializing_if = "Option::is_none")]
         gt: Option<QueryValue>,
         /// Less than or equal to
+        #[serde(skip_serializing_if = "Option::is_none")]
         lte: Option<QueryValue>,
         /// Less than
+        #[serde(skip_serializing_if = "Option::is_none")]
         lt: Option<QueryValue>,
     },
     /// Require the value to be text and start with `value`
@@ -84,12 +90,16 @@ pub enum AdvancedFilter {
         /// End property reference.
         end_property: Vec<String>,
         /// Greater than or equal to
+        #[serde(skip_serializing_if = "Option::is_none")]
         gte: Option<QueryValue>,
         /// Greater than
+        #[serde(skip_serializing_if = "Option::is_none")]
         gt: Option<QueryValue>,
         /// Less than or equal to
+        #[serde(skip_serializing_if = "Option::is_none")]
         lte: Option<QueryValue>,
         /// Less than
+        #[serde(skip_serializing_if = "Option::is_none")]
         lt: Option<QueryValue>,
     },
     /// Require items to have data in the referenced views, or containers.
@@ -156,6 +166,108 @@ impl<const N: usize> PropertyIdentifier for [&str; N] {
     }
 }
 
+/// Start or end of a range.
+pub enum RangeItem<T> {
+    /// Inclusive end point.
+    Inclusive(T),
+    /// Exclusive end point.
+    Exclusive(T),
+    /// Unbounded end point.
+    Empty,
+}
+
+impl<T> RangeItem<T> {
+    /// Map the inner value.
+    pub fn map<R>(self, map: impl FnOnce(T) -> R) -> RangeItem<R> {
+        match self {
+            RangeItem::Inclusive(r) => RangeItem::Inclusive(map(r)),
+            RangeItem::Exclusive(r) => RangeItem::Exclusive(map(r)),
+            RangeItem::Empty => RangeItem::Empty,
+        }
+    }
+}
+
+/// Trait for types that can be converted into a range for a DMS query.
+pub trait IntoQueryRange {
+    /// Create a query range.
+    fn into_query_range(self) -> (RangeItem<QueryValue>, RangeItem<QueryValue>);
+}
+
+impl<T> IntoQueryRange for std::ops::Range<T>
+where
+    T: Into<QueryValue>,
+{
+    fn into_query_range(self) -> (RangeItem<QueryValue>, RangeItem<QueryValue>) {
+        (
+            RangeItem::Inclusive(self.start.into()),
+            RangeItem::Exclusive(self.end.into()),
+        )
+    }
+}
+
+impl<T> IntoQueryRange for std::ops::RangeFrom<T>
+where
+    T: Into<QueryValue>,
+{
+    fn into_query_range(self) -> (RangeItem<QueryValue>, RangeItem<QueryValue>) {
+        (RangeItem::Inclusive(self.start.into()), RangeItem::Empty)
+    }
+}
+
+impl IntoQueryRange for std::ops::RangeFull {
+    fn into_query_range(self) -> (RangeItem<QueryValue>, RangeItem<QueryValue>) {
+        (RangeItem::Empty, RangeItem::Empty)
+    }
+}
+
+impl<T> IntoQueryRange for std::ops::RangeInclusive<T>
+where
+    T: Into<QueryValue> + Clone,
+{
+    fn into_query_range(self) -> (RangeItem<QueryValue>, RangeItem<QueryValue>) {
+        (
+            RangeItem::Inclusive(self.start().clone().into()),
+            RangeItem::Inclusive(self.end().clone().into()),
+        )
+    }
+}
+
+impl<T> IntoQueryRange for std::ops::RangeTo<T>
+where
+    T: Into<QueryValue>,
+{
+    fn into_query_range(self) -> (RangeItem<QueryValue>, RangeItem<QueryValue>) {
+        (RangeItem::Empty, RangeItem::Exclusive(self.end.into()))
+    }
+}
+
+impl<T> IntoQueryRange for std::ops::RangeToInclusive<T>
+where
+    T: Into<QueryValue>,
+{
+    fn into_query_range(self) -> (RangeItem<QueryValue>, RangeItem<QueryValue>) {
+        (RangeItem::Empty, RangeItem::Exclusive(self.end.into()))
+    }
+}
+
+impl<T: Into<QueryValue>> IntoQueryRange for (T, T) {
+    fn into_query_range(self) -> (RangeItem<QueryValue>, RangeItem<QueryValue>) {
+        (
+            RangeItem::Inclusive(self.0.into()),
+            RangeItem::Exclusive(self.1.into()),
+        )
+    }
+}
+
+impl<T> IntoQueryRange for (RangeItem<T>, RangeItem<T>)
+where
+    T: Into<QueryValue>,
+{
+    fn into_query_range(self) -> (RangeItem<QueryValue>, RangeItem<QueryValue>) {
+        (self.0.map(Into::into), self.1.map(Into::into))
+    }
+}
+
 impl AdvancedFilter {
     /// Create an `Equals` filter. `property = value`
     ///
@@ -187,23 +299,35 @@ impl AdvancedFilter {
     /// # Arguments
     ///
     /// * `property` - Property to filter.
-    /// * `gte` - Greater than or equal to.
-    /// * `gt` - Greater than.
-    /// * `lte` - Less than or equal to.
-    /// * `lt` - Less than.
-    pub fn range(
-        property: impl PropertyIdentifier,
-        gte: Option<impl Into<QueryValue>>,
-        gt: Option<impl Into<QueryValue>>,
-        lte: Option<impl Into<QueryValue>>,
-        lt: Option<impl Into<QueryValue>>,
-    ) -> Self {
+    /// * `range` - Range to check.
+    ///
+    /// `IntoQueryRange` is implemented for `(QueryValue, QueryValue)`, which interprets it as
+    /// (inclusive, exclusive), as well as ranges in `std::ops`, such as `0..5`, `..`, `..=7`, etc.
+    ///
+    /// If you need fine control, use `(RangeItem<T>, RangeItem<T>)`
+    pub fn range(property: impl PropertyIdentifier, range: impl IntoQueryRange) -> Self {
+        let (start, end) = range.into_query_range();
+        let mut lte = None;
+        let mut gte = None;
+        let mut lt = None;
+        let mut gt = None;
+        match start {
+            RangeItem::Inclusive(i) => gte = Some(i),
+            RangeItem::Exclusive(i) => gt = Some(i),
+            RangeItem::Empty => (),
+        }
+        match end {
+            RangeItem::Inclusive(i) => lte = Some(i),
+            RangeItem::Exclusive(i) => lt = Some(i),
+            RangeItem::Empty => (),
+        }
+
         Self::Range {
             property: property.into_identifier(),
-            gte: gte.map(|v| v.into()),
-            gt: gt.map(|v| v.into()),
-            lte: lte.map(|v| v.into()),
-            lt: lt.map(|v| v.into()),
+            gte,
+            gt,
+            lte,
+            lt,
         }
     }
 
@@ -281,25 +405,39 @@ impl AdvancedFilter {
     ///
     /// * `start_property` - Start property
     /// * `end_property` - End property.
-    /// * `gte` - Greater than or equal to.
-    /// * `gt` - Greater than.
-    /// * `lte` - Less than or equal to.
-    /// * `lt` - Less than.
+    /// * `range` - Range to check for overlap with.
+    ///
+    /// `IntoQueryRange` is implemented for `(QueryValue, QueryValue)`, which interprets it as
+    /// (inclusive, exclusive), as well as ranges in `std::ops`, such as `0..5`, `..`, `..=7`, etc.
+    ///
+    /// If you need fine control, use `(RangeItem<T>, RangeItem<T>)`
     pub fn overlaps(
         start_property: impl PropertyIdentifier,
         end_property: impl PropertyIdentifier,
-        gte: Option<impl Into<QueryValue>>,
-        gt: Option<impl Into<QueryValue>>,
-        lte: Option<impl Into<QueryValue>>,
-        lt: Option<impl Into<QueryValue>>,
+        range: impl IntoQueryRange,
     ) -> Self {
+        let (start, end) = range.into_query_range();
+        let mut lte = None;
+        let mut gte = None;
+        let mut lt = None;
+        let mut gt = None;
+        match start {
+            RangeItem::Inclusive(i) => gte = Some(i),
+            RangeItem::Exclusive(i) => gt = Some(i),
+            RangeItem::Empty => (),
+        }
+        match end {
+            RangeItem::Inclusive(i) => lte = Some(i),
+            RangeItem::Exclusive(i) => lt = Some(i),
+            RangeItem::Empty => (),
+        }
         Self::Overlaps {
             start_property: start_property.into_identifier(),
             end_property: end_property.into_identifier(),
-            gte: gte.map(|v| v.into()),
-            gt: gt.map(|v| v.into()),
-            lte: lte.map(|v| v.into()),
-            lt: lt.map(|v| v.into()),
+            gte,
+            gt,
+            lte,
+            lt,
         }
     }
 

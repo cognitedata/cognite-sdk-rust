@@ -117,6 +117,7 @@ fn test_filter_serialization() {
             15,
         )))
         .and(AdvancedFilter::exists(["thing", "third_prop"]))
+        .and(AdvancedFilter::range(["test"], 1..5))
         .or(AdvancedFilter::contains_any(
             ["test"],
             &["value1", "value2"],
@@ -144,6 +145,13 @@ fn test_filter_serialization() {
                     {
                         "exists": {
                             "property": ["thing", "third_prop"]
+                        }
+                    },
+                    {
+                        "range": {
+                            "property": ["test"],
+                            "gte": 1,
+                            "lt": 5,
                         }
                     }
                 ]
