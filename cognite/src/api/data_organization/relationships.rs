@@ -26,7 +26,7 @@ impl RelationshipsResource {
     ///
     /// * `relationship_ids` - IDs of relationships to retrieve.
     /// * `ignore_unknown_ids` - Set this to `true` to ignore any IDs not found in CDF.
-    /// If this is `false`, any missing IDs will cause the request to fail.
+    ///   If this is `false`, any missing IDs will cause the request to fail.
     /// * `fetch_resources` - Whether to fetch the associated resources along with the relationship itself.
     pub async fn retrieve(
         &self,

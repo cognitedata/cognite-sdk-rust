@@ -9,6 +9,7 @@ option java_multiple_files = true;
 message DataPointListItem {
     int64 id = 1;
     string externalId = 2;
+    InstanceId instanceId = 11;
     bool isString = 6;
     bool isStep = 7;
     string unit = 8;

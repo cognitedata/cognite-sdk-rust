@@ -3,8 +3,7 @@ use std::collections::HashMap;
 
 use cognite::models::{
     instances::{
-        DirectRelationReference, EdgeOrNodeData, EdgeWrite, NodeOrEdgeCreate,
-        NodeOrEdgeSpecification, NodeWrite,
+        EdgeOrNodeData, EdgeWrite, InstanceId, NodeOrEdgeCreate, NodeOrEdgeSpecification, NodeWrite,
     },
     views::ViewReference,
     ItemId, SourceReference,
@@ -52,17 +51,17 @@ pub fn get_mock_instances(
             .iter()
             .map(|id| {
                 NodeOrEdgeCreate::Edge(EdgeWrite {
-                    r#type: DirectRelationReference {
+                    r#type: InstanceId {
                         space: space.to_owned(),
                         external_id: id.to_string(),
                     },
                     space: space.to_owned(),
                     external_id: id.to_string(),
-                    start_node: DirectRelationReference {
+                    start_node: InstanceId {
                         space: space.to_owned(),
                         external_id: "start_node".to_string(),
                     },
-                    end_node: DirectRelationReference {
+                    end_node: InstanceId {
                         space: space.to_owned(),
                         external_id: "end_node".to_string(),
                     },

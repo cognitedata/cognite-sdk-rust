@@ -29,7 +29,7 @@ impl AssetsResource {
     ///
     /// * `asset_ids` - List of IDs or external IDs to retrieve.
     /// * `ignore_unknown_ids` - If `true`, missing assets will be ignored, instead of causing
-    /// the request to fail.
+    ///   the request to fail.
     /// * `aggregated_properties` - List of aggregated properties to include in response.
     pub async fn retrieve(
         &self,

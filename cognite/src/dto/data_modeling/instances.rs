@@ -80,7 +80,7 @@ pub struct NodeWrite<TProperties> {
     /// then the item will be skipped instead of failing the ingestion request.
     pub existing_version: Option<i32>,
     /// Node type (direct relation).
-    pub r#type: Option<DirectRelationReference>,
+    pub r#type: Option<InstanceId>,
 }
 
 #[skip_serializing_none]
@@ -91,13 +91,13 @@ pub struct EdgeWrite<TProperties> {
     /// Edge space.
     pub space: String,
     /// Edge type (direct relation).
-    pub r#type: DirectRelationReference,
+    pub r#type: InstanceId,
     /// Edge external ID.
     pub external_id: String,
     /// Edge start node.
-    pub start_node: DirectRelationReference,
+    pub start_node: InstanceId,
     /// Edge end node.
-    pub end_node: DirectRelationReference,
+    pub end_node: InstanceId,
     /// List of properties in various containers or views.
     pub sources: Option<Vec<EdgeOrNodeData<TProperties>>>,
     /// Fail the ingestion request if the edge's version is greater than or equal to this value.
@@ -189,7 +189,7 @@ pub struct NodeDefinition<TProperties> {
     /// Node external ID.
     pub external_id: String,
     /// Node type.
-    pub r#type: Option<DirectRelationReference>,
+    pub r#type: Option<InstanceId>,
     /// Time this node was created, in milliseconds since epoch.
     pub created_time: i64,
     /// Time this node was last modified, in milliseconds since epoch.
@@ -210,7 +210,7 @@ pub struct EdgeDefinition<TProperties> {
     /// Edge space.
     pub space: String,
     /// Edge type.
-    pub r#type: DirectRelationReference,
+    pub r#type: InstanceId,
     /// Edge version.
     pub version: String,
     /// Edge external ID.
@@ -220,9 +220,9 @@ pub struct EdgeDefinition<TProperties> {
     /// Time this edge was last modified, in milliseconds since epoch.
     pub last_updated_time: i64,
     /// Edge start node.
-    pub start_node: DirectRelationReference,
+    pub start_node: InstanceId,
     /// Edge end node.
-    pub end_node: DirectRelationReference,
+    pub end_node: InstanceId,
     /// Timestamp when the edge was soft deleted. Note that deleted nodes are
     /// filtered out of query results, but present in sync results.
     /// This means that this value will only be present in sync results.
@@ -234,10 +234,10 @@ pub struct EdgeDefinition<TProperties> {
 /// Shorthand for map from space and view/container external ID to properties object.
 type PropertiesObject<TProperties> = HashMap<String, HashMap<String, TProperties>>;
 
-#[derive(Serialize, Deserialize, Default, Clone, Debug)]
+#[derive(Serialize, Deserialize, Default, Clone, Debug, Hash, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 /// Direct reference to a node.
-pub struct DirectRelationReference {
+pub struct InstanceId {
     /// Node space.
     pub space: String,
     /// Node external ID.
