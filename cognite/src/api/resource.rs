@@ -417,7 +417,7 @@ where
     ///
     /// * `deletes` - IDs of items to delete.
     /// * `ignore_unknown_ids` - If `true`, missing IDs will be ignored, and not
-    /// cause the request to fail.
+    ///   cause the request to fail.
     fn delete(
         &self,
         deletes: &[TIdt],
@@ -631,7 +631,7 @@ where
     ///
     /// * `ids` - IDs of items to retrieve.
     /// * `ignore_unknown_ids` - If `true`, items missing from CDF will be ignored, and not
-    /// cause the request to fail.
+    ///   cause the request to fail.
     fn retrieve(
         &self,
         ids: &[TIdt],

@@ -13,7 +13,7 @@ use std::convert::TryFrom;
 
 pub use self::filter::*;
 pub use self::proto::data_point_insertion_item::DatapointType as InsertDatapointType;
-pub use self::proto::data_point_insertion_item::IdOrExternalId;
+pub use self::proto::data_point_insertion_item::TimeSeriesReference;
 pub use self::proto::data_point_list_item::DatapointType as ListDatapointType;
 pub use self::proto::*;
 pub use self::status_code::*;
@@ -21,6 +21,7 @@ pub use self::status_code::*;
 use serde::{Deserialize, Serialize};
 
 use crate::Identity;
+use crate::IdentityOrInstance;
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(untagged)]
@@ -334,24 +335,57 @@ impl AddDatapoints {
     }
 }
 
-impl From<Identity> for IdOrExternalId {
-    fn from(idt: Identity) -> IdOrExternalId {
+impl From<Identity> for TimeSeriesReference {
+    fn from(idt: Identity) -> TimeSeriesReference {
         match idt {
-            Identity::Id { id } => IdOrExternalId::Id(id),
+            Identity::Id { id } => TimeSeriesReference::Id(id),
             Identity::ExternalId {
                 external_id: ext_id,
-            } => IdOrExternalId::ExternalId(ext_id),
+            } => TimeSeriesReference::ExternalId(ext_id),
         }
     }
 }
 
-impl From<IdOrExternalId> for Identity {
-    fn from(idt: IdOrExternalId) -> Identity {
+impl TryFrom<TimeSeriesReference> for Identity {
+    type Error = ();
+
+    fn try_from(idt: TimeSeriesReference) -> Result<Identity, ()> {
         match idt {
-            IdOrExternalId::Id(id) => Identity::Id { id },
-            IdOrExternalId::ExternalId(ext_id) => Identity::ExternalId {
+            TimeSeriesReference::Id(id) => Ok(Identity::Id { id }),
+            TimeSeriesReference::ExternalId(ext_id) => Ok(Identity::ExternalId {
                 external_id: ext_id,
-            },
+            }),
+            TimeSeriesReference::InstanceId(_) => Err(()),
+        }
+    }
+}
+
+impl From<crate::dto::data_modeling::instances::InstanceId> for InstanceId {
+    fn from(value: crate::dto::data_modeling::instances::InstanceId) -> Self {
+        Self {
+            external_id: value.external_id,
+            space: value.space,
+        }
+    }
+}
+
+impl From<InstanceId> for crate::dto::data_modeling::instances::InstanceId {
+    fn from(value: InstanceId) -> Self {
+        Self {
+            external_id: value.external_id,
+            space: value.space,
+        }
+    }
+}
+
+impl From<TimeSeriesReference> for IdentityOrInstance {
+    fn from(value: TimeSeriesReference) -> Self {
+        match value {
+            TimeSeriesReference::Id(id) => IdentityOrInstance::Identity(Identity::Id { id }),
+            TimeSeriesReference::ExternalId(external_id) => {
+                IdentityOrInstance::Identity(Identity::ExternalId { external_id })
+            }
+            TimeSeriesReference::InstanceId(i) => Self::InstanceId(i.into()),
         }
     }
 }
@@ -421,7 +455,7 @@ impl From<DataPointListItem> for DatapointsResponse {
 impl From<AddDatapoints> for DataPointInsertionItem {
     fn from(req: AddDatapoints) -> DataPointInsertionItem {
         DataPointInsertionItem {
-            id_or_external_id: Some(IdOrExternalId::from(req.id)),
+            time_series_reference: Some(TimeSeriesReference::from(req.id)),
             datapoint_type: match req.datapoints {
                 DatapointsEnumType::NumericDatapoints(dps) => Some(
                     self::proto::data_point_insertion_item::DatapointType::NumericDatapoints(

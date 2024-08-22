@@ -1,6 +1,6 @@
 use crate::reqwest::header::InvalidHeaderValue;
 use crate::reqwest::StatusCode;
-use crate::{AuthenticatorError, Identity};
+use crate::{AuthenticatorError, FromErrorDetail};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::fmt;
@@ -62,24 +62,20 @@ pub struct ApiErrorMessage {
 }
 
 impl ApiErrorDetail {
-    /// Get a list of identites, assuming each entry here contains `id` or `externalId`
-    pub fn get_identities(&self) -> impl Iterator<Item = Identity> + '_ {
-        self.iter().filter_map(|m| {
-            Self::get_integer(m, "id")
-                .map(|id| Identity::Id { id })
-                .or_else(|| {
-                    Self::get_string(m, "externalId").map(|external_id| Identity::ExternalId {
-                        external_id: external_id.clone(),
-                    })
-                })
-        })
+    /// Get values of type `T` form self.
+    pub fn get_values<T: FromErrorDetail>(&self) -> impl Iterator<Item = T> + '_ {
+        self.iter().filter_map(|m| T::from_detail(m))
     }
+
     /// Get a value from `map` as integer.
-    fn get_integer(map: &HashMap<String, IntegerOrString>, key: &str) -> Option<i64> {
+    pub fn get_integer(map: &HashMap<String, IntegerOrString>, key: &str) -> Option<i64> {
         map.get(key).and_then(|f| f.integer())
     }
     /// Get a value from `map` as string.
-    fn get_string<'a>(map: &'a HashMap<String, IntegerOrString>, key: &str) -> Option<&'a String> {
+    pub fn get_string<'a>(
+        map: &'a HashMap<String, IntegerOrString>,
+        key: &str,
+    ) -> Option<&'a String> {
         map.get(key).and_then(|f| f.string())
     }
     /// Iterate over elements.

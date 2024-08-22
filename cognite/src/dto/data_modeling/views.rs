@@ -13,7 +13,7 @@ use crate::{
 };
 
 use super::{
-    instances::DirectRelationReference,
+    instances::InstanceId,
     query::{QueryDirection, ViewPropertyReference},
 };
 
@@ -208,7 +208,7 @@ pub struct EdgeConnection {
     pub description: Option<String>,
     /// Reference to the node pointed to by the edge type. Consists of a
     /// space and an external ID.
-    pub r#type: DirectRelationReference,
+    pub r#type: InstanceId,
     /// Direction of the connection. Defaults to `outwards`.
     pub direction: Option<QueryDirection>,
     /// Which view this connection references.

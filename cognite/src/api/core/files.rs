@@ -29,8 +29,8 @@ impl Files {
     /// * `url` - URL to upload stream to.
     /// * `stream` - Stream to upload.
     /// * `stream_chunked` - Set this to `true` to use chunked streaming. Note that this is not supported for the
-    /// azure file backend. If this is set to `false`, the entire file is read into memory before uploading, which may
-    /// be very expensive. Use `upload_stream_known_size` if the size of the file is known.
+    ///   azure file backend. If this is set to `false`, the entire file is read into memory before uploading, which may
+    ///   be very expensive. Use `upload_stream_known_size` if the size of the file is known.
     ///
     /// # Example
     ///
@@ -71,7 +71,7 @@ impl Files {
     /// * `url` - URL to upload stream to.
     /// * `stream` - Stream to upload.
     /// * `size` - Known size of stream in bytes. Note: Do not use this method if the size is not
-    /// actually known!
+    ///   actually known!
     ///
     /// # Example
     ///
@@ -122,7 +122,7 @@ impl Files {
     /// # Arguments
     ///
     /// * `overwrite` - Set this to `true` to overwrite existing files with the same `external_id`.
-    /// If this is `false`, and a file with the given `external_id` already exists, the request will fail.
+    ///   If this is `false`, and a file with the given `external_id` already exists, the request will fail.
     /// * `item` - The file to upload.
     pub async fn upload(&self, overwrite: bool, item: &AddFile) -> Result<FileMetadata> {
         self.api_client

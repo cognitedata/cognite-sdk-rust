@@ -1,4 +1,8 @@
+use std::collections::HashMap;
+
 use serde::{Deserialize, Serialize};
+
+use crate::{models::instances::InstanceId, ApiErrorDetail, FromErrorDetail, IntegerOrString};
 
 #[derive(Serialize, Deserialize, Debug, Hash, PartialEq, Eq, Clone)]
 #[serde(rename_all = "camelCase")]
@@ -90,6 +94,18 @@ impl From<&str> for Identity {
     }
 }
 
+impl FromErrorDetail for Identity {
+    fn from_detail(detail: &HashMap<String, IntegerOrString>) -> Option<Self> {
+        ApiErrorDetail::get_integer(detail, "id")
+            .map(|id| Identity::Id { id })
+            .or_else(|| {
+                ApiErrorDetail::get_string(detail, "externalId").map(|id| Identity::ExternalId {
+                    external_id: id.to_owned(),
+                })
+            })
+    }
+}
+
 #[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 /// Wrapper around a cognite internal ID.
@@ -98,12 +114,26 @@ pub struct CogniteId {
     id: i64,
 }
 
+impl FromErrorDetail for CogniteId {
+    fn from_detail(detail: &HashMap<String, IntegerOrString>) -> Option<Self> {
+        ApiErrorDetail::get_integer(detail, "id").map(|id| CogniteId { id })
+    }
+}
+
 #[derive(Serialize, Deserialize, Debug, Clone, Default)]
 #[serde(rename_all = "camelCase")]
 /// Wrapper around a cognite external ID.
 pub struct CogniteExternalId {
     /// External ID.
     pub external_id: String,
+}
+
+impl FromErrorDetail for CogniteExternalId {
+    fn from_detail(detail: &HashMap<String, IntegerOrString>) -> Option<Self> {
+        ApiErrorDetail::get_string(detail, "externalId").map(|external_id| CogniteExternalId {
+            external_id: external_id.to_owned(),
+        })
+    }
 }
 
 /// Trait indicating that a type can be compared to an identity.
@@ -121,5 +151,31 @@ impl From<String> for CogniteExternalId {
 impl From<i64> for CogniteId {
     fn from(id: i64) -> Self {
         CogniteId { id }
+    }
+}
+
+#[derive(Debug, Deserialize, Serialize, Clone, Hash, Eq, PartialEq)]
+#[serde(untagged)]
+/// Identity or instance ID.
+pub enum IdentityOrInstance {
+    /// Identity, external ID or internal ID.
+    Identity(Identity),
+    /// Instance ID, refering to a node in data modeling.
+    InstanceId(InstanceId),
+}
+
+impl FromErrorDetail for IdentityOrInstance {
+    fn from_detail(detail: &HashMap<String, IntegerOrString>) -> Option<Self> {
+        if let (Some(space), Some(external_id)) = (
+            ApiErrorDetail::get_string(detail, "space"),
+            ApiErrorDetail::get_string(detail, "externalId"),
+        ) {
+            Some(Self::InstanceId(InstanceId {
+                space: space.to_owned(),
+                external_id: external_id.to_owned(),
+            }))
+        } else {
+            Identity::from_detail(detail).map(Self::Identity)
+        }
     }
 }

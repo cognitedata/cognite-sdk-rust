@@ -54,3 +54,8 @@ message AggregateDatapoint {
 message AggregateDatapoints {
     repeated AggregateDatapoint datapoints = 1;
 }
+
+message InstanceId {
+    string space = 1;
+    string externalId = 2;
+}
