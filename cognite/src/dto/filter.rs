@@ -282,7 +282,7 @@ where
 }
 
 /// Filter builder methods.
-pub mod filter {
+pub(crate) mod filter_methods {
     use super::*;
     /// Create an `Equals` filter. `property = value`
     ///

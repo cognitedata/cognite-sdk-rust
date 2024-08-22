@@ -117,7 +117,6 @@ pub mod models {
     pub mod instances {
         pub use crate::dto::data_modeling::instances::*;
         pub use crate::dto::data_modeling::query::*;
-        pub use crate::dto::filter::filter;
     }
     /// Spaces group and namespace data modeling resources.
     pub mod spaces {
@@ -128,6 +127,11 @@ pub mod models {
         pub use crate::dto::data_modeling::views::*;
     }
     pub use super::dto::data_modeling::common::*;
+    /// Structures and methods for creating complex data modeling filters.
+    pub mod filter {
+        pub use crate::dto::filter::filter_methods::*;
+        pub use crate::dto::filter::*;
+    }
 }
 
 /// Groups are used to give principals the capabilities to access CDF resources. One principal
@@ -152,6 +156,11 @@ pub use self::{
     error::*,
     retry::*,
 };
+
+/// Structures and methods for creating complex filters.
+pub mod filter {
+    pub use super::dto::filter::filter_methods::*;
+}
 
 /// Middleware used by the cognite HTTP client.
 pub mod middleware {
