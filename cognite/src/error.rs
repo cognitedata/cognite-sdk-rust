@@ -220,6 +220,9 @@ pub enum Error {
     #[error("Unexpected protobuf error: {0}")]
     /// Prost (protobuf deserializer) error
     Prost(#[from] ::prost::DecodeError),
+    #[error("{0}")]
+    /// Something else went wrong.
+    Other(String),
 }
 
 impl From<crate::reqwest_middleware::Error> for Error {

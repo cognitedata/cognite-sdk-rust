@@ -48,9 +48,37 @@ pub struct FileMetadata {
     pub created_time: i64,
     /// Time this file was last modified, in milliseconds since epoch.
     pub last_updated_time: i64,
+}
+
+#[derive(Serialize, Deserialize, Debug, Default, Clone)]
+#[serde(rename_all = "camelCase")]
+/// Extra data in file upload result from normal file upload.
+pub struct UploadUrl {
     /// URL for uploading data to this file. Returned only in response to
     /// `upload`.
-    pub upload_url: Option<String>,
+    pub upload_url: String,
+}
+
+#[derive(Serialize, Deserialize, Debug, Default, Clone)]
+#[serde(rename_all = "camelCase")]
+/// Extra data in file upload result from multipart file upload.
+pub struct MultiUploadUrls {
+    /// Identifier for this multipart upload, to be used in `complete_multipart_upload`.
+    pub upload_id: String,
+    /// Upload URL for each part of the file.
+    pub upload_urls: Vec<String>,
+}
+
+#[derive(Serialize, Deserialize, Debug, Default, Clone)]
+#[serde(rename_all = "camelCase")]
+/// Result for uploading a file object to CDF.
+pub struct FileUploadResult<T> {
+    #[serde(flatten)]
+    /// File metadata object.
+    pub metadata: FileMetadata,
+    #[serde(flatten)]
+    /// Any extra fields, specific fields depend on endpoint.
+    pub extra: T,
 }
 
 #[skip_serializing_none]
@@ -207,4 +235,15 @@ pub struct FileDownloadUrl {
 pub struct FileAggregates {
     /// Number of files in the project.
     pub count: i64,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+#[serde(rename_all = "camelCase")]
+/// Payload for the `complete_multipart_upload` endpoint.
+pub struct CompleteMultipartUpload {
+    #[serde(flatten)]
+    /// ID of the file.
+    pub id: Identity,
+    /// Upload ID returned by `init_multipart_upload`
+    pub upload_id: String,
 }
