@@ -29,7 +29,7 @@ impl SequencesResource {
     pub async fn insert_rows(&self, rows: &[InsertSequenceRows]) -> Result<()> {
         let items = Items::new(rows);
         self.api_client
-            .post(&format!("{}/{}", Self::BASE_PATH, "data"), &items)
+            .post::<::serde_json::Value, _>(&format!("{}/{}", Self::BASE_PATH, "data"), &items)
             .await?;
         Ok(())
     }
