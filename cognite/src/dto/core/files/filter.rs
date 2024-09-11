@@ -93,3 +93,36 @@ impl FileUploadQuery {
         Self { overwrite }
     }
 }
+
+#[derive(Debug, Default, Clone)]
+/// Query for multipart file uploads.
+pub struct MultipartFileUploadQuery {
+    /// Set to `true` to overwrite any files that already exist in CDF.
+    pub overwrite: bool,
+    /// Specify the number of upload URLs that should be returned, for uploading the file contents in parts.
+    /// Between 1 and 250.
+    pub parts: u32,
+}
+
+impl IntoParams for MultipartFileUploadQuery {
+    fn into_params(self) -> Vec<(String, String)> {
+        let mut out = Vec::with_capacity(2);
+        if self.overwrite {
+            out.push(("overwrite".to_owned(), "true".to_owned()))
+        }
+        out.push(("parts".to_owned(), self.parts.to_string()));
+        out
+    }
+}
+
+impl MultipartFileUploadQuery {
+    /// Create a multipart file upload query
+    ///
+    /// # Arguments
+    ///
+    /// * `overwrite` - `true` to overwrite any files that already exist in CDF.
+    /// * `parts` - Number of parts, a number between 1 and 250.
+    pub fn new(overwrite: bool, parts: u32) -> Self {
+        Self { overwrite, parts }
+    }
+}

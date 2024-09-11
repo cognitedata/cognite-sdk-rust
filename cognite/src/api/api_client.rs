@@ -6,6 +6,7 @@ use crate::reqwest_middleware::ClientWithMiddleware;
 use crate::reqwest_middleware::RequestBuilder;
 use crate::IntoParams;
 use anyhow::anyhow;
+use bytes::Bytes;
 use futures::{TryStream, TryStreamExt};
 use prost::Message;
 use serde::de::DeserializeOwned;
@@ -306,13 +307,18 @@ impl ApiClient {
     /// * `url` - URL to stream blob to.
     /// * `mime_type` - What to put in the `X-Upload_Content-Type` header.
     /// * `data` - Data to upload.
-    pub async fn put_blob(&self, url: &str, mime_type: &str, data: Vec<u8>) -> Result<()> {
+    pub async fn put_blob(&self, url: &str, mime_type: &str, data: impl Into<Bytes>) -> Result<()> {
         let mut headers: HeaderMap = self.get_headers();
-        headers.insert(CONTENT_TYPE, HeaderValue::from_str(mime_type)?);
-        headers.insert("X-Upload-Content-Type", HeaderValue::from_str(mime_type)?);
+        if !mime_type.is_empty() {
+            headers.insert(CONTENT_TYPE, HeaderValue::from_str(mime_type)?);
+            headers.insert("X-Upload-Content-Type", HeaderValue::from_str(mime_type)?);
+        } else {
+            headers.remove(CONTENT_TYPE);
+        }
         headers.insert(ACCEPT, HeaderValue::from_static("*/*"));
 
-        let request_builder = self.client.put(url).headers(headers).body(data);
+        let bytes: Bytes = data.into();
+        let request_builder = self.client.put(url).headers(headers).body(bytes);
         self.send_request_no_response(request_builder).await?;
         Ok(())
     }
@@ -352,8 +358,12 @@ impl ApiClient {
     {
         if stream_chunked {
             let mut headers: HeaderMap = self.get_headers();
-            headers.insert(CONTENT_TYPE, HeaderValue::from_str(mime_type)?);
-            headers.insert("X-Upload-Content-Type", HeaderValue::from_str(mime_type)?);
+            if !mime_type.is_empty() {
+                headers.insert(CONTENT_TYPE, HeaderValue::from_str(mime_type)?);
+                headers.insert("X-Upload-Content-Type", HeaderValue::from_str(mime_type)?);
+            } else {
+                headers.remove(CONTENT_TYPE);
+            }
             headers.insert(ACCEPT, HeaderValue::from_static("*/*"));
             if let Some(size) = known_size {
                 headers.insert(CONTENT_LENGTH, HeaderValue::from_str(&size.to_string())?);

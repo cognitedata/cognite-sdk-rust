@@ -1,10 +1,12 @@
+use bytes::Bytes;
 use futures::TryStream;
+use tokio_util::codec::{BytesCodec, FramedRead};
 
 use crate::api::resource::*;
 use crate::dto::core::files::*;
 use crate::dto::items::Items;
 use crate::error::Result;
-use crate::PartitionedFilter;
+use crate::{Error, PartitionedFilter};
 use crate::{Identity, ItemsVec, Patch};
 
 /// Files store documents, binary blobs, and other file data and relate it to assets.
@@ -19,6 +21,86 @@ impl<'a> SearchItems<'a, FileFilter, FileSearch, FileMetadata> for Files {}
 impl RetrieveWithIgnoreUnknownIds<Identity, FileMetadata> for Files {}
 impl Delete<Identity> for Files {}
 impl Update<Patch<PatchFile>, FileMetadata> for Files {}
+
+/// Utility for uploading files in multiple parts.
+pub struct MultipartUploader<'a> {
+    resource: &'a Files,
+    id: Identity,
+    urls: MultiUploadUrls,
+}
+
+impl<'a> MultipartUploader<'a> {
+    /// Create a new multipart uploader.
+    ///
+    /// # Arguments
+    ///
+    /// * `resource` - Files resource.
+    /// * `id` - ID of the file to upload.
+    /// * `urls` - Upload URLs returned from `init_multipart_upload`.
+    pub fn new(resource: &'a Files, id: Identity, urls: MultiUploadUrls) -> Self {
+        Self { resource, id, urls }
+    }
+
+    /// Upload a part given by part index given by `part_no`. The part number
+    /// counts from zero, so with 5 parts you must upload with `part_no` 0, 1, 2, 3, and 4.
+    ///
+    /// # Arguments
+    ///
+    /// * `part_no` - Part number.
+    /// * `stream` - Stream to upload.
+    /// * `size` - Size of stream to upload.
+    pub async fn upload_part_stream<S>(&self, part_no: usize, stream: S, size: u64) -> Result<()>
+    where
+        S: futures::TryStream + Send + Sync + 'static,
+        S::Error: Into<Box<dyn std::error::Error + Send + Sync>>,
+        bytes::Bytes: From<S::Ok>,
+    {
+        if part_no >= self.urls.upload_urls.len() {
+            return Err(Error::Other("Part number out of range".to_owned()));
+        }
+
+        self.resource
+            .upload_stream_known_size("", &self.urls.upload_urls[0], stream, size)
+            .await
+    }
+
+    /// Upload a part given by part index given by `part_no`. The part number
+    /// counts from zero, so with 5 parts you must upload with `part_no` 0, 1, 2, 3, and 4.
+    ///
+    /// # Arguments
+    ///
+    /// * `part_no` - Part number.
+    /// * `file` - File to upload.
+    pub async fn upload_part_file<S>(&self, part_no: usize, file: tokio::fs::File) -> Result<()> {
+        let size = file.metadata().await?.len();
+        let stream = FramedRead::new(file, BytesCodec::new());
+
+        self.upload_part_stream(part_no, stream, size).await
+    }
+
+    /// Upload a part given by part index given by `part_no`. The part number
+    /// counts from zero, so with 5 parts you must upload with `part_no` 0, 1, 2, 3, and 4.
+    ///
+    /// # Arguments
+    ///
+    /// * `part_no` - Part number.
+    /// * `part` - Binary data to upload.
+    pub async fn upload_part_blob(&self, part_no: usize, part: impl Into<Bytes>) -> Result<()> {
+        if part_no >= self.urls.upload_urls.len() {
+            return Err(Error::Other("Part number out of range".to_owned()));
+        }
+        self.resource
+            .upload_blob("", &self.urls.upload_urls[part_no], part)
+            .await
+    }
+
+    /// Complete the multipart upload process after all parts are uploaded.
+    pub async fn complete(self) -> Result<()> {
+        self.resource
+            .complete_multipart_upload(self.id, self.urls.upload_id)
+            .await
+    }
+}
 
 impl Files {
     /// Upload a stream to an url, the url is received from `Files::upload`
@@ -78,11 +160,11 @@ impl Files {
     /// ```ignore
     /// use tokio_util::codec::{BytesCodec, FramedRead};
     ///
-    /// let size = tokio::fs::metadata("my-file").await?.len();
     /// let file = tokio::fs::File::open("my-file").await?;
+    /// let size = file.metadata().await?.len();
     /// let stream = FramedRead::new(file, BytesCodec::new());
     ///
-    /// cognite_client.files.upload_stream_known_size(&file.mime_type.unwrap(), &file.upload_url, stream, size).await?;
+    /// cognite_client.files.upload_stream_known_size(&file_res.mime_type.unwrap(), &file_res.extra.upload_url, stream, size).await?;
     /// ```
     ///
     /// Note that this will still stream the data from disk, so it should be as efficient as `upload_stream` with
@@ -104,6 +186,28 @@ impl Files {
             .await
     }
 
+    /// Upload a file as a stream to CDF. `url` should be the upload URL returned from
+    /// `upload`.
+    ///
+    /// # Arguments
+    ///
+    /// * `mime_type` - Mime type of file to upload. For example `application/pdf`.
+    /// * `url` - URL to upload the file to.
+    /// * `file` - File to upload.
+    pub async fn upload_file(
+        &self,
+        mime_type: &str,
+        url: &str,
+        file: tokio::fs::File,
+    ) -> Result<()> {
+        let size = file.metadata().await?.len();
+        let stream = FramedRead::new(file, BytesCodec::new());
+
+        self.api_client
+            .put_stream(url, mime_type, stream, true, Some(size))
+            .await
+    }
+
     /// Upload a binary vector to `url`.
     ///
     /// # Arguments
@@ -111,7 +215,12 @@ impl Files {
     /// * `mime_type` - Mime type of file to upload. For example `application/pdf`.
     /// * `url` - URL to upload blob to.
     /// * `blob` - File to upload, as bytes.
-    pub async fn upload_blob(&self, mime_type: &str, url: &str, blob: Vec<u8>) -> Result<()> {
+    pub async fn upload_blob(
+        &self,
+        mime_type: &str,
+        url: &str,
+        blob: impl Into<Bytes>,
+    ) -> Result<()> {
         self.api_client.put_blob(url, mime_type, blob).await
     }
 
@@ -124,10 +233,83 @@ impl Files {
     /// * `overwrite` - Set this to `true` to overwrite existing files with the same `external_id`.
     ///   If this is `false`, and a file with the given `external_id` already exists, the request will fail.
     /// * `item` - The file to upload.
-    pub async fn upload(&self, overwrite: bool, item: &AddFile) -> Result<FileMetadata> {
+    pub async fn upload(
+        &self,
+        overwrite: bool,
+        item: &AddFile,
+    ) -> Result<FileUploadResult<UploadUrl>> {
         self.api_client
             .post_with_query("files", item, Some(FileUploadQuery::new(overwrite)))
             .await
+    }
+
+    /// Create a file, specifying that it should be uploaded in multiple parts.
+    ///
+    /// This returns a `MultipartUploader`, which wraps the upload process.
+    ///
+    /// # Arguments
+    ///
+    /// * `overwrite` - Set this to `true` to overwrite existing files with the same `external_id`.
+    ///   If this is `false`, and a file with the given `external_id` already exists, the request will fail.
+    /// * `parts` - The number of parts to upload, should be a number between 1 and 250.
+    /// * `item` - The file to upload.
+    pub async fn multipart_upload<'a>(
+        &'a self,
+        overwrite: bool,
+        parts: u32,
+        item: &AddFile,
+    ) -> Result<(MultipartUploader<'a>, FileMetadata)> {
+        let res = self.init_multipart_upload(overwrite, parts, item).await?;
+        Ok((
+            MultipartUploader::new(
+                self,
+                Identity::Id {
+                    id: res.metadata.id,
+                },
+                res.extra,
+            ),
+            res.metadata,
+        ))
+    }
+
+    /// Create a file, specifying that it should be uploaded in multiple parts.
+    ///
+    /// # Arguments
+    ///
+    /// * `overwrite` - Set this to `true` to overwrite existing files with the same `external_id`.
+    ///   If this is `false`, and a file with the given `external_id` already exists, the request will fail.
+    /// * `parts` - The number of parts to upload, should be a number between 1 and 250.
+    /// * `item` - The file to upload.
+    pub async fn init_multipart_upload(
+        &self,
+        overwrite: bool,
+        parts: u32,
+        item: &AddFile,
+    ) -> Result<FileUploadResult<MultiUploadUrls>> {
+        self.api_client
+            .post_with_query(
+                "files/initmultipartupload",
+                item,
+                Some(MultipartFileUploadQuery::new(overwrite, parts)),
+            )
+            .await
+    }
+
+    /// Complete a multipart upload. This endpoint must be called after all parts of a multipart file
+    /// upload have been uploaded.
+    ///
+    /// # Arguments
+    ///
+    /// * `id` - ID of the file that was uploaded.
+    /// * `upload_id` - `upload_id` returned by `init_multipart_upload`.
+    pub async fn complete_multipart_upload(&self, id: Identity, upload_id: String) -> Result<()> {
+        self.api_client
+            .post::<serde_json::Value, _>(
+                "files/completemultipartupload",
+                &CompleteMultipartUpload { id, upload_id },
+            )
+            .await?;
+        Ok(())
     }
 
     /// Get download links for a list of files.

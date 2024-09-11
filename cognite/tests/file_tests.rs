@@ -31,7 +31,7 @@ async fn ensure_test_file(client: &CogniteClient) {
 
     client
         .files
-        .upload_stream("text/plain", &file.upload_url.unwrap(), stream, false)
+        .upload_stream("text/plain", &file.extra.upload_url, stream, false)
         .await
         .unwrap();
 }
@@ -56,13 +56,15 @@ async fn create_upload_delete_file() {
 
     client
         .files
-        .upload_stream("text/plain", &res.upload_url.unwrap(), stream, false)
+        .upload_stream("text/plain", &res.extra.upload_url, stream, false)
         .await
         .unwrap();
 
     client
         .files
-        .delete(&[Identity::Id { id: res.id }])
+        .delete(&[Identity::Id {
+            id: res.metadata.id,
+        }])
         .await
         .unwrap();
 }
@@ -89,13 +91,15 @@ async fn create_upload_delete_actual_file() {
     let stream = FramedRead::new(file, BytesCodec::new());
     client
         .files
-        .upload_stream_known_size("text/plain", &res.upload_url.unwrap(), stream, size)
+        .upload_stream_known_size("text/plain", &res.extra.upload_url, stream, size)
         .await
         .unwrap();
 
     client
         .files
-        .delete(&[Identity::Id { id: res.id }])
+        .delete(&[Identity::Id {
+            id: res.metadata.id,
+        }])
         .await
         .unwrap();
 }
@@ -114,9 +118,9 @@ async fn create_update_delete_file() {
 
     let mut res = client.files.upload(true, &new_file).await.unwrap();
 
-    res.source = Some("New source".to_string());
+    res.metadata.source = Some("New source".to_string());
 
-    let upd_res = client.files.update_from(&vec![res]).await.unwrap();
+    let upd_res = client.files.update_from(&vec![res.metadata]).await.unwrap();
 
     let upd_res = upd_res.first().unwrap();
 
@@ -150,4 +154,49 @@ async fn download_test_file() {
     let contents = String::from_utf8(data).unwrap();
 
     assert_eq!("test file contents", contents.as_str())
+}
+
+#[tokio::test]
+async fn create_multipart_file() {
+    let id = format!("{}-multipart", PREFIX.as_str());
+    let new_file = AddFile {
+        name: "Multipart File".to_owned(),
+        external_id: Some(id.clone()),
+        mime_type: Some("text/plain".to_owned()),
+        ..Default::default()
+    };
+
+    let client = get_client();
+
+    let content_1 = "abcde".repeat(1_200_000);
+    let content_2 = "fghij";
+    let (session, _) = client
+        .files
+        .multipart_upload(true, 2, &new_file)
+        .await
+        .unwrap();
+    session.upload_part_blob(0, content_1).await.unwrap();
+    session.upload_part_blob(1, content_2).await.unwrap();
+
+    session.complete().await.unwrap();
+
+    let data: Vec<Bytes> = client
+        .files
+        .download_file(Identity::ExternalId {
+            external_id: id.to_owned(),
+        })
+        .await
+        .unwrap()
+        .try_collect()
+        .await
+        .unwrap();
+    let data: Vec<u8> = data.into_iter().flatten().collect();
+    assert_eq!(1_200_000 * 5 + 5, data.len());
+    assert!(data.ends_with("fghij".as_bytes()));
+
+    client
+        .files
+        .delete(&[Identity::ExternalId { external_id: id }])
+        .await
+        .unwrap();
 }
