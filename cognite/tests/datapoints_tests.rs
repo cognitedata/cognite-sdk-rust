@@ -281,22 +281,22 @@ async fn create_retrieve_double_datapoints_with_status() {
                 DatapointDouble {
                     timestamp: start + 1000,
                     value: Some(123.0),
-                    status: Some(StatusCode::try_parse("GoodClamped").unwrap()),
+                    status: Some(StatusCode::try_parse("GoodClamped").unwrap().into()),
                 },
                 DatapointDouble {
                     timestamp: start + 2000,
                     value: None,
-                    status: Some(StatusCode::try_parse("Bad").unwrap()),
+                    status: Some(StatusCode::try_parse("Bad").unwrap().into()),
                 },
                 DatapointDouble {
                     timestamp: start + 3000,
                     value: Some(f64::NAN),
-                    status: Some(StatusCode::try_parse("Bad").unwrap()),
+                    status: Some(StatusCode::try_parse("Bad").unwrap().into()),
                 },
                 DatapointDouble {
                     timestamp: start + 4000,
                     value: Some(f64::INFINITY),
-                    status: Some(StatusCode::try_parse("Bad").unwrap()),
+                    status: Some(StatusCode::try_parse("Bad").unwrap().into()),
                 },
             ]),
         }])
@@ -327,13 +327,25 @@ async fn create_retrieve_double_datapoints_with_status() {
 
     assert_eq!(4, dpl.len());
 
-    assert_eq!("GoodClamped", dpl[0].status.as_ref().unwrap().to_string());
+    assert_eq!(
+        "GoodClamped",
+        dpl[0].status.as_ref().unwrap().symbol.as_ref().unwrap()
+    );
     assert!(dpl[1].value.is_none());
-    assert_eq!("Bad", dpl[1].status.as_ref().unwrap().to_string());
+    assert_eq!(
+        "Bad",
+        dpl[1].status.as_ref().unwrap().symbol.as_ref().unwrap()
+    );
     assert!(dpl[2].value.unwrap().is_nan());
-    assert_eq!("Bad", dpl[2].status.as_ref().unwrap().to_string());
+    assert_eq!(
+        "Bad",
+        dpl[2].status.as_ref().unwrap().symbol.as_ref().unwrap()
+    );
     assert!(dpl[3].value.unwrap().is_infinite());
-    assert_eq!("Bad", dpl[3].status.as_ref().unwrap().to_string());
+    assert_eq!(
+        "Bad",
+        dpl[3].status.as_ref().unwrap().symbol.as_ref().unwrap()
+    );
 
     delete_test_ts(&client, ts.id).await;
 }
