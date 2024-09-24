@@ -129,7 +129,7 @@ impl From<StatusCode> for Status {
 }
 
 mod cdf_double_serde {
-    use std::str::FromStr;
+    use core::f64;
 
     use serde::{de::Visitor, Deserializer, Serializer};
 
@@ -142,7 +142,7 @@ mod cdf_double_serde {
             type Value = Option<f64>;
 
             fn expecting(&self, formatter: &mut std::fmt::Formatter) -> std::fmt::Result {
-                write!(formatter, "double, null, infinity, or NaN")
+                write!(formatter, "double, null, Infinity, or NaN")
             }
 
             fn visit_f64<E>(self, v: f64) -> Result<Self::Value, E>
@@ -163,11 +163,12 @@ mod cdf_double_serde {
             where
                 E: serde::de::Error,
             {
-                Ok(Some(f64::from_str(v).map_err(|e| {
-                    E::custom(format!(
-                        "Failed to parse double value from string: {e:?}. Original: {v}"
-                    ))
-                })?))
+                match v {
+                    "Infinity" => Ok(Some(f64::INFINITY)),
+                    "-Infinity" => Ok(Some(f64::NEG_INFINITY)),
+                    "NaN" => Ok(Some(f64::NAN)),
+                    r => Err(E::custom(format!("Failed to parse double value from string. Got {r} expected Infinity, -Infinity, or NaN")))
+                }
             }
         }
 
@@ -366,7 +367,7 @@ impl LatestDatapoint {
     /// Get the value of this as a numeric datapoint.
     pub fn numeric(&self) -> Option<&DatapointDouble> {
         match self {
-            Self::Numeric(d) => Some(&d),
+            Self::Numeric(d) => Some(d),
             _ => None,
         }
     }
@@ -374,7 +375,7 @@ impl LatestDatapoint {
     /// Get the value of this as a string datapoint.
     pub fn string(&self) -> Option<&DatapointString> {
         match self {
-            Self::String(d) => Some(&d),
+            Self::String(d) => Some(d),
             _ => None,
         }
     }
