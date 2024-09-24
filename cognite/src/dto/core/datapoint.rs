@@ -18,12 +18,13 @@ pub use self::proto::data_point_list_item::DatapointType as ListDatapointType;
 pub use self::proto::*;
 pub use self::status_code::*;
 
-use serde::{Deserialize, Serialize};
+use serde::{de::Error, Deserialize, Serialize};
+use serde_json::Value;
 
 use crate::Identity;
 use crate::IdentityOrInstance;
 
-#[derive(Serialize, Deserialize, Debug, Clone)]
+#[derive(Serialize, Debug, Clone)]
 #[serde(untagged)]
 #[serde(rename_all = "camelCase")]
 /// Enumeration over different types of retrieved data points.
@@ -127,6 +128,63 @@ impl From<StatusCode> for Status {
     }
 }
 
+mod cdf_double_serde {
+    use std::str::FromStr;
+
+    use serde::{de::Visitor, Deserializer, Serializer};
+
+    pub fn deserialize<'de, D: Deserializer<'de>>(
+        deserializer: D,
+    ) -> Result<Option<f64>, D::Error> {
+        struct CdfDoubleVisitor;
+
+        impl Visitor<'_> for CdfDoubleVisitor {
+            type Value = Option<f64>;
+
+            fn expecting(&self, formatter: &mut std::fmt::Formatter) -> std::fmt::Result {
+                write!(formatter, "double, null, infinity, or NaN")
+            }
+
+            fn visit_f64<E>(self, v: f64) -> Result<Self::Value, E>
+            where
+                E: serde::de::Error,
+            {
+                Ok(Some(v))
+            }
+
+            fn visit_none<E>(self) -> Result<Self::Value, E>
+            where
+                E: serde::de::Error,
+            {
+                Ok(None)
+            }
+
+            fn visit_str<E>(self, v: &str) -> Result<Self::Value, E>
+            where
+                E: serde::de::Error,
+            {
+                Ok(Some(f64::from_str(v).map_err(|e| {
+                    E::custom(format!(
+                        "Failed to parse double value from string: {e:?}. Original: {v}"
+                    ))
+                })?))
+            }
+        }
+
+        deserializer.deserialize_any(CdfDoubleVisitor)
+    }
+
+    pub fn serialize<S: Serializer>(value: &Option<f64>, ser: S) -> Result<S::Ok, S::Error> {
+        match value {
+            None => ser.serialize_none(),
+            Some(r) if r.is_nan() => ser.serialize_str("NaN"),
+            Some(f64::INFINITY) => ser.serialize_str("Infinity"),
+            Some(f64::NEG_INFINITY) => ser.serialize_str("-Infinity"),
+            Some(r) => ser.serialize_f64(*r),
+        }
+    }
+}
+
 #[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 /// A datapoint with double precision floating point value.
@@ -134,6 +192,7 @@ pub struct DatapointDouble {
     /// Timestamp in milliseconds since epoch.
     pub timestamp: i64,
     /// Datapoint value.
+    #[serde(with = "cdf_double_serde")]
     pub value: Option<f64>,
     /// Datapoint status code.
     pub status: Option<StatusCode>,
@@ -262,15 +321,14 @@ impl From<AggregateDatapoint> for DatapointAggregate {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Debug)]
 /// Response to a request for datapoints.
 pub struct DatapointsListResponse {
     /// List of datapoint responses.
     pub items: Vec<DatapointsResponse>,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
-#[serde(rename_all = "camelCase")]
+#[derive(Debug)]
 /// Response for a single timeseries when listing datapoints.
 pub struct DatapointsResponse {
     /// Time series internal ID.
@@ -285,16 +343,130 @@ pub struct DatapointsResponse {
     /// The physical unit of the time series as represented in the unit catalog.
     /// Replaced with target unit if data points were converted.
     pub unit_external_id: Option<String>,
-    #[serde(default)]
     /// Time series `is_step` property value.
     pub is_step: bool,
-    #[serde(default)]
     /// Whether this is a string time series.
     pub is_string: bool,
     /// The cursor to get the next page of results (if available).
     /// nextCursor will be omitted when the next aggregate datapoint
     /// is after the end of the interval. Increase start/end to fetch more data.
     pub next_cursor: Option<String>,
+}
+
+#[derive(Debug)]
+/// Result for retrieving a latest datapoint from CDF.
+pub enum LatestDatapoint {
+    /// Numeric datapoint.
+    Numeric(DatapointDouble),
+    /// String datapoint.
+    String(DatapointString),
+}
+
+impl LatestDatapoint {
+    /// Get the value of this as a numeric datapoint.
+    pub fn numeric(&self) -> Option<&DatapointDouble> {
+        match self {
+            Self::Numeric(d) => Some(&d),
+            _ => None,
+        }
+    }
+
+    /// Get the value of this as a string datapoint.
+    pub fn string(&self) -> Option<&DatapointString> {
+        match self {
+            Self::String(d) => Some(&d),
+            _ => None,
+        }
+    }
+}
+
+#[derive(Debug)]
+/// Response to a request retrieving latest datapoints for a single time series.
+pub struct LatestDatapointsResponse {
+    /// Time series internal ID.
+    pub id: i64,
+    /// Time series external ID.
+    pub external_id: Option<String>,
+    /// Retrieved datapoints.
+    pub datapoint: Option<LatestDatapoint>,
+    /// The physical unit of the time series (free-text field).
+    /// Omitted if data points were converted to a different unit.
+    pub unit: Option<String>,
+    /// The physical unit of the time series as represented in the unit catalog.
+    /// Replaced with target unit if data points were converted.
+    pub unit_external_id: Option<String>,
+    /// Time series `is_step` property value.
+    pub is_step: bool,
+    /// Whether this is a string time series.
+    pub is_string: bool,
+    /// The cursor to get the next page of results (if available).
+    /// nextCursor will be omitted when the next aggregate datapoint
+    /// is after the end of the interval. Increase start/end to fetch more data.
+    pub next_cursor: Option<String>,
+}
+
+#[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct DatapointsResponsePartial {
+    id: i64,
+    external_id: Option<String>,
+    datapoints: Value,
+    unit: Option<String>,
+    unit_external_id: Option<String>,
+    #[serde(default)]
+    is_step: bool,
+    #[serde(default)]
+    is_string: bool,
+    next_cursor: Option<String>,
+}
+
+impl<'de> Deserialize<'de> for LatestDatapointsResponse {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        let r = DatapointsResponsePartial::deserialize(deserializer)?;
+        let dps = r.datapoints;
+        let dps = if matches!(dps, Value::Null) {
+            None
+        } else if let Value::Array(v) = dps {
+            match v.into_iter().next() {
+                Some(v) => {
+                    if r.is_string {
+                        Some(LatestDatapoint::String(serde_json::from_value(v).map_err(
+                            |e| {
+                                D::Error::custom(format!(
+                                    "Failed to deserialize string datapoint: {e:?}"
+                                ))
+                            },
+                        )?))
+                    } else {
+                        Some(LatestDatapoint::Numeric(
+                            serde_json::from_value(v).map_err(|e| {
+                                D::Error::custom(format!(
+                                    "Failed to deserialize numeric datapoint: {e:?}"
+                                ))
+                            })?,
+                        ))
+                    }
+                }
+                None => None,
+            }
+        } else {
+            None
+        };
+
+        Ok(Self {
+            id: r.id,
+            external_id: r.external_id,
+            datapoint: dps,
+            unit: r.unit,
+            unit_external_id: r.unit_external_id,
+            is_step: r.is_step,
+            is_string: r.is_string,
+            next_cursor: r.next_cursor,
+        })
+    }
 }
 
 #[derive(Debug, Clone)]
