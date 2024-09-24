@@ -19,6 +19,7 @@ pub use self::proto::*;
 pub use self::status_code::*;
 
 use serde::{Deserialize, Serialize};
+use serde_with::skip_serializing_none;
 
 use crate::Identity;
 use crate::IdentityOrInstance;
@@ -78,34 +79,6 @@ impl DatapointsEnumType {
     }
 }
 
-/* #[derive(Serialize, Deserialize, Debug, Clone)]
-#[serde(rename_all = "camelCase")]
-/// A data point status code.
-pub struct StatusCode {
-    /// Status code numeric representation.
-    pub code: Option<i64>,
-    /// Status code symbol.
-    pub symbol: Option<String>,
-}
-
-impl StatusCode {
-    /// Create a new status code from a given symbol.
-    pub fn new(symbol: impl Into<String>) -> Self {
-        Self {
-            symbol: Some(symbol.into()),
-            code: None,
-        }
-    }
-
-    /// Create a new status code from a numeric code.
-    pub fn new_code(code: i64) -> Self {
-        Self {
-            code: Some(code),
-            symbol: None,
-        }
-    }
-} */
-
 impl From<Status> for StatusCode {
     fn from(value: Status) -> Self {
         if value.code != 0 {
@@ -127,6 +100,68 @@ impl From<StatusCode> for Status {
     }
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+/// Representation of the status struct as sent to CDF.
+/// Use `StatusCode` instead for general manipulation of status codes.
+#[skip_serializing_none]
+pub struct JsonStatus {
+    /// Numeric status code.
+    pub code: Option<i64>,
+    /// Status code symbol.
+    pub symbol: Option<String>,
+}
+
+impl From<JsonStatus> for StatusCode {
+    fn from(value: JsonStatus) -> Self {
+        if let Some(code) = value.code {
+            StatusCode::try_from(code).unwrap_or(StatusCode::Invalid)
+        } else if let Some(symbol) = value.symbol {
+            StatusCode::try_parse(&symbol).unwrap_or(StatusCode::Invalid)
+        } else {
+            StatusCode::Invalid
+        }
+    }
+}
+
+impl From<StatusCode> for JsonStatus {
+    fn from(code: StatusCode) -> JsonStatus {
+        JsonStatus {
+            code: Some(code.bits() as i64),
+            symbol: None,
+        }
+    }
+}
+
+impl From<Status> for JsonStatus {
+    fn from(value: Status) -> Self {
+        if value.code != 0 {
+            Self {
+                code: Some(value.code),
+                symbol: None,
+            }
+        } else if !value.symbol.is_empty() {
+            Self {
+                code: None,
+                symbol: Some(value.symbol),
+            }
+        } else {
+            Self {
+                code: Some(0),
+                symbol: None,
+            }
+        }
+    }
+}
+
+impl From<JsonStatus> for Status {
+    fn from(value: JsonStatus) -> Self {
+        Self {
+            code: value.code.unwrap_or_default(),
+            symbol: value.symbol.unwrap_or_default(),
+        }
+    }
+}
+
 #[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 /// A datapoint with double precision floating point value.
@@ -136,7 +171,7 @@ pub struct DatapointDouble {
     /// Datapoint value.
     pub value: Option<f64>,
     /// Datapoint status code.
-    pub status: Option<StatusCode>,
+    pub status: Option<JsonStatus>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -148,7 +183,7 @@ pub struct DatapointString {
     /// Datapoint value.
     pub value: Option<String>,
     /// Datapoint status code.
-    pub status: Option<StatusCode>,
+    pub status: Option<JsonStatus>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
