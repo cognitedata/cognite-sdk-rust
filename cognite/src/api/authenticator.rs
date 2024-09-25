@@ -104,6 +104,7 @@ impl AuthHeaderManager {
 }
 
 /// Configuration for authentication using the OIDC authenticator
+#[derive(Default)]
 pub struct AuthenticatorConfig {
     /// Service principal client ID.
     pub client_id: String,
