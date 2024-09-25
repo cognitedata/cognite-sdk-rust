@@ -7,7 +7,7 @@ use crate::{
 };
 
 mod extensions;
-pub use extensions::{IntoWritable, files::{CogniteExtractorFile, FileProperties}};
+pub use extensions::{IntoWritable, FromNode, files::{CogniteExtractorFile, FileProperties}};
 
 
 #[skip_serializing_none]

@@ -2,10 +2,13 @@ use derivative::Derivative;
 use serde::{Deserialize, Serialize};
 use serde_with::skip_serializing_none;
 
-use crate::models::{
-    instances::{EdgeOrNodeData, InstanceId, NodeWrite},
-    views::ViewReference,
-    SourceReference,
+use crate::{
+    models::{
+        instances::{EdgeOrNodeData, InstanceId, NodeDefinition, NodeWrite},
+        views::ViewReference,
+        SourceReference,
+    },
+    Error,
 };
 
 use super::{FromNode, IntoWritable};
@@ -82,8 +85,54 @@ where
             r#type: None,
             sources: Some(vec![EdgeOrNodeData {
                 source: SourceReference::View(view),
-                properties: self,
+                properties: self.into(),
             }]),
+        })
+    }
+}
+
+impl<TExtractedData> FromNode<CogniteExtractorFile<TExtractedData>>
+    for NodeDefinition<FileProperties<TExtractedData>>
+where
+    TExtractedData: Serialize + Send + Sync + Clone,
+{
+    fn try_from_node_definition(
+        self,
+        view: ViewReference,
+    ) -> crate::Result<CogniteExtractorFile<TExtractedData>> {
+        // TODO: make error better
+        let mut properties = self
+            .properties
+            .ok_or(Error::Other("Invalid properties".to_string()))?;
+        let main_prop_key = view.space;
+        let sub_prop_key = format!("{}/{}", view.external_id, view.version);
+        let main_prop = properties
+            .get_mut(&main_prop_key)
+            .ok_or(Error::Other("Invalid properties".to_string()))?;
+        let sub_prop = main_prop
+            .get_mut(&sub_prop_key)
+            .ok_or(Error::Other("Invalid properties".to_string()))?;
+        Ok(CogniteExtractorFile {
+            external_id: self.external_id,
+            space: self.space,
+            name: sub_prop.name.clone(),
+            description: sub_prop.description.clone(),
+            tags: sub_prop.tags.clone(),
+            aliases: sub_prop.aliases.clone(),
+            source_id: sub_prop.source_id.clone(),
+            source_context: sub_prop.source_context.clone(),
+            source: sub_prop.source.clone(),
+            source_created_time: sub_prop.source_created_time.clone(),
+            source_updated_time: sub_prop.source_updated_time.clone(),
+            source_created_user: sub_prop.source_created_user.clone(),
+            source_updated_user: sub_prop.source_updated_user.clone(),
+            assets: sub_prop.assets.clone(),
+            mime_type: sub_prop.mime_type.clone(),
+            directory: sub_prop.directory.clone(),
+            is_uploaded: sub_prop.is_uploaded.clone(),
+            uploaded_time: sub_prop.uploaded_time.clone(),
+            category: sub_prop.category.clone(),
+            extracted_data: sub_prop.extracted_data.take(),
         })
     }
 }

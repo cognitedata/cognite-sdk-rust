@@ -9,5 +9,5 @@ pub trait IntoWritable<TProperties> {
 }
 
 pub trait FromNode<TEntity> {
-    fn try_from_node_definition(self) -> crate::Result<TEntity>;
+    fn try_from_node_definition(self, view: ViewReference) -> crate::Result<TEntity>;
 }

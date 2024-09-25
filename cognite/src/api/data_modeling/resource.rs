@@ -1,9 +1,11 @@
 use serde::de::DeserializeOwned;
 use serde::Serialize;
 
-use crate::models::data_models::IntoWritable;
-use crate::models::instances::{NodeAndEdgeRetrieveRequest, NodeAndEdgeRetrieveResponse, SlimNodeOrEdge};
+use crate::models::data_models::{FromNode, IntoWritable};
 use crate::models::instances::{NodeAndEdgeCreateCollection, NodeOrEdgeCreate};
+use crate::models::instances::{
+    NodeAndEdgeRetrieveRequest, NodeAndEdgeRetrieveResponse, SlimNodeOrEdge,
+};
 use crate::models::views::ViewReference;
 use crate::{Result, RetrieveWithRequest, UpsertCollection};
 
@@ -49,16 +51,28 @@ impl WithInstanceApiResource for DataModelsResource {
     }
 }
 
-pub trait UpsertExtendedCollection<TEntity, TProperties> 
+pub trait RetrieveExtendedCollection<TResponse, TProperties, TEntity>
+where
+    Self: WithView + WithInstanceApiResource,
+    TProperties: Serialize + DeserializeOwned + Send + Sync,
+    TResponse: FromNode<TProperties> + Serialize + DeserializeOwned + Send + Sync,
+    TEntity: Serialize + DeserializeOwned + Send
+{
+    async fn retrieve(
+        &self,
+        reqs: &NodeAndEdgeRetrieveRequest,
+    ) -> Result<Vec<TEntity>> {
+        let response: NodeAndEdgeRetrieveResponse<TResponse> = self.get_resource().retrieve(reqs).await?;
+        // response.items.iter_mut().map(|item| item.try())
+    }
+}
+
+pub trait UpsertExtendedCollection<TEntity, TProperties>
 where
     Self: WithView + WithInstanceApiResource,
     TProperties: Serialize + DeserializeOwned + Send + Sync,
     TEntity: IntoWritable<TProperties>,
 {
-    async fn inner_retrieve(&self, reqs: &NodeAndEdgeRetrieveRequest) {
-        let response: Result<NodeAndEdgeRetrieveResponse<TProperties>> = self.get_resource().retrieve(reqs).await;
-    }
-
     /// Upsert custom instance
     async fn upsert(
         &self,
@@ -70,11 +84,14 @@ where
         replace: Option<bool>,
     ) -> Result<Vec<SlimNodeOrEdge>>
     where
-        TProperties: Serialize + DeserializeOwned + Send + Sync,
+        TProperties: Serialize + Send + Sync,
     {
         let collection: Vec<NodeOrEdgeCreate<TProperties>> = col
             .into_iter()
-            .map(|t| t.try_into_writable(self.view()).map(|n| NodeOrEdgeCreate::Node(n)))
+            .map(|t| {
+                t.try_into_writable(self.view())
+                    .map(|n| NodeOrEdgeCreate::Node(n))
+            })
             .collect::<Result<Vec<NodeOrEdgeCreate<_>>>>()?;
 
         let collection = NodeAndEdgeCreateCollection {
