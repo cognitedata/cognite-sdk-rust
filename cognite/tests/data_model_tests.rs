@@ -48,3 +48,15 @@ async fn create_retrieve_delete_spaces() {
     let space = &deleted.items[0];
     assert_eq!(space_id, space.space);
 }
+
+#[tokio::test]
+async fn test_create_custom() {
+    let space_id = format!("{}-space-1", PREFIX.as_str());
+    let client = get_client();
+    let new_space = SpaceCreate {
+        space: space_id.clone(),
+        description: Some("Some description".to_owned()),
+        name: Some("Test space".to_owned()),
+    };
+    // client.
+}

@@ -12,6 +12,14 @@ pub use common::*;
 mod fixtures;
 pub use fixtures::*;
 
+// #[tokio::test]
+// async fn create_and_delete_file_instance() {
+//     let project = "my_project";
+//     let space = "my_space";
+//     let node_external_ids = vec!["node1"];
+//     let mock_server = MockServer::start().await;
+// }
+
 #[tokio::test]
 async fn create_and_delete_instances() {
     let project = "my_project";

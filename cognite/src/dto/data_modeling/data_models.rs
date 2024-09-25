@@ -6,6 +6,10 @@ use crate::{
     to_query, IntoParams, SetCursor,
 };
 
+mod extensions;
+pub use extensions::{IntoWritable, files::{CogniteExtractorFile, FileProperties}};
+
+
 #[skip_serializing_none]
 #[derive(Serialize, Deserialize, Clone, Debug, Default)]
 #[serde(rename_all = "camelCase")]
