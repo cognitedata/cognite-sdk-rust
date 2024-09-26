@@ -40,7 +40,7 @@ impl Models {
             spaces: SpacesResource::new(api_client.clone()),
             data_models: DataModelsResource::new(api_client.clone()),
             containers: ContainersResource::new(api_client.clone()),
-            files: FilesResource::new(Instances::new(api_client))
+            files: FilesResource::new(Arc::new(Instances::new(api_client)))
         }
     }
 }

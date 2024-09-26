@@ -1,6 +1,6 @@
 use cognite::{
     models::{
-        data_models::{CogniteExtractorFile, FileProperties, RetrieveExtendedCollection, UpsertExtendedCollection},
+        data_models::{CogniteExtractorFile, RetrieveExtendedCollection, UpsertExtendedCollection},
         instances::{NodeOrEdgeSpecification, SourceReferenceInternal},
         views::ViewReference,
         ItemId,

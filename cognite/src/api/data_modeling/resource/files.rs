@@ -1,10 +1,11 @@
 use crate::models::{
-    data_models::{CogniteExtractorFile, FileProperties},
+    data_models::{CogniteExtractorFile, FileObject},
     views::ViewReference,
 };
 
 use super::{DataModelsResource, RetrieveExtendedCollection, UpsertExtendedCollection, WithView};
 
+/// Data models files instances resource.
 pub type FilesResource = DataModelsResource;
 
 impl WithView for FilesResource {
@@ -29,6 +30,6 @@ impl WithView for FilesResource {
     }
 }
 
-impl RetrieveExtendedCollection<FileProperties, CogniteExtractorFile> for FilesResource {}
+impl RetrieveExtendedCollection<FileObject, CogniteExtractorFile> for FilesResource {}
 
-impl UpsertExtendedCollection<CogniteExtractorFile, FileProperties> for FilesResource {}
+impl UpsertExtendedCollection<CogniteExtractorFile, FileObject> for FilesResource {}
