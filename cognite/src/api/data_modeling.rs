@@ -1,9 +1,9 @@
 pub(crate) mod containers;
 pub(crate) mod data_models;
 pub(crate) mod instances;
+pub(crate) mod resource;
 pub(crate) mod spaces;
 pub(crate) mod views;
-pub(crate) mod resource;
 
 use std::sync::Arc;
 
@@ -40,7 +40,7 @@ impl Models {
             spaces: SpacesResource::new(api_client.clone()),
             data_models: DataModelsResource::new(api_client.clone()),
             containers: ContainersResource::new(api_client.clone()),
-            files: FilesResource::new(Arc::new(Instances::new(api_client)))
+            files: FilesResource::new(Arc::new(Instances::new(api_client))),
         }
     }
 }

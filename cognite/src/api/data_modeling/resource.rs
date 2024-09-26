@@ -26,7 +26,7 @@ pub trait WithView {
     const VERSION: &'static str;
 
     /// Set custom view for instance.
-    /// 
+    ///
     /// # Arguments
     ///
     /// * `space` - View space.
@@ -48,7 +48,7 @@ impl DataModelsResource {
     /// Create a new data models instance resource.
     ///
     /// # Arguments
-    /// 
+    ///
     /// * `instances` - A shared instance resource.
     pub fn new(instances: Arc<Instances>) -> Self {
         Self {
@@ -82,7 +82,10 @@ where
     /// # Arguments
     ///
     /// * `items` - A list of specifications of node/edges to retrieve.
-    fn retrieve(&self, items: Vec<NodeOrEdgeSpecification>) -> impl Future<Output = Result<Vec<TEntity>>> + Send {
+    fn retrieve(
+        &self,
+        items: Vec<NodeOrEdgeSpecification>,
+    ) -> impl Future<Output = Result<Vec<TEntity>>> + Send {
         async move {
             let response: NodeAndEdgeRetrieveResponse<TProperties> = self
                 .get_resource()
@@ -93,7 +96,7 @@ where
                     items,
                     include_typing: None,
                 })
-            .await?;
+                .await?;
             response
                 .items
                 .into_iter()

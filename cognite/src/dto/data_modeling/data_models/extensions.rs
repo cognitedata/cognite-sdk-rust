@@ -1,6 +1,9 @@
 use serde::Serialize;
 
-use crate::models::{instances::{NodeOrEdgeCreate, NodeOrEdge}, views::ViewReference};
+use crate::models::{
+    instances::{NodeOrEdge, NodeOrEdgeCreate},
+    views::ViewReference,
+};
 
 pub mod files;
 
@@ -9,9 +12,10 @@ pub trait IntoWritable<TProperties> {
     /// Try converting to writeable node/edge.
     ///
     /// # Arguments
-    /// 
+    ///
     /// `view` - A view reference representing the source of this type.
-    fn try_into_writable(self, view: ViewReference) -> crate::Result<NodeOrEdgeCreate<TProperties>>;
+    fn try_into_writable(self, view: ViewReference)
+        -> crate::Result<NodeOrEdgeCreate<TProperties>>;
 }
 
 /// Trait to convert from Node/Edge into this type.
@@ -25,5 +29,8 @@ where
     /// # Arguments
     ///
     /// * `view` - A view reference representing the source of this type.
-    fn try_from_readable(value: NodeOrEdge<TProperties>, view: ViewReference) -> crate::Result<Self>;
+    fn try_from_readable(
+        value: NodeOrEdge<TProperties>,
+        view: ViewReference,
+    ) -> crate::Result<Self>;
 }

@@ -106,10 +106,7 @@ impl CogniteExtractorFile {
 }
 
 impl IntoWritable<FileObject> for CogniteExtractorFile {
-    fn try_into_writable(
-        self,
-        view: ViewReference,
-    ) -> crate::Result<NodeOrEdgeCreate<FileObject>> {
+    fn try_into_writable(self, view: ViewReference) -> crate::Result<NodeOrEdgeCreate<FileObject>> {
         Ok(NodeOrEdgeCreate::Node(NodeWrite {
             space: self.space.to_owned(),
             external_id: self.external_id.to_owned(),
