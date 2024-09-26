@@ -1,10 +1,10 @@
 use serde::de::DeserializeOwned;
 use serde::Serialize;
 
-use crate::models::data_models::{FromNode, IntoWritable};
-use crate::models::instances::{NodeAndEdgeCreateCollection, NodeOrEdgeCreate};
+use crate::models::data_models::{FromReadable, IntoWritable};
 use crate::models::instances::{
-    NodeAndEdgeRetrieveRequest, NodeAndEdgeRetrieveResponse, SlimNodeOrEdge,
+    NodeAndEdgeCreateCollection, NodeAndEdgeRetrieveRequest, NodeAndEdgeRetrieveResponse,
+    NodeDefinition, NodeOrEdgeCreate, SlimNodeOrEdge,
 };
 use crate::models::views::ViewReference;
 use crate::{Result, RetrieveWithRequest, UpsertCollection};
@@ -51,19 +51,21 @@ impl WithInstanceApiResource for DataModelsResource {
     }
 }
 
-pub trait RetrieveExtendedCollection<TResponse, TProperties, TEntity>
+pub trait RetrieveExtendedCollection<TProperties, TEntity>
 where
     Self: WithView + WithInstanceApiResource,
     TProperties: Serialize + DeserializeOwned + Send + Sync,
-    TResponse: FromNode<TProperties> + Serialize + DeserializeOwned + Send + Sync,
-    TEntity: Serialize + DeserializeOwned + Send
+    TEntity: Serialize + Send + FromReadable<NodeDefinition<TProperties>>,
 {
-    async fn retrieve(
-        &self,
-        reqs: &NodeAndEdgeRetrieveRequest,
-    ) -> Result<Vec<TEntity>> {
-        let response: NodeAndEdgeRetrieveResponse<TResponse> = self.get_resource().retrieve(reqs).await?;
-        // response.items.iter_mut().map(|item| item.try())
+    async fn retrieve(&self, reqs: &NodeAndEdgeRetrieveRequest) -> Result<Vec<TEntity>> {
+        let response: NodeAndEdgeRetrieveResponse<TProperties> =
+            self.get_resource().retrieve(reqs).await?;
+        response.items.into_iter().map(|item| match item {
+            crate::models::instances::NodeOrEdge::Node(node_definition) => {
+                TEntity::try_from_node_definition(node_definition, self.view())
+            }
+            crate::models::instances::NodeOrEdge::Edge(edge_definition) => todo!(),
+        }).collect()
     }
 }
 

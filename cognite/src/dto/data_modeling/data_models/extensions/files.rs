@@ -11,7 +11,7 @@ use crate::{
     Error,
 };
 
-use super::{FromNode, IntoWritable};
+use super::{FromReadable, IntoWritable};
 
 #[skip_serializing_none]
 #[derive(Serialize, Deserialize, Derivative, Clone, Debug, Default)]
@@ -91,18 +91,19 @@ where
     }
 }
 
-impl<TExtractedData> FromNode<CogniteExtractorFile<TExtractedData>>
-    for NodeDefinition<FileProperties<TExtractedData>>
+impl<TExtractedData> FromReadable<NodeDefinition<FileProperties<TExtractedData>>>
+    for CogniteExtractorFile<TExtractedData>
 where
-    TExtractedData: Serialize + Send + Sync + Clone,
+    TExtractedData: Serialize + Send + Sync,
 {
     fn try_from_node_definition(
-        self,
+        mut value: NodeDefinition<FileProperties<TExtractedData>>,
         view: ViewReference,
     ) -> crate::Result<CogniteExtractorFile<TExtractedData>> {
         // TODO: make error better
-        let mut properties = self
+        let mut properties = value
             .properties
+            .take()
             .ok_or(Error::Other("Invalid properties".to_string()))?;
         let main_prop_key = view.space;
         let sub_prop_key = format!("{}/{}", view.external_id, view.version);
@@ -113,8 +114,8 @@ where
             .get_mut(&sub_prop_key)
             .ok_or(Error::Other("Invalid properties".to_string()))?;
         Ok(CogniteExtractorFile {
-            external_id: self.external_id,
-            space: self.space,
+            external_id: value.external_id,
+            space: value.space,
             name: sub_prop.name.clone(),
             description: sub_prop.description.clone(),
             tags: sub_prop.tags.clone(),
@@ -122,21 +123,22 @@ where
             source_id: sub_prop.source_id.clone(),
             source_context: sub_prop.source_context.clone(),
             source: sub_prop.source.clone(),
-            source_created_time: sub_prop.source_created_time.clone(),
-            source_updated_time: sub_prop.source_updated_time.clone(),
+            source_created_time: sub_prop.source_created_time,
+            source_updated_time: sub_prop.source_updated_time,
             source_created_user: sub_prop.source_created_user.clone(),
             source_updated_user: sub_prop.source_updated_user.clone(),
             assets: sub_prop.assets.clone(),
             mime_type: sub_prop.mime_type.clone(),
             directory: sub_prop.directory.clone(),
-            is_uploaded: sub_prop.is_uploaded.clone(),
-            uploaded_time: sub_prop.uploaded_time.clone(),
+            is_uploaded: sub_prop.is_uploaded,
+            uploaded_time: sub_prop.uploaded_time,
             category: sub_prop.category.clone(),
             extracted_data: sub_prop.extracted_data.take(),
         })
     }
 }
 
+#[derive(Serialize, Deserialize)]
 pub struct FileProperties<TExtractedData: Serialize + Send + Sync> {
     name: String,
     description: Option<String>,

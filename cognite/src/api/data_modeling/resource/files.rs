@@ -1,6 +1,11 @@
-use crate::models::views::ViewReference;
+use serde::{de::DeserializeOwned, Serialize};
 
-use super::{DataModelsResource, WithView};
+use crate::models::{
+    data_models::{CogniteExtractorFile, FileProperties},
+    views::ViewReference,
+};
+
+use super::{DataModelsResource, RetrieveExtendedCollection, UpsertExtendedCollection, WithView};
 
 pub type FilesResource = DataModelsResource;
 
@@ -24,4 +29,20 @@ impl WithView for FilesResource {
             external_id: FilesResource::VERSION.to_string(),
         })
     }
+}
+
+impl<TProperties>
+    RetrieveExtendedCollection<FileProperties<TProperties>, CogniteExtractorFile<TProperties>>
+    for FilesResource
+where
+    TProperties: Serialize + Send + Sync + DeserializeOwned,
+{
+}
+
+impl<TProperties>
+    UpsertExtendedCollection<CogniteExtractorFile<TProperties>, FileProperties<TProperties>>
+    for FilesResource
+where
+    TProperties: Serialize + Send + Sync + DeserializeOwned,
+{
 }

@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use cognite::{models::instances::CogniteExtractorFile, CogniteClient};
+use cognite::CogniteClient;
 use uuid::Uuid;
 
 #[tokio::main]
