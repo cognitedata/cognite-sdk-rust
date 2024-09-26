@@ -4,14 +4,16 @@ use serde::Serialize;
 use crate::models::data_models::{FromReadable, IntoWritable};
 use crate::models::instances::{
     NodeAndEdgeCreateCollection, NodeAndEdgeRetrieveRequest, NodeAndEdgeRetrieveResponse,
-    NodeDefinition, NodeOrEdgeCreate, SlimNodeOrEdge,
+    NodeOrEdgeCreate, NodeOrEdgeSpecification, SlimNodeOrEdge, SourceReferenceInternal,
 };
 use crate::models::views::ViewReference;
 use crate::{Result, RetrieveWithRequest, UpsertCollection};
 
 use super::instances::Instances;
+/// Data model files.
 pub mod files;
 
+/// 
 pub trait WithView {
     /// Default space
     const SPACE: &'static str;
@@ -29,10 +31,7 @@ pub struct DataModelsResource {
     view: Option<ViewReference>,
 }
 
-impl DataModelsResource
-where
-    Self: WithView,
-{
+impl DataModelsResource {
     pub fn new(instances: Instances) -> Self {
         Self {
             instance_resource: instances,
@@ -55,17 +54,24 @@ pub trait RetrieveExtendedCollection<TProperties, TEntity>
 where
     Self: WithView + WithInstanceApiResource,
     TProperties: Serialize + DeserializeOwned + Send + Sync,
-    TEntity: Serialize + Send + FromReadable<NodeDefinition<TProperties>>,
+    TEntity: FromReadable<TProperties> + Send,
 {
-    async fn retrieve(&self, reqs: &NodeAndEdgeRetrieveRequest) -> Result<Vec<TEntity>> {
-        let response: NodeAndEdgeRetrieveResponse<TProperties> =
-            self.get_resource().retrieve(reqs).await?;
-        response.items.into_iter().map(|item| match item {
-            crate::models::instances::NodeOrEdge::Node(node_definition) => {
-                TEntity::try_from_node_definition(node_definition, self.view())
-            }
-            crate::models::instances::NodeOrEdge::Edge(edge_definition) => todo!(),
-        }).collect()
+    async fn retrieve(&self, items: Vec<NodeOrEdgeSpecification>) -> Result<Vec<TEntity>> {
+        let response: NodeAndEdgeRetrieveResponse<TProperties> = self
+            .get_resource()
+            .retrieve(&NodeAndEdgeRetrieveRequest {
+                sources: Some(vec![SourceReferenceInternal {
+                    source: self.view().into(),
+                }]),
+                items,
+                include_typing: None,
+            })
+            .await?;
+        response
+            .items
+            .into_iter()
+            .map(|item| TEntity::try_from_readable(item, self.view()))
+            .collect()
     }
 }
 
@@ -73,7 +79,7 @@ pub trait UpsertExtendedCollection<TEntity, TProperties>
 where
     Self: WithView + WithInstanceApiResource,
     TProperties: Serialize + DeserializeOwned + Send + Sync,
-    TEntity: IntoWritable<TProperties>,
+    TEntity: IntoWritable<TProperties> + Send,
 {
     /// Upsert custom instance
     async fn upsert(
@@ -90,10 +96,7 @@ where
     {
         let collection: Vec<NodeOrEdgeCreate<TProperties>> = col
             .into_iter()
-            .map(|t| {
-                t.try_into_writable(self.view())
-                    .map(|n| NodeOrEdgeCreate::Node(n))
-            })
+            .map(|t| t.try_into_writable(self.view()))
             .collect::<Result<Vec<NodeOrEdgeCreate<_>>>>()?;
 
         let collection = NodeAndEdgeCreateCollection {

@@ -7,7 +7,7 @@ pub(crate) mod resource;
 
 use std::sync::Arc;
 
-use resource::files::FilesResource;
+pub use resource::files::FilesResource;
 
 use crate::api::data_modeling::{instances::Instances, views::ViewsResource};
 use crate::ApiClient;

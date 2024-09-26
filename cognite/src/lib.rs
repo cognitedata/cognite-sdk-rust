@@ -112,6 +112,7 @@ pub mod models {
     /// recognizable and understood model. The model represents a reusable collection of data.
     pub mod data_models {
         pub use crate::dto::data_modeling::data_models::*;
+        pub use crate::api::data_modeling::resource::*;
     }
     /// Instances are nodes and edges in a data model. These contain the actual data in the data model.
     pub mod instances {

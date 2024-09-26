@@ -1,5 +1,3 @@
-use serde::{de::DeserializeOwned, Serialize};
-
 use crate::models::{
     data_models::{CogniteExtractorFile, FileProperties},
     views::ViewReference,
@@ -25,24 +23,12 @@ impl WithView for FilesResource {
     fn view(&self) -> ViewReference {
         self.view.to_owned().unwrap_or(ViewReference {
             space: FilesResource::SPACE.to_string(),
-            version: FilesResource::EXTERNAL_ID.to_string(),
-            external_id: FilesResource::VERSION.to_string(),
+            version: FilesResource::VERSION.to_string(),
+            external_id: FilesResource::EXTERNAL_ID.to_string(),
         })
     }
 }
 
-impl<TProperties>
-    RetrieveExtendedCollection<FileProperties<TProperties>, CogniteExtractorFile<TProperties>>
-    for FilesResource
-where
-    TProperties: Serialize + Send + Sync + DeserializeOwned,
-{
-}
+impl RetrieveExtendedCollection<FileProperties, CogniteExtractorFile> for FilesResource {}
 
-impl<TProperties>
-    UpsertExtendedCollection<CogniteExtractorFile<TProperties>, FileProperties<TProperties>>
-    for FilesResource
-where
-    TProperties: Serialize + Send + Sync + DeserializeOwned,
-{
-}
+impl UpsertExtendedCollection<CogniteExtractorFile, FileProperties> for FilesResource {}
