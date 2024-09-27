@@ -232,7 +232,7 @@ pub struct EdgeDefinition<TProperties> {
 }
 
 /// Shorthand for map from space and view/container external ID to properties object.
-type PropertiesObject<TProperties> = HashMap<String, HashMap<String, TProperties>>;
+pub(crate) type PropertiesObject<TProperties> = HashMap<String, HashMap<String, TProperties>>;
 
 #[derive(Serialize, Deserialize, Default, Clone, Debug, Hash, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]

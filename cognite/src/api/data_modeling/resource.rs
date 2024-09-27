@@ -91,7 +91,7 @@ where
                 .get_resource()
                 .retrieve(&NodeAndEdgeRetrieveRequest {
                     sources: Some(vec![SourceReferenceInternal {
-                        source: self.view().into(),
+                        source: self.view().clone().into(),
                     }]),
                     items,
                     include_typing: None,
@@ -100,7 +100,7 @@ where
             response
                 .items
                 .into_iter()
-                .map(|item| TEntity::try_from_readable(item, self.view()))
+                .map(|item| TEntity::try_from_readable(item, self.view().clone()))
                 .collect()
         }
     }
@@ -138,7 +138,7 @@ where
         async move {
             let collection: Vec<NodeOrEdgeCreate<TProperties>> = col
                 .into_iter()
-                .map(|t| t.try_into_writable(self.view()))
+                .map(|t| t.try_into_writable(self.view().clone()))
                 .collect::<Result<Vec<NodeOrEdgeCreate<_>>>>()?;
 
             let collection = NodeAndEdgeCreateCollection {

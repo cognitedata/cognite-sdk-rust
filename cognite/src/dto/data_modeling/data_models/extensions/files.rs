@@ -4,6 +4,7 @@ use serde::{Deserialize, Serialize};
 use serde_with::skip_serializing_none;
 
 use crate::{
+    get_instance_properties,
     models::{
         instances::{EdgeOrNodeData, InstanceId, NodeOrEdge, NodeOrEdgeCreate, NodeWrite},
         views::ViewReference,
@@ -127,40 +128,33 @@ impl FromReadable<FileObject> for CogniteExtractorFile {
     ) -> crate::Result<CogniteExtractorFile> {
         // TODO: make error better
         match value {
-            NodeOrEdge::Node(mut node_definition) => {
+            NodeOrEdge::Node(node_definition) => {
                 let mut properties = node_definition
                     .properties
-                    .take()
                     .ok_or(Error::Other("Invalid properties".to_string()))?;
-                let main_prop_key = view.space;
-                let sub_prop_key = format!("{}/{}", view.external_id, view.version);
-                let main_prop = properties
-                    .get_mut(&main_prop_key)
-                    .ok_or(Error::Other("Invalid properties".to_string()))?;
-                let sub_prop = main_prop
-                    .get_mut(&sub_prop_key)
+                let file_object: &FileObject = get_instance_properties(view, &mut properties)
                     .ok_or(Error::Other("Invalid properties".to_string()))?;
                 Ok(CogniteExtractorFile {
                     external_id: node_definition.external_id,
                     space: node_definition.space,
-                    name: sub_prop.name.clone(),
-                    description: sub_prop.description.clone(),
-                    tags: sub_prop.tags.clone(),
-                    aliases: sub_prop.aliases.clone(),
-                    source_id: sub_prop.source_id.clone(),
-                    source_context: sub_prop.source_context.clone(),
-                    source: sub_prop.source.clone(),
-                    source_created_time: sub_prop.source_created_time,
-                    source_updated_time: sub_prop.source_updated_time,
-                    source_created_user: sub_prop.source_created_user.clone(),
-                    source_updated_user: sub_prop.source_updated_user.clone(),
-                    assets: sub_prop.assets.clone(),
-                    mime_type: sub_prop.mime_type.clone(),
-                    directory: sub_prop.directory.clone(),
-                    is_uploaded: sub_prop.is_uploaded,
-                    uploaded_time: sub_prop.uploaded_time,
-                    category: sub_prop.category.clone(),
-                    extracted_data: sub_prop.extracted_data.take(),
+                    name: file_object.name.clone(),
+                    description: file_object.description.clone(),
+                    tags: file_object.tags.clone(),
+                    aliases: file_object.aliases.clone(),
+                    source_id: file_object.source_id.clone(),
+                    source_context: file_object.source_context.clone(),
+                    source: file_object.source.clone(),
+                    source_created_time: file_object.source_created_time,
+                    source_updated_time: file_object.source_updated_time,
+                    source_created_user: file_object.source_created_user.clone(),
+                    source_updated_user: file_object.source_updated_user.clone(),
+                    assets: file_object.assets.clone(),
+                    mime_type: file_object.mime_type.clone(),
+                    directory: file_object.directory.clone(),
+                    is_uploaded: file_object.is_uploaded,
+                    uploaded_time: file_object.uploaded_time,
+                    category: file_object.category.clone(),
+                    extracted_data: file_object.extracted_data.clone(),
                 })
             }
             _ => Err(Error::Other("Invalid type".to_string())),
