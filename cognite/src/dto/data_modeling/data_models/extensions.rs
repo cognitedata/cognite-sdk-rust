@@ -28,6 +28,7 @@ where
     ///
     /// # Arguments
     ///
+    /// * `value` - Node/edge to retrieved.
     /// * `view` - A view reference representing the source of this type.
     fn try_from_readable(
         value: NodeOrEdge<TProperties>,
