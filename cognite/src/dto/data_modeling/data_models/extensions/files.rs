@@ -15,7 +15,7 @@ use crate::{
 
 use super::{FromReadable, IntoWritable};
 
-#[derive(Clone, Debug, Default)]
+#[derive(Clone, Debug, Default, Serialize)]
 /// A special data models instance type.
 pub struct CogniteExtractorFile {
     /// The space where the node is located.
@@ -30,22 +30,9 @@ pub struct CogniteExtractorFile {
     pub tags: Option<Vec<String>>,
     /// Alternative names for the node.
     pub aliases: Option<Vec<String>>,
-    /// Identifier from the source system.
-    pub source_id: Option<String>,
-    /// Context of the source id. For systems where the sourceId is globally unique, the sourceContext is expected to not be set.
-    pub source_context: Option<String>,
-    /// Direct relation to a source system.
-    pub source: Option<InstanceId>,
-    /// When the instance was created in source system (if available).
-    pub source_created_time: Option<i64>,
-    /// When the instance was last updated in the source system (if available)
-    pub source_updated_time: Option<i64>,
-    /// User identifier from the source system on who created the source data. This identifier is
-    /// not guaranteed to match the user identifiers in CDF.
-    pub source_created_user: Option<String>,
-    /// User identifier from the source system on who last updated the source data.
-    /// This identifier is not guaranteed to match the user identifiers in CDF.
-    pub source_updated_user: Option<String>,
+    #[serde(flatten)]
+    /// Source system.
+    pub source: SourceSystem,
     /// List of assets to which this file relates.
     pub assets: Option<Vec<InstanceId>>,
     /// MIME type of the file.
@@ -71,13 +58,7 @@ impl From<CogniteExtractorFile> for FileObject {
             description: value.description,
             tags: value.tags,
             aliases: value.aliases,
-            source_id: value.source_id,
-            source_context: value.source_context,
             source: value.source,
-            source_created_time: value.source_created_time,
-            source_updated_time: value.source_updated_time,
-            source_created_user: value.source_created_user,
-            source_updated_user: value.source_updated_user,
             assets: value.assets,
             mime_type: value.mime_type,
             directory: value.directory,
@@ -142,13 +123,7 @@ impl FromReadable<FileObject> for CogniteExtractorFile {
                     description: file_object.description.clone(),
                     tags: file_object.tags.clone(),
                     aliases: file_object.aliases.clone(),
-                    source_id: file_object.source_id.clone(),
-                    source_context: file_object.source_context.clone(),
                     source: file_object.source.clone(),
-                    source_created_time: file_object.source_created_time,
-                    source_updated_time: file_object.source_updated_time,
-                    source_created_user: file_object.source_created_user.clone(),
-                    source_updated_user: file_object.source_updated_user.clone(),
                     assets: file_object.assets.clone(),
                     mime_type: file_object.mime_type.clone(),
                     directory: file_object.directory.clone(),
@@ -168,22 +143,53 @@ impl FromReadable<FileObject> for CogniteExtractorFile {
 #[serde(rename_all = "camelCase")]
 /// The properties of the file object.
 pub struct FileObject {
-    name: String,
-    description: Option<String>,
-    tags: Option<Vec<String>>,
-    aliases: Option<Vec<String>>,
-    source_id: Option<String>,
-    source_context: Option<String>,
-    source: Option<InstanceId>,
-    source_created_time: Option<i64>,
-    source_updated_time: Option<i64>,
-    source_created_user: Option<String>,
-    source_updated_user: Option<String>,
-    assets: Option<Vec<InstanceId>>,
-    mime_type: Option<String>,
-    directory: Option<String>,
-    is_uploaded: Option<bool>,
-    uploaded_time: Option<i64>,
-    category: Option<InstanceId>,
-    extracted_data: Option<HashMap<String, String>>,
+    /// Name of the instance.
+    pub name: String,
+    /// Description of the instance.
+    pub description: Option<String>,
+    /// Text based labels for generic use, limited to 1000.
+    pub tags: Option<Vec<String>>,
+    /// Alternative names for the node.
+    pub aliases: Option<Vec<String>>,
+    #[serde(flatten)]
+    /// Source system.
+    pub source: SourceSystem,
+    /// List of assets to which this file relates.
+    pub assets: Option<Vec<InstanceId>>,
+    /// MIME type of the file.
+    pub mime_type: Option<String>,
+    /// Contains the path elements from the source (for when the source system has a file system
+    /// hierarchy or similar).
+    pub directory: Option<String>,
+    /// Whether the file content has been uploaded to Cognite Data Fusion.
+    pub is_uploaded: Option<bool>,
+    /// Point in time when the file upload was completed and the file was made available.
+    pub uploaded_time: Option<i64>,
+    /// Direct relation to an instance of CogniteFileCategory representing the detected
+    /// categorization/class for the file.
+    pub category: Option<InstanceId>,
+    /// Unstructured information extracted from source system.
+    pub extracted_data: Option<HashMap<String, String>>,
+}
+
+#[skip_serializing_none]
+#[derive(Serialize, Deserialize, Clone, Debug, Default)]
+#[serde(rename_all = "camelCase")]
+pub struct SourceSystem {
+    /// Identifier from the source system.
+    pub source_id: Option<String>,
+    /// Context of the source id. For systems where the sourceId is globally unique, the sourceContext is expected to not be set.
+    pub source_context: Option<String>,
+    /// Direct relation to a source system.
+    pub source: Option<InstanceId>,
+    /// When the instance was created in source system (if available).
+    pub source_created_time: Option<i64>,
+    /// When the instance was last updated in the source system (if available)
+    pub source_updated_time: Option<i64>,
+    /// User identifier from the source system on who created the source data. This identifier is
+    /// not guaranteed to match the user identifiers in CDF.
+    pub source_created_user: Option<String>,
+    /// User identifier from the source system on who last updated the source data.
+    /// This identifier is not guaranteed to match the user identifiers in CDF.
+    pub source_updated_user: Option<String>,
 }
