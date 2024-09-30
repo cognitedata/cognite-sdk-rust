@@ -33,7 +33,7 @@ pub trait WithView {
     /// * `external_id` - View external id.
     /// * `version` - View version.
     fn with_view(&mut self, space: String, external_id: String, version: String);
-    /// Get view for instance
+    /// Get view for instance.
     fn view(&self) -> ViewReference;
 }
 

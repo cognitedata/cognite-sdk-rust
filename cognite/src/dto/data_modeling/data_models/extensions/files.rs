@@ -43,7 +43,8 @@ pub struct CogniteExtractorFile {
     /// User identifier from the source system on who created the source data. This identifier is
     /// not guaranteed to match the user identifiers in CDF.
     pub source_created_user: Option<String>,
-    /// User identifier from the source system on who last updated the source data. This identifier is not guaranteed to match the user identifiers in CDF.
+    /// User identifier from the source system on who last updated the source data.
+    /// This identifier is not guaranteed to match the user identifiers in CDF.
     pub source_updated_user: Option<String>,
     /// List of assets to which this file relates.
     pub assets: Option<Vec<InstanceId>>,

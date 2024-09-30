@@ -103,7 +103,7 @@ impl<'a> MultipartUploader<'a> {
 }
 
 impl Files {
-    /// Upload a stream to an url, the url is received from `Files::upload`
+    /// Upload a stream to a url, the url is received from `Files::upload`
     ///
     /// # Arguments
     ///
@@ -241,6 +241,58 @@ impl Files {
         self.api_client
             .post_with_query("files", item, Some(FileUploadQuery::new(overwrite)))
             .await
+    }
+
+    /// Get an upload link for a file with given identity.
+    ///
+    /// # Arguments
+    ///
+    /// `id` - Identity of file metadata or data models file.
+    pub async fn get_upload_link(&self, id: &Identity) -> Result<FileUploadResult<UploadUrl>> {
+        match id {
+            Identity::InstanceId {
+                space: _,
+                external_id: _,
+            }
+            | Identity::ExternalId { external_id: _ } => {
+                let id_json = serde_json::to_string(id)?;
+                self.api_client.post_json("files/uploadlink", id_json).await
+            }
+            Identity::Id { id: _ } => Err(Error::Other(
+                "Identity cannot be an internal id.".to_string(),
+            )),
+        }
+    }
+
+    /// Get multipart upload link for an existing file metadata or data models file.
+    ///
+    /// # Arguments
+    ///
+    /// * `id` - Identity of file metadata or data models file.
+    /// * `parts` - Number of parts to be uploaded.
+    pub async fn get_multipart_upload_link(
+        &self,
+        id: &Identity,
+        parts: u32,
+    ) -> Result<FileUploadResult<MultiUploadUrls>> {
+        match id {
+            Identity::InstanceId {
+                space: _,
+                external_id: _,
+            }
+            | Identity::ExternalId { external_id: _ } => {
+                self.api_client
+                    .post_with_query(
+                        "files/multiuploadlink",
+                        id,
+                        Some(MultipartGetUploadLinkQuery::new(parts)),
+                    )
+                    .await
+            }
+            Identity::Id { id: _ } => Err(Error::Other(
+                "Identity cannot be an internal id.".to_string(),
+            )),
+        }
     }
 
     /// Create a file, specifying that it should be uploaded in multiple parts.

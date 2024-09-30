@@ -126,3 +126,28 @@ impl MultipartFileUploadQuery {
         Self { overwrite, parts }
     }
 }
+
+#[derive(Debug, Default, Clone)]
+/// Get multipart upload link query.
+pub struct MultipartGetUploadLinkQuery {
+    /// Specify the number of upload URLs that should be returned, for uploading the file contents in parts.
+    /// Between 1 and 250.
+    parts: u32,
+}
+
+impl IntoParams for MultipartGetUploadLinkQuery {
+    fn into_params(self) -> Vec<(String, String)> {
+        vec![("parts".to_owned(), self.parts.to_string())]
+    }
+}
+
+impl MultipartGetUploadLinkQuery {
+    /// Create a multipart get upload link query
+    ///
+    /// # Arguments
+    ///
+    /// * `parts` - Number of parts, a number between 1 and 250.
+    pub fn new(parts: u32) -> Self {
+        Self { parts }
+    }
+}

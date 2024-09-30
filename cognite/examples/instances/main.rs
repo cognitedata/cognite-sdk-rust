@@ -1,11 +1,10 @@
 use cognite::{
     models::{
         data_models::{CogniteExtractorFile, RetrieveExtendedCollection, UpsertExtendedCollection},
-        instances::{NodeOrEdgeSpecification, SourceReferenceInternal},
-        views::ViewReference,
+        instances::NodeOrEdgeSpecification,
         ItemId,
     },
-    CogniteClient, RetrieveWithRequest,
+    CogniteClient, DeleteWithResponse,
 };
 use uuid::Uuid;
 
@@ -22,15 +21,24 @@ async fn main() {
         .upsert(vec![col], None, None, None, None, None)
         .await
         .unwrap();
-    let external_id = "01483fc4-e4d6-4ed9-8950-96f100baccf2".to_string();
+    let external_id = match res.first().unwrap() {
+        cognite::models::instances::SlimNodeOrEdge::Node(slim_node_definition) => {
+            &slim_node_definition.external_id
+        }
+        cognite::models::instances::SlimNodeOrEdge::Edge(_) => {
+            panic!("Invalid type received.")
+        }
+    };
+    let node_specs = NodeOrEdgeSpecification::Node(ItemId {
+        space: space.clone(),
+        external_id: external_id.clone(),
+    });
     let res: Vec<CogniteExtractorFile> = client
         .models
         .files
-        .retrieve(vec![NodeOrEdgeSpecification::Node(ItemId {
-            space,
-            external_id,
-        })])
+        .retrieve(vec![node_specs.clone()])
         .await
         .unwrap();
     println!("{res:#?}");
+    client.models.instances.delete(&[node_specs]).await.unwrap();
 }
