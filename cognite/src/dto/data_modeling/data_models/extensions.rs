@@ -2,7 +2,7 @@ use serde::Serialize;
 
 use crate::models::{
     instances::{NodeOrEdge, NodeOrEdgeCreate},
-    views::ViewReference,
+    views::ViewReference
 };
 
 pub mod files;

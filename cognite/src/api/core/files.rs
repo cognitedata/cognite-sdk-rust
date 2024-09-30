@@ -252,7 +252,6 @@ impl Files {
         match id {
             Identity::InstanceId { instance_id: _ } | Identity::ExternalId { external_id: _ } => {
                 let id_json = serde_json::to_string(&Items::new([id]))?;
-                println!("{id_json}");
                 let mut res = self
                     .api_client
                     .post_json::<Items<Vec<FileUploadResult<UploadUrl>>>>(
