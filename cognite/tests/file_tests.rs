@@ -306,7 +306,7 @@ async fn create_core_dm_multipart_file() {
         match client.files.download_file(id.clone()).await {
             Ok(d) => data = Some(d),
             Err(_) => {
-                tokio::time::sleep(Duration::from_secs(3)).await;
+                tokio::time::sleep(Duration::from_secs(1)).await;
                 continue;
             }
         }
