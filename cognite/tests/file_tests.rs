@@ -1,4 +1,4 @@
-#![cfg(feature = "integration_tests")]
+// #![cfg(feature = "integration_tests")]
 
 use bytes::Bytes;
 use cognite::models::data_models::CogniteExtractorFile;
@@ -256,7 +256,6 @@ async fn create_delete_dm_files() {
         external_id: external_id.to_string(),
     });
     let _ = client.models.instances.delete(&[node_specs]).await.unwrap();
-    // tokio::time::sleep(2).await;
 }
 
 #[tokio::test]
@@ -302,16 +301,18 @@ async fn create_core_dm_multipart_file() {
     session.upload_part_blob(1, content_2).await.unwrap();
 
     session.complete().await.unwrap();
-    tokio::time::sleep(Duration::from_secs(3)).await;
+    let mut data: Option<_> = None;
+    for _ in 0..=3 {
+        match client.files.download_file(id.clone()).await {
+            Ok(d) => data = Some(d),
+            Err(_) => {
+                tokio::time::sleep(Duration::from_secs(3)).await;
+                continue;
+            }
+        }
+    }
 
-    let data: Vec<Bytes> = client
-        .files
-        .download_file(id)
-        .await
-        .unwrap()
-        .try_collect()
-        .await
-        .unwrap();
+    let data: Vec<Bytes> = data.unwrap().try_collect().await.unwrap();
     let data: Vec<u8> = data.into_iter().flatten().collect();
     assert_eq!(1_200_000 * 5 + 5, data.len());
     assert!(data.ends_with("fghij".as_bytes()));
