@@ -111,7 +111,6 @@ pub mod models {
     /// A data model is a collection of views. Use the data model to group and structure views into a
     /// recognizable and understood model. The model represents a reusable collection of data.
     pub mod data_models {
-        pub use crate::api::data_modeling::resource::*;
         pub use crate::dto::data_modeling::data_models::*;
     }
     /// Instances are nodes and edges in a data model. These contain the actual data in the data model.

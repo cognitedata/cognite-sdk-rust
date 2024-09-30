@@ -250,13 +250,23 @@ impl Files {
     /// `id` - Identity of file metadata or data models file.
     pub async fn get_upload_link(&self, id: &Identity) -> Result<FileUploadResult<UploadUrl>> {
         match id {
-            Identity::InstanceId {
-                space: _,
-                external_id: _,
-            }
-            | Identity::ExternalId { external_id: _ } => {
-                let id_json = serde_json::to_string(id)?;
-                self.api_client.post_json("files/uploadlink", id_json).await
+            Identity::InstanceId { instance_id: _ } | Identity::ExternalId { external_id: _ } => {
+                let id_json = serde_json::to_string(&Items::new([id]))?;
+                println!("{id_json}");
+                let mut res = self
+                    .api_client
+                    .post_json::<Items<Vec<FileUploadResult<UploadUrl>>>>(
+                        "files/uploadlink",
+                        id_json,
+                    )
+                    .await?;
+                if res.items.is_empty() {
+                    Err(Error::Other(
+                        "File with given identity not found.".to_string(),
+                    ))
+                } else {
+                    Ok(res.items.remove(0))
+                }
             }
             Identity::Id { id: _ } => Err(Error::Other(
                 "Identity cannot be an internal id.".to_string(),
@@ -276,18 +286,22 @@ impl Files {
         parts: u32,
     ) -> Result<FileUploadResult<MultiUploadUrls>> {
         match id {
-            Identity::InstanceId {
-                space: _,
-                external_id: _,
-            }
-            | Identity::ExternalId { external_id: _ } => {
-                self.api_client
-                    .post_with_query(
+            Identity::InstanceId { instance_id: _ } | Identity::ExternalId { external_id: _ } => {
+                let mut res = self
+                    .api_client
+                    .post_with_query::<Items<Vec<FileUploadResult<MultiUploadUrls>>>, _, _>(
                         "files/multiuploadlink",
-                        id,
+                        &Items::new([id]),
                         Some(MultipartGetUploadLinkQuery::new(parts)),
                     )
-                    .await
+                    .await?;
+                if res.items.is_empty() {
+                    Err(Error::Other(
+                        "File with given identity not found.".to_string(),
+                    ))
+                } else {
+                    Ok(res.items.remove(0))
+                }
             }
             Identity::Id { id: _ } => Err(Error::Other(
                 "Identity cannot be an internal id.".to_string(),
@@ -312,6 +326,32 @@ impl Files {
         item: &AddFile,
     ) -> Result<(MultipartUploader<'a>, FileMetadata)> {
         let res = self.init_multipart_upload(overwrite, parts, item).await?;
+        Ok((
+            MultipartUploader::new(
+                self,
+                Identity::Id {
+                    id: res.metadata.id,
+                },
+                res.extra,
+            ),
+            res.metadata,
+        ))
+    }
+
+    /// Upload files for an existing file metadata or data models file.
+    ///
+    /// This returns a `MultipartUploader`, which wraps the upload process.
+    ///
+    /// # Arguments
+    ///
+    /// * `parts` - The number of parts to upload, should be a number between 1 and 250.
+    /// * `id` - Identity of file metadata or data models file.
+    pub async fn multipart_upload_existing<'a>(
+        &'a self,
+        id: &Identity,
+        parts: u32,
+    ) -> Result<(MultipartUploader<'a>, FileMetadata)> {
+        let res = self.get_multipart_upload_link(id, parts).await?;
         Ok((
             MultipartUploader::new(
                 self,

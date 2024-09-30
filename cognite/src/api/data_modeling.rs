@@ -8,6 +8,9 @@ pub(crate) mod views;
 use std::sync::Arc;
 
 pub use resource::files::FilesResource;
+pub use resource::{
+    RetrieveExtendedCollection, UpsertExtendedCollection, WithInstanceApiResource, WithView,
+};
 
 use crate::api::data_modeling::{instances::Instances, views::ViewsResource};
 use crate::ApiClient;

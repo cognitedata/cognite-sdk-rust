@@ -1,8 +1,7 @@
 use cognite::{
     models::{
-        data_models::{CogniteExtractorFile, RetrieveExtendedCollection, UpsertExtendedCollection},
-        instances::NodeOrEdgeSpecification,
-        ItemId,
+        data_models::CogniteExtractorFile, instances::NodeOrEdgeSpecification, ItemId,
+        RetrieveExtendedCollection, UpsertExtendedCollection,
     },
     CogniteClient, DeleteWithResponse,
 };
@@ -12,9 +11,9 @@ use uuid::Uuid;
 async fn main() {
     let client = CogniteClient::new_oidc("testing_instances", None).unwrap();
     let external_id = Uuid::new_v4().to_string();
-    let space = "core-dm-test".to_string();
+    let space = std::env::var("CORE_DM_TEST_SPACE").unwrap();
     let name = "random".to_string();
-    let col = CogniteExtractorFile::new(space.clone(), external_id, name);
+    let col = CogniteExtractorFile::new(space.to_string(), external_id, name);
     let res = client
         .models
         .files
@@ -30,7 +29,7 @@ async fn main() {
         }
     };
     let node_specs = NodeOrEdgeSpecification::Node(ItemId {
-        space: space.clone(),
+        space: space.to_string(),
         external_id: external_id.clone(),
     });
     let res: Vec<CogniteExtractorFile> = client
