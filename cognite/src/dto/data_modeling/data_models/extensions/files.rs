@@ -30,7 +30,7 @@ pub struct CogniteExtractorFile {
     pub tags: Option<Vec<String>>,
     /// Alternative names for the node.
     pub aliases: Option<Vec<String>>,
-    /// Source system.
+    /// Cognite sourceable.
     pub source: CogniteSourceable,
     /// List of assets to which this file relates.
     pub assets: Option<Vec<InstanceId>>,
