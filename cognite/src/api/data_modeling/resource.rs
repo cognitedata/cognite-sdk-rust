@@ -35,7 +35,7 @@ pub struct DataModelsResource<T> {
     pub instance_resource: Arc<Instances>,
     /// View for the resources of this instance
     pub view: Option<ViewReference>,
-    _marker: PhantomData<T>
+    _marker: PhantomData<T>,
 }
 
 impl<T> DataModelsResource<T> {
@@ -48,7 +48,7 @@ impl<T> DataModelsResource<T> {
         Self {
             instance_resource: instances,
             view: None,
-            _marker: PhantomData
+            _marker: PhantomData,
         }
     }
 }

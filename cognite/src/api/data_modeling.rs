@@ -9,8 +9,8 @@ use std::sync::Arc;
 
 pub use resource::files::FilesResource;
 pub use resource::{
-    DataModelsResource as ExtendedDataModelsResource, RetrieveExtendedCollection, UpsertExtendedCollection,
-    WithInstanceApiResource, WithView,
+    DataModelsResource as ExtendedDataModelsResource, RetrieveExtendedCollection,
+    UpsertExtendedCollection, WithInstanceApiResource, WithView,
 };
 
 use crate::api::data_modeling::{instances::Instances, views::ViewsResource};
