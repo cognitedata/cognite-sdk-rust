@@ -15,7 +15,7 @@ use crate::{
 
 use super::{FromReadable, IntoWritable};
 
-#[derive(Clone, Debug, Default, Serialize)]
+#[derive(Clone, Debug, Default)]
 /// A special data models instance type.
 pub struct CogniteExtractorFile {
     /// The space where the node is located.
@@ -30,9 +30,8 @@ pub struct CogniteExtractorFile {
     pub tags: Option<Vec<String>>,
     /// Alternative names for the node.
     pub aliases: Option<Vec<String>>,
-    #[serde(flatten)]
     /// Source system.
-    pub source: SourceSystem,
+    pub source: CogniteSourceable,
     /// List of assets to which this file relates.
     pub assets: Option<Vec<InstanceId>>,
     /// MIME type of the file.
@@ -153,7 +152,7 @@ pub struct FileObject {
     pub aliases: Option<Vec<String>>,
     #[serde(flatten)]
     /// Source system.
-    pub source: SourceSystem,
+    pub source: CogniteSourceable,
     /// List of assets to which this file relates.
     pub assets: Option<Vec<InstanceId>>,
     /// MIME type of the file.
@@ -175,7 +174,7 @@ pub struct FileObject {
 #[skip_serializing_none]
 #[derive(Serialize, Deserialize, Clone, Debug, Default)]
 #[serde(rename_all = "camelCase")]
-pub struct SourceSystem {
+pub struct CogniteSourceable {
     /// Identifier from the source system.
     pub source_id: Option<String>,
     /// Context of the source id. For systems where the sourceId is globally unique, the sourceContext is expected to not be set.
