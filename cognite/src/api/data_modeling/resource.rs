@@ -1,4 +1,5 @@
 use std::future::Future;
+use std::marker::PhantomData;
 use std::sync::Arc;
 
 use serde::de::DeserializeOwned;
@@ -24,27 +25,20 @@ pub trait WithView {
     const EXTERNAL_ID: &'static str;
     /// Default version
     const VERSION: &'static str;
-
-    /// Set custom view for instance.
-    ///
-    /// # Arguments
-    ///
-    /// * `space` - View space.
-    /// * `external_id` - View external id.
-    /// * `version` - View version.
-    fn with_view(&mut self, space: String, external_id: String, version: String);
-    /// Get view for instance.
+    /// Get view for instance
     fn view(&self) -> ViewReference;
 }
 
 /// A data models instance resoure for special models.
-pub struct DataModelsResource {
+pub struct DataModelsResource<T> {
     /// An instance resoure for special instances.
     pub instance_resource: Arc<Instances>,
-    view: Option<ViewReference>,
+    /// View for the resources of this instance
+    pub view: Option<ViewReference>,
+    _marker: PhantomData<T>
 }
 
-impl DataModelsResource {
+impl<T> DataModelsResource<T> {
     /// Create a new data models instance resource.
     ///
     /// # Arguments
@@ -54,6 +48,7 @@ impl DataModelsResource {
         Self {
             instance_resource: instances,
             view: None,
+            _marker: PhantomData
         }
     }
 }
@@ -64,7 +59,7 @@ pub trait WithInstanceApiResource {
     fn get_resource(&self) -> &Instances;
 }
 
-impl WithInstanceApiResource for DataModelsResource {
+impl<T> WithInstanceApiResource for DataModelsResource<T> {
     fn get_resource(&self) -> &Instances {
         &self.instance_resource
     }

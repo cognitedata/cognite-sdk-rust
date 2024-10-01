@@ -6,20 +6,12 @@ use crate::models::{
 use super::{DataModelsResource, RetrieveExtendedCollection, UpsertExtendedCollection, WithView};
 
 /// Data models files instances resource.
-pub type FilesResource = DataModelsResource;
+pub type FilesResource = DataModelsResource<CogniteExtractorFile>;
 
 impl WithView for FilesResource {
     const SPACE: &'static str = "cdf_extraction_extensions";
     const EXTERNAL_ID: &'static str = "CogniteExtractorFile";
     const VERSION: &'static str = "v1";
-
-    fn with_view(&mut self, space: String, external_id: String, version: String) {
-        self.view = Some(ViewReference {
-            space,
-            external_id,
-            version,
-        });
-    }
 
     fn view(&self) -> ViewReference {
         self.view.to_owned().unwrap_or(ViewReference {
