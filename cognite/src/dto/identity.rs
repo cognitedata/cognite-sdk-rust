@@ -20,6 +20,12 @@ pub enum Identity {
         /// External ID, unique for the given resource.
         external_id: String,
     },
+    #[serde(rename_all = "camelCase")]
+    /// Identity for data models.
+    InstanceId {
+        /// Instance id of the given resource.
+        instance_id: InstanceId,
+    },
 }
 
 impl Identity {

@@ -1,0 +1,27 @@
+use crate::models::{
+    data_models::{CogniteExtractorFile, FileObject},
+    views::ViewReference,
+};
+
+use super::{DataModelsResource, RetrieveExtendedCollection, UpsertExtendedCollection, WithView};
+
+/// Data models files instances resource.
+pub type FilesResource = DataModelsResource<CogniteExtractorFile>;
+
+impl WithView for FilesResource {
+    const SPACE: &'static str = "cdf_extraction_extensions";
+    const EXTERNAL_ID: &'static str = "CogniteExtractorFile";
+    const VERSION: &'static str = "v1";
+
+    fn view(&self) -> ViewReference {
+        self.view.to_owned().unwrap_or(ViewReference {
+            space: FilesResource::SPACE.to_string(),
+            version: FilesResource::VERSION.to_string(),
+            external_id: FilesResource::EXTERNAL_ID.to_string(),
+        })
+    }
+}
+
+impl RetrieveExtendedCollection<FileObject, CogniteExtractorFile> for FilesResource {}
+
+impl UpsertExtendedCollection<CogniteExtractorFile, FileObject> for FilesResource {}
