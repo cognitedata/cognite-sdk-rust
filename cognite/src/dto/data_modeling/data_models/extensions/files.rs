@@ -13,25 +13,22 @@ use crate::{
     Error,
 };
 
-use super::{FromReadable, IntoWritable};
+use super::{
+    common::{CogniteAuditable, CogniteDescribable, CogniteSourceable},
+    FromReadable, IntoWritable,
+};
 
 #[derive(Clone, Debug, Default)]
 /// A special data models instance type.
 pub struct CogniteExtractorFile {
-    /// The space where the node is located.
-    pub space: String,
-    /// The external id of the Cognite extractor file.
-    pub external_id: String,
-    /// Name of the instance.
-    pub name: String,
-    /// Description of the instance.
-    pub description: Option<String>,
-    /// Text based labels for generic use, limited to 1000.
-    pub tags: Option<Vec<String>>,
-    /// Alternative names for the node.
-    pub aliases: Option<Vec<String>>,
+    /// Id of the instance.
+    pub id: InstanceId,
+    /// Cognite describable.
+    pub description: CogniteDescribable,
     /// Cognite sourceable.
     pub source: CogniteSourceable,
+    /// An audit of the lifecycle of the instance
+    pub audit: CogniteAuditable,
     /// List of assets to which this file relates.
     pub assets: Option<Vec<InstanceId>>,
     /// MIME type of the file.
@@ -53,10 +50,7 @@ pub struct CogniteExtractorFile {
 impl From<CogniteExtractorFile> for FileObject {
     fn from(value: CogniteExtractorFile) -> Self {
         Self {
-            name: value.name,
             description: value.description,
-            tags: value.tags,
-            aliases: value.aliases,
             source: value.source,
             assets: value.assets,
             mime_type: value.mime_type,
@@ -79,9 +73,11 @@ impl CogniteExtractorFile {
     /// * `name` - A name for the entity.
     pub fn new(space: String, external_id: String, name: String) -> Self {
         CogniteExtractorFile {
-            name,
-            space,
-            external_id,
+            description: CogniteDescribable {
+                name,
+                ..Default::default()
+            },
+            id: InstanceId { space, external_id },
             ..Default::default()
         }
     }
@@ -90,8 +86,8 @@ impl CogniteExtractorFile {
 impl IntoWritable<FileObject> for CogniteExtractorFile {
     fn try_into_writable(self, view: ViewReference) -> crate::Result<NodeOrEdgeCreate<FileObject>> {
         Ok(NodeOrEdgeCreate::Node(NodeWrite {
-            space: self.space.to_owned(),
-            external_id: self.external_id.to_owned(),
+            space: self.id.space.to_owned(),
+            external_id: self.id.external_id.to_owned(),
             existing_version: None,
             r#type: None,
             sources: Some(vec![EdgeOrNodeData {
@@ -115,13 +111,17 @@ impl FromReadable<FileObject> for CogniteExtractorFile {
                 let file_object: &FileObject = get_instance_properties(view, &mut properties)
                     .ok_or(Error::Other("Invalid properties".to_string()))?;
                 Ok(CogniteExtractorFile {
-                    external_id: node_definition.external_id,
-                    space: node_definition.space,
-                    name: file_object.name.clone(),
+                    id: InstanceId {
+                        external_id: node_definition.external_id,
+                        space: node_definition.space,
+                    },
                     description: file_object.description.clone(),
-                    tags: file_object.tags.clone(),
-                    aliases: file_object.aliases.clone(),
                     source: file_object.source.clone(),
+                    audit: CogniteAuditable {
+                        created_time: node_definition.created_time,
+                        last_updated_time: node_definition.last_updated_time,
+                        deleted_time: node_definition.deleted_time,
+                    },
                     assets: file_object.assets.clone(),
                     mime_type: file_object.mime_type.clone(),
                     directory: file_object.directory.clone(),
@@ -142,13 +142,8 @@ impl FromReadable<FileObject> for CogniteExtractorFile {
 /// The properties of the file object.
 pub struct FileObject {
     /// Name of the instance.
-    pub name: String,
-    /// Description of the instance.
-    pub description: Option<String>,
-    /// Text based labels for generic use, limited to 1000.
-    pub tags: Option<Vec<String>>,
-    /// Alternative names for the node.
-    pub aliases: Option<Vec<String>>,
+    #[serde(flatten)]
+    pub description: CogniteDescribable,
     #[serde(flatten)]
     /// Source system.
     pub source: CogniteSourceable,
@@ -168,26 +163,4 @@ pub struct FileObject {
     pub category: Option<InstanceId>,
     /// Unstructured information extracted from source system.
     pub extracted_data: Option<HashMap<String, String>>,
-}
-
-#[skip_serializing_none]
-#[derive(Serialize, Deserialize, Clone, Debug, Default)]
-#[serde(rename_all = "camelCase")]
-pub struct CogniteSourceable {
-    /// Identifier from the source system.
-    pub source_id: Option<String>,
-    /// Context of the source id. For systems where the sourceId is globally unique, the sourceContext is expected to not be set.
-    pub source_context: Option<String>,
-    /// Direct relation to a source system.
-    pub source: Option<InstanceId>,
-    /// When the instance was created in source system (if available).
-    pub source_created_time: Option<i64>,
-    /// When the instance was last updated in the source system (if available)
-    pub source_updated_time: Option<i64>,
-    /// User identifier from the source system on who created the source data. This identifier is
-    /// not guaranteed to match the user identifiers in CDF.
-    pub source_created_user: Option<String>,
-    /// User identifier from the source system on who last updated the source data.
-    /// This identifier is not guaranteed to match the user identifiers in CDF.
-    pub source_updated_user: Option<String>,
 }

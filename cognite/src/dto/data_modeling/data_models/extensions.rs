@@ -5,7 +5,9 @@ use crate::models::{
     views::ViewReference,
 };
 
+pub mod common;
 pub mod files;
+pub mod timeseries;
 
 /// Trait to convert this type into a writeable node
 pub trait IntoWritable<TProperties> {

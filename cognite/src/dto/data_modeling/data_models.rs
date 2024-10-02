@@ -9,6 +9,7 @@ use crate::{
 mod extensions;
 pub use extensions::{
     files::{CogniteExtractorFile, FileObject},
+    timeseries::{CogniteTimeseries, Timeseries},
     FromReadable, IntoWritable,
 };
 

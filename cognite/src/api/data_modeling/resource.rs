@@ -16,6 +16,7 @@ use crate::{Result, RetrieveWithRequest, UpsertCollection};
 use super::instances::Instances;
 /// Data model files.
 pub mod files;
+pub mod timeseries;
 
 /// Trait for data models special instance
 pub trait WithView {
