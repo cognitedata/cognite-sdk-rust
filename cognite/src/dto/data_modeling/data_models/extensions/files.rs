@@ -107,7 +107,6 @@ impl FromReadable<FileObject> for CogniteExtractorFile {
         value: NodeOrEdge<FileObject>,
         view: ViewReference,
     ) -> crate::Result<CogniteExtractorFile> {
-        // TODO: make error better
         match value {
             NodeOrEdge::Node(node_definition) => {
                 let mut properties = node_definition
