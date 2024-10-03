@@ -9,10 +9,8 @@ use crate::{
 use async_trait::async_trait;
 use futures_locks::RwLock;
 use serde::{Deserialize, Serialize};
-use std::{
-    fmt::Display,
-    time::{SystemTime, UNIX_EPOCH},
-};
+use std::fmt::Display;
+use std::time::{Duration, Instant};
 use thiserror::Error;
 
 /// Type of closure for a synchronous auth callback.
@@ -117,6 +115,11 @@ pub struct AuthenticatorConfig {
     pub audience: Option<String>,
     /// Optional space separate list of scopes.
     pub scopes: Option<String>,
+    /// Optional default token expiry time, in seconds.
+    /// If this is set, the authenticator will fall back on this if
+    /// the identity provider returns a token response without `expires_in`.
+    /// If this is not set, and `expires_in` is missing, the authenticator will return an error.
+    pub default_expires_in: Option<u64>,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -145,7 +148,7 @@ impl AuthenticatorRequest {
 #[derive(Serialize, Deserialize, Debug)]
 struct AuthenticatorResponse {
     access_token: String,
-    expires_in: MaybeStringU64,
+    expires_in: Option<MaybeStringU64>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Error)]
@@ -189,20 +192,13 @@ impl Display for AuthenticatorError {
 }
 
 struct AuthenticatorState {
-    pub last_response: Option<AuthenticatorResponse>,
-    last_request_time: u64,
+    last_token: Option<String>,
+    current_token_expiry: Instant,
 }
 
-impl AuthenticatorState {
-    pub fn register_response(
-        &mut self,
-        response: AuthenticatorResponse,
-        now: u64,
-    ) -> Option<&AuthenticatorResponse> {
-        self.last_response = Some(response);
-        self.last_request_time = now;
-        self.last_response.as_ref()
-    }
+struct AuthenticatorResult {
+    token: String,
+    expiry: Instant,
 }
 
 /// Simple OIDC authenticator.
@@ -210,6 +206,7 @@ pub struct Authenticator {
     req: AuthenticatorRequest,
     state: RwLock<AuthenticatorState>,
     token_url: String,
+    default_expires_in: Option<Duration>,
 }
 
 impl Authenticator {
@@ -221,10 +218,11 @@ impl Authenticator {
     pub fn new(config: AuthenticatorConfig) -> Authenticator {
         Authenticator {
             token_url: config.token_url.clone(),
+            default_expires_in: config.default_expires_in.map(Duration::from_secs),
             req: AuthenticatorRequest::new(config),
             state: RwLock::new(AuthenticatorState {
-                last_response: None,
-                last_request_time: 0,
+                last_token: None,
+                current_token_expiry: Instant::now(),
             }),
         }
     }
@@ -232,7 +230,7 @@ impl Authenticator {
     async fn request_token(
         &self,
         client: &ClientWithMiddleware,
-    ) -> Result<AuthenticatorResponse, AuthenticatorError> {
+    ) -> Result<AuthenticatorResult, AuthenticatorError> {
         let response = client
             .post(&self.token_url)
             .form(&self.req)
@@ -246,6 +244,8 @@ impl Authenticator {
             })?;
 
         let status = response.status();
+
+        let start = Instant::now();
 
         let response = response.text().await.map_err(|e| {
             AuthenticatorError::internal_error(
@@ -263,11 +263,32 @@ impl Authenticator {
             };
         }
 
-        serde_json::from_str(&response).map_err(|e| {
+        let response: AuthenticatorResponse = serde_json::from_str(&response).map_err(|e| {
             AuthenticatorError::internal_error(
                 "Failed to deserialize".to_string(),
                 Some(e.to_string()),
             )
+        })?;
+
+        let token = response.access_token;
+        let Some(expires_in) = response
+            .expires_in
+            // Subtract 60 as a buffer. We do retry on 401s, but it's best to renew the
+            // token before it expires. If for whatever reason expires_in is less than 60,
+            // we will just always renew before sending a request. We won't (hopefully)
+            // get an infinite loop.
+            .map(|m| Duration::from_secs(m.0.saturating_sub(60)))
+            .or(self.default_expires_in)
+        else {
+            return Err(AuthenticatorError::internal_error(
+                "Missing expires_in in response, and no default expiration configured".to_owned(),
+                None,
+            ));
+        };
+
+        Ok(AuthenticatorResult {
+            token,
+            expiry: start + expires_in,
         })
     }
 
@@ -281,15 +302,12 @@ impl Authenticator {
         &self,
         client: &ClientWithMiddleware,
     ) -> Result<String, AuthenticatorError> {
-        let now = SystemTime::now()
-            .duration_since(UNIX_EPOCH)
-            .unwrap()
-            .as_secs();
+        let now = Instant::now();
         {
             let state = &*self.state.read().await;
-            if let Some(last) = &state.last_response {
-                if state.last_request_time + last.expires_in.0 > now + 60 {
-                    return Ok(last.access_token.clone());
+            if let Some(last) = &state.last_token {
+                if state.current_token_expiry > now {
+                    return Ok(last.clone());
                 }
             }
         }
@@ -299,16 +317,17 @@ impl Authenticator {
 
         // Need to check here too, in case we were blocked in this write lock by another thread
         // fetching the token.
-        if let Some(last) = &write.last_response {
-            if write.last_request_time + last.expires_in.0 > now {
-                return Ok(last.access_token.clone());
+        if let Some(last) = &write.last_token {
+            if write.current_token_expiry > now {
+                return Ok(last.clone());
             }
         }
 
         match self.request_token(client).await {
             Ok(response) => {
-                let response = write.register_response(response, now);
-                Ok(response.unwrap().access_token.clone())
+                write.current_token_expiry = response.expiry;
+                write.last_token = Some(response.token.clone());
+                Ok(response.token)
             }
             Err(e) => Err(e),
         }
