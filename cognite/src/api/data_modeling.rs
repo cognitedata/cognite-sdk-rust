@@ -7,12 +7,6 @@ pub(crate) mod views;
 
 use std::sync::Arc;
 
-// pub use resource::{files::FilesResource, timeseries::TimeseriesResource};
-// pub use resource::{
-//     DataModelsResource as ExtendedDataModelsResource, RetrieveExtendedCollection, WithView,
-//     UpsertExtendedCollection, WithInstanceApiResource
-// };
-
 use crate::api::data_modeling::{instances::Instances, views::ViewsResource};
 use crate::ApiClient;
 
