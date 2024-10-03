@@ -6,6 +6,7 @@ use crate::models::instances::InstanceId;
 #[skip_serializing_none]
 #[derive(Serialize, Deserialize, Clone, Debug, Default)]
 #[serde(rename_all = "camelCase")]
+/// Cognite sourceable.
 pub struct CogniteSourceable {
     /// Identifier from the source system.
     pub source_id: Option<String>,
@@ -28,6 +29,7 @@ pub struct CogniteSourceable {
 #[skip_serializing_none]
 #[derive(Serialize, Deserialize, Clone, Debug, Default)]
 #[serde(rename_all = "camelCase")]
+/// Cognite describable.
 pub struct CogniteDescribable {
     /// Name of the instance.
     pub name: String,
@@ -39,11 +41,25 @@ pub struct CogniteDescribable {
     pub aliases: Option<Vec<String>>,
 }
 
+impl CogniteDescribable {
+    /// Create a new describable instance.
+    pub fn new(name: String) -> Self {
+        Self {
+            name,
+            ..Default::default()
+        }
+    }
+}
+
 #[skip_serializing_none]
 #[derive(Serialize, Deserialize, Clone, Debug, Default)]
 #[serde(rename_all = "camelCase")]
+/// Cognite auditable.
 pub struct CogniteAuditable {
+    /// When the instance was last updated.
     pub last_updated_time: i64,
+    /// When the instance was created.
     pub created_time: i64,
+    /// When the instance was deleted.
     pub deleted_time: Option<i64>,
 }

@@ -13,39 +13,31 @@ use crate::{
 
 use super::{
     common::{CogniteAuditable, CogniteDescribable, CogniteSourceable},
-    FromReadable, IntoWritable,
+    FromReadable, IntoWritable, WithView,
 };
 
 #[derive(Serialize, Deserialize, Clone, Debug, Default)]
+#[serde(rename_all = "lowercase")]
+/// Specifies the data type of the data points.
 pub enum TimeSeriesType {
+    /// Indicates that timeseries type is a string.
     String,
     #[default]
-    Number,
+    /// Indicates that timeseries type is a number.
+    Numeric,
 }
 
 #[derive(Clone, Debug, Default)]
-/// A special data models instance type.
+/// Represents a series of data points in time order..
 pub struct CogniteTimeseries {
+    /// The where the instance belong. This can be none if the default view is preferred.
+    pub view: Option<ViewReference>,
     /// Id of the instance.
     pub id: InstanceId,
-    /// Descriptions of the instance.
-    pub description: CogniteDescribable,
-    /// Source system.
-    pub source: CogniteSourceable,
-    /// Defines whether the time series is a step series or not.
-    pub is_step: Option<bool>,
-    /// Unit as specified in the source system.
-    pub source_unit: String,
-    /// Direct relation to the unit of the time series.
-    pub unit: InstanceId,
-    /// List of assets to which this file relates.
-    pub assets: Option<Vec<InstanceId>>,
-    /// List of activities associated with this time series.
-    pub activities: Option<Vec<InstanceId>>,
-    /// Type of datapoints the time series contains.
-    pub r#type: Option<TimeSeriesType>,
     /// An audit of the lifecycle of the instance
     pub audit: CogniteAuditable,
+    /// Timeseries data.
+    pub timeseries: Timeseries,
 }
 
 impl CogniteTimeseries {
@@ -56,43 +48,44 @@ impl CogniteTimeseries {
     /// * `space` - The space where this entity will be saved.
     /// * `external_id` - A unique external id for this entity.
     /// * `name` - A name for the entity.
-    pub fn new(space: String, external_id: String, name: String) -> Self {
+    /// # `is_step` - Specifies whether the time series is a step time series or not.
+    pub fn new(space: String, external_id: String, name: String, is_step: Option<bool>) -> Self {
         CogniteTimeseries {
-            description: CogniteDescribable {
-                name,
-                ..Default::default()
-            },
             id: InstanceId { space, external_id },
+            view: None,
+            timeseries: Timeseries::new(name, is_step),
             ..Default::default()
         }
     }
 }
 
-impl From<CogniteTimeseries> for Timeseries {
-    fn from(value: CogniteTimeseries) -> Self {
-        Self {
-            description: value.description,
-            source: value.source,
-            assets: value.assets,
-            is_step: value.is_step,
-            activities: value.activities,
-            unit: value.unit,
-            source_unit: value.source_unit,
-            r#type: value.r#type,
-        }
-    }
+impl WithView for CogniteTimeseries {
+    const SPACE: &'static str = "cdf_cdm";
+    const EXTERNAL_ID: &'static str = "CogniteTimeSeries";
+    const VERSION: &'static str = "v1";
 }
 
-impl IntoWritable<Timeseries> for CogniteTimeseries {
-    fn try_into_writable(self, view: ViewReference) -> crate::Result<NodeOrEdgeCreate<Timeseries>> {
+impl IntoWritable<Timeseries> for CogniteTimeseries
+where
+    Self: WithView,
+{
+    fn try_into_writable(self) -> crate::Result<NodeOrEdgeCreate<Timeseries>> {
         Ok(NodeOrEdgeCreate::Node(NodeWrite {
             space: self.id.space.to_owned(),
             external_id: self.id.external_id.to_owned(),
             existing_version: None,
             r#type: None,
             sources: Some(vec![EdgeOrNodeData {
-                source: SourceReference::View(view),
-                properties: self.into(),
+                source: SourceReference::View(
+                    self.view
+                        .unwrap_or(ViewReference {
+                            space: Self::SPACE.to_string(),
+                            external_id: Self::EXTERNAL_ID.to_string(),
+                            version: Self::VERSION.to_string(),
+                        })
+                        .to_owned(),
+                ),
+                properties: self.timeseries,
             }]),
         }))
     }
@@ -101,33 +94,34 @@ impl IntoWritable<Timeseries> for CogniteTimeseries {
 impl FromReadable<Timeseries> for CogniteTimeseries {
     fn try_from_readable(
         value: NodeOrEdge<Timeseries>,
-        view: ViewReference,
+        view: Option<&ViewReference>,
     ) -> crate::Result<CogniteTimeseries> {
         match value {
             NodeOrEdge::Node(node_definition) => {
                 let mut properties = node_definition
                     .properties
                     .ok_or(Error::Other("Invalid properties".to_string()))?;
-                let timeseries: &Timeseries = get_instance_properties(view, &mut properties)
-                    .ok_or(Error::Other("Invalid properties".to_string()))?;
+                let timeseries: &Timeseries = get_instance_properties(
+                    view.unwrap_or(&ViewReference {
+                        space: Self::SPACE.to_string(),
+                        external_id: Self::EXTERNAL_ID.to_string(),
+                        version: Self::VERSION.to_string(),
+                    }),
+                    &mut properties,
+                )
+                .ok_or(Error::Other("Invalid properties".to_string()))?;
                 Ok(CogniteTimeseries {
+                    view: view.map(|v| v.to_owned()),
                     id: InstanceId {
                         external_id: node_definition.external_id,
                         space: node_definition.space,
                     },
-                    description: timeseries.description.clone(),
-                    source: timeseries.source.clone(),
                     audit: CogniteAuditable {
                         created_time: node_definition.created_time,
                         last_updated_time: node_definition.last_updated_time,
                         deleted_time: node_definition.deleted_time,
                     },
-                    assets: timeseries.assets.clone(),
-                    is_step: timeseries.is_step,
-                    activities: timeseries.activities.clone(),
-                    unit: timeseries.unit.clone(),
-                    source_unit: timeseries.source_unit.clone(),
-                    r#type: timeseries.r#type.clone(),
+                    timeseries: timeseries.to_owned(),
                 })
             }
             _ => Err(Error::Other("Invalid type".to_string())),
@@ -136,7 +130,7 @@ impl FromReadable<Timeseries> for CogniteTimeseries {
 }
 
 #[skip_serializing_none]
-#[derive(Serialize, Deserialize, Clone, Debug)]
+#[derive(Serialize, Deserialize, Clone, Debug, Default)]
 #[serde(rename_all = "camelCase")]
 /// The properties of the file object.
 pub struct Timeseries {
@@ -147,7 +141,7 @@ pub struct Timeseries {
     /// Source system.
     pub source: CogniteSourceable,
     /// Defines whether the time series is a step series or not.
-    pub is_step: Option<bool>,
+    pub is_step: bool,
     /// Unit as specified in the source system.
     pub source_unit: String,
     /// Direct relation to the unit of the time series.
@@ -157,5 +151,16 @@ pub struct Timeseries {
     /// List of activities associated with this time series.
     pub activities: Option<Vec<InstanceId>>,
     /// Type of datapoints the time series contains.
-    pub r#type: Option<TimeSeriesType>,
+    pub r#type: TimeSeriesType,
+}
+
+impl Timeseries {
+    /// Create a new timeseries instance.
+    pub fn new(name: String, is_step: Option<bool>) -> Self {
+        Self {
+            description: CogniteDescribable::new(name),
+            is_step: is_step.unwrap_or_default(),
+            ..Default::default()
+        }
+    }
 }

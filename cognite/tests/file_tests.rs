@@ -1,9 +1,10 @@
 // #![cfg(feature = "integration_tests")]
 
 use bytes::Bytes;
-use cognite::models::data_models::CogniteExtractorFile;
-use cognite::models::instances::{InstanceId, NodeOrEdgeSpecification, SlimNodeOrEdge};
-use cognite::models::{ItemId, UpsertExtendedCollection};
+use cognite::models::instances::{
+    CogniteExtractorFile, InstanceId, NodeOrEdgeSpecification, SlimNodeOrEdge,
+};
+use cognite::models::ItemId;
 use cognite::prelude::*;
 use cognite::{files::*, Identity};
 use futures::TryStreamExt;
@@ -215,8 +216,8 @@ async fn create_delete_dm_files() {
     let col = CogniteExtractorFile::new(space.to_string(), external_id.to_string(), name);
     let res = client
         .models
-        .files
-        .upsert(vec![col], None, None, None, None, None)
+        .instances
+        .apply(vec![col], None, None, None, None, None)
         .await
         .unwrap();
     let res = res.first().unwrap();
@@ -267,8 +268,8 @@ async fn create_core_dm_multipart_file() {
     let col = CogniteExtractorFile::new(space.to_string(), external_id.to_string(), name);
     let res = client
         .models
-        .files
-        .upsert(vec![col], None, None, None, None, None)
+        .instances
+        .apply(vec![col], None, None, None, None, None)
         .await
         .unwrap();
     let res = res.first().unwrap();

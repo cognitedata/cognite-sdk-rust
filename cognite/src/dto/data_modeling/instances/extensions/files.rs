@@ -15,52 +15,26 @@ use crate::{
 
 use super::{
     common::{CogniteAuditable, CogniteDescribable, CogniteSourceable},
-    FromReadable, IntoWritable,
+    FromReadable, IntoWritable, WithView,
 };
 
 #[derive(Clone, Debug, Default)]
 /// A special data models instance type.
 pub struct CogniteExtractorFile {
+    /// The where the instance belong. This can be none if the default view is preferred.
+    pub view: Option<ViewReference>,
     /// Id of the instance.
     pub id: InstanceId,
-    /// Cognite describable.
-    pub description: CogniteDescribable,
-    /// Cognite sourceable.
-    pub source: CogniteSourceable,
     /// An audit of the lifecycle of the instance
     pub audit: CogniteAuditable,
-    /// List of assets to which this file relates.
-    pub assets: Option<Vec<InstanceId>>,
-    /// MIME type of the file.
-    pub mime_type: Option<String>,
-    /// Contains the path elements from the source (for when the source system has a file system
-    /// hierarchy or similar).
-    pub directory: Option<String>,
-    /// Whether the file content has been uploaded to Cognite Data Fusion.
-    pub is_uploaded: Option<bool>,
-    /// Point in time when the file upload was completed and the file was made available.
-    pub uploaded_time: Option<i64>,
-    /// Direct relation to an instance of CogniteFileCategory representing the detected
-    /// categorization/class for the file.
-    pub category: Option<InstanceId>,
-    /// Unstructured information extracted from source system.
-    pub extracted_data: Option<HashMap<String, String>>,
+    /// File object.
+    pub file_object: FileObject,
 }
 
-impl From<CogniteExtractorFile> for FileObject {
-    fn from(value: CogniteExtractorFile) -> Self {
-        Self {
-            description: value.description,
-            source: value.source,
-            assets: value.assets,
-            mime_type: value.mime_type,
-            directory: value.directory,
-            is_uploaded: value.is_uploaded,
-            uploaded_time: value.uploaded_time,
-            category: value.category,
-            extracted_data: value.extracted_data,
-        }
-    }
+impl WithView for CogniteExtractorFile {
+    const SPACE: &'static str = "cdf_extraction_extensions";
+    const EXTERNAL_ID: &'static str = "CogniteExtractorFile";
+    const VERSION: &'static str = "v1";
 }
 
 impl CogniteExtractorFile {
@@ -73,26 +47,35 @@ impl CogniteExtractorFile {
     /// * `name` - A name for the entity.
     pub fn new(space: String, external_id: String, name: String) -> Self {
         CogniteExtractorFile {
-            description: CogniteDescribable {
-                name,
-                ..Default::default()
-            },
             id: InstanceId { space, external_id },
+            view: None,
+            file_object: FileObject::new(name),
             ..Default::default()
         }
     }
 }
 
-impl IntoWritable<FileObject> for CogniteExtractorFile {
-    fn try_into_writable(self, view: ViewReference) -> crate::Result<NodeOrEdgeCreate<FileObject>> {
+impl IntoWritable<FileObject> for CogniteExtractorFile
+where
+    Self: WithView,
+{
+    fn try_into_writable(self) -> crate::Result<NodeOrEdgeCreate<FileObject>> {
         Ok(NodeOrEdgeCreate::Node(NodeWrite {
             space: self.id.space.to_owned(),
             external_id: self.id.external_id.to_owned(),
             existing_version: None,
             r#type: None,
             sources: Some(vec![EdgeOrNodeData {
-                source: SourceReference::View(view),
-                properties: self.into(),
+                source: SourceReference::View(
+                    self.view
+                        .unwrap_or(ViewReference {
+                            space: Self::SPACE.to_string(),
+                            external_id: Self::EXTERNAL_ID.to_string(),
+                            version: Self::VERSION.to_string(),
+                        })
+                        .to_owned(),
+                ),
+                properties: self.file_object,
             }]),
         }))
     }
@@ -101,34 +84,34 @@ impl IntoWritable<FileObject> for CogniteExtractorFile {
 impl FromReadable<FileObject> for CogniteExtractorFile {
     fn try_from_readable(
         value: NodeOrEdge<FileObject>,
-        view: ViewReference,
+        view: Option<&ViewReference>,
     ) -> crate::Result<CogniteExtractorFile> {
         match value {
             NodeOrEdge::Node(node_definition) => {
                 let mut properties = node_definition
                     .properties
                     .ok_or(Error::Other("Invalid properties".to_string()))?;
-                let file_object: &FileObject = get_instance_properties(view, &mut properties)
-                    .ok_or(Error::Other("Invalid properties".to_string()))?;
+                let file_object: &FileObject = get_instance_properties(
+                    view.unwrap_or(&ViewReference {
+                        space: Self::SPACE.to_string(),
+                        external_id: Self::EXTERNAL_ID.to_string(),
+                        version: Self::VERSION.to_string(),
+                    }),
+                    &mut properties,
+                )
+                .ok_or(Error::Other("Invalid properties".to_string()))?;
                 Ok(CogniteExtractorFile {
+                    view: view.map(|v| v.to_owned()),
                     id: InstanceId {
                         external_id: node_definition.external_id,
                         space: node_definition.space,
                     },
-                    description: file_object.description.clone(),
-                    source: file_object.source.clone(),
                     audit: CogniteAuditable {
                         created_time: node_definition.created_time,
                         last_updated_time: node_definition.last_updated_time,
                         deleted_time: node_definition.deleted_time,
                     },
-                    assets: file_object.assets.clone(),
-                    mime_type: file_object.mime_type.clone(),
-                    directory: file_object.directory.clone(),
-                    is_uploaded: file_object.is_uploaded,
-                    uploaded_time: file_object.uploaded_time,
-                    category: file_object.category.clone(),
-                    extracted_data: file_object.extracted_data.clone(),
+                    file_object: file_object.to_owned(),
                 })
             }
             _ => Err(Error::Other("Invalid type".to_string())),
@@ -137,7 +120,7 @@ impl FromReadable<FileObject> for CogniteExtractorFile {
 }
 
 #[skip_serializing_none]
-#[derive(Serialize, Deserialize, Clone, Debug)]
+#[derive(Serialize, Deserialize, Clone, Debug, Default)]
 #[serde(rename_all = "camelCase")]
 /// The properties of the file object.
 pub struct FileObject {
@@ -163,4 +146,14 @@ pub struct FileObject {
     pub category: Option<InstanceId>,
     /// Unstructured information extracted from source system.
     pub extracted_data: Option<HashMap<String, String>>,
+}
+
+impl FileObject {
+    /// Create a new file object.
+    pub fn new(name: String) -> FileObject {
+        Self {
+            description: CogniteDescribable::new(name),
+            ..Default::default()
+        }
+    }
 }

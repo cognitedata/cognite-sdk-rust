@@ -68,11 +68,11 @@ pub trait FromErrorDetail: Sized {
 ///
 /// * `view` - View reference of source.
 /// # `properties` - Instance properties object of special type.
-pub fn get_instance_properties<TProperties>(
-    view: ViewReference,
-    properties: &mut PropertiesObject<TProperties>,
-) -> Option<&TProperties> {
-    let space = view.space;
+pub fn get_instance_properties<'a, TProperties>(
+    view: &ViewReference,
+    properties: &'a mut PropertiesObject<TProperties>,
+) -> Option<&'a TProperties> {
+    let space = view.space.to_owned();
     let key = format!("{}/{}", view.external_id, view.version);
 
     properties.get_mut(&space).and_then(|v| v.get(&key))

@@ -1,7 +1,7 @@
 use cognite::{
     models::{
-        data_models::CogniteExtractorFile, instances::NodeOrEdgeSpecification, ItemId,
-        RetrieveExtendedCollection, UpsertExtendedCollection,
+        instances::{CogniteExtractorFile, NodeOrEdgeSpecification},
+        ItemId,
     },
     CogniteClient, DeleteWithResponse,
 };
@@ -16,8 +16,8 @@ async fn main() {
     let col = CogniteExtractorFile::new(space.to_string(), external_id, name);
     let res = client
         .models
-        .files
-        .upsert(vec![col], None, None, None, None, None)
+        .instances
+        .apply(vec![col], None, None, None, None, None)
         .await
         .unwrap();
     let external_id = match res.first().unwrap() {
@@ -34,8 +34,8 @@ async fn main() {
     });
     let res: Vec<CogniteExtractorFile> = client
         .models
-        .files
-        .retrieve(vec![node_specs.clone()])
+        .instances
+        .fetch(&[node_specs.clone()], None)
         .await
         .unwrap();
     println!("{res:#?}");
