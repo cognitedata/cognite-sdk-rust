@@ -164,7 +164,7 @@ impl Instances {
         auto_create_start_nodes: Option<bool>,
         auto_create_end_nodes: Option<bool>,
         skip_on_version_conflict: Option<bool>,
-        replace: Option<bool>,
+        replace: bool,
     ) -> Result<Vec<SlimNodeOrEdge>>
     where
         TProperties: Serialize + DeserializeOwned + Send + Sync,
@@ -181,7 +181,7 @@ impl Instances {
             auto_create_start_nodes,
             auto_create_end_nodes,
             skip_on_version_conflict,
-            replace,
+            replace: Some(replace),
         };
         self.upsert(&collection).await
     }

@@ -17,7 +17,7 @@ async fn main() {
     let res = client
         .models
         .instances
-        .apply(vec![col], None, None, None, None, None)
+        .apply(vec![col], None, None, None, None, false)
         .await
         .unwrap();
     let external_id = match res.first().unwrap() {
