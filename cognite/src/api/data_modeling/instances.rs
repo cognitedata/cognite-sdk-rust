@@ -8,7 +8,7 @@ use crate::models::instances::{
     NodeAndEdgeRetrieveResponse, NodeOrEdge, NodeOrEdgeCreate, NodeOrEdgeSpecification,
     QueryInstancesRequest, QueryInstancesResponse, SearchInstancesRequest, SourceReferenceInternal,
 };
-use crate::models::instances::{FromReadable, IntoWritable, WithView};
+use crate::models::instances::{FromReadable, WithView};
 use crate::models::views::ViewReference;
 use crate::Result;
 use crate::{DeleteWithResponse, FilterWithRequest, RetrieveWithRequest, UpsertCollection};
@@ -155,7 +155,7 @@ impl Instances {
     /// * `auto_create_direct_relation` - Whether to auto create direct relation that do no exist.
     /// * `auto_create_start_nodes` - Whether to auto create end nodes that do not exist.
     /// * `auto_create_end_nodes` - Whether to auto create end nodes that do not exist.
-    /// * `skip_on_version_conflict` - Whether to skip when a version conflic is encountered.
+    /// * `skip_on_version_conflict` - Whether to skip when a version conflict is encountered.
     /// * `replace` - Whether to replace all matching and existing values with the supplied values.
     pub async fn apply<TEntity, TProperties>(
         &self,
@@ -168,12 +168,12 @@ impl Instances {
     ) -> Result<Vec<SlimNodeOrEdge>>
     where
         TProperties: Serialize + DeserializeOwned + Send + Sync,
-        TEntity: IntoWritable<TProperties> + Send,
+        TEntity: Into<NodeOrEdgeCreate<TProperties>> + Send,
     {
-        let collection: Vec<NodeOrEdgeCreate<TProperties>> = col
+        let collection = col
             .into_iter()
-            .map(|t| t.try_into_writable())
-            .collect::<Result<Vec<NodeOrEdgeCreate<_>>>>()?;
+            .map(|t| t.into())
+            .collect::<Vec<NodeOrEdgeCreate<_>>>();
 
         let collection = NodeAndEdgeCreateCollection {
             items: collection,

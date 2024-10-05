@@ -15,7 +15,7 @@ use crate::{
 
 use super::{
     common::{CogniteAuditable, CogniteDescribable, CogniteSourceable},
-    FromReadable, IntoWritable, WithView,
+    FromReadable, WithInstance, WithView,
 };
 
 #[derive(Clone, Debug, Default)]
@@ -55,12 +55,9 @@ impl CogniteExtractorFile {
     }
 }
 
-impl IntoWritable<FileObject> for CogniteExtractorFile
-where
-    Self: WithView,
-{
-    fn try_into_writable(self) -> crate::Result<NodeOrEdgeCreate<FileObject>> {
-        Ok(NodeOrEdgeCreate::Node(NodeWrite {
+impl WithInstance<FileObject> for CogniteExtractorFile {
+    fn instance(self) -> NodeOrEdgeCreate<FileObject> {
+        NodeOrEdgeCreate::Node(NodeWrite {
             space: self.id.space.to_owned(),
             external_id: self.id.external_id.to_owned(),
             existing_version: None,
@@ -77,7 +74,7 @@ where
                 ),
                 properties: self.file_object,
             }]),
-        }))
+        })
     }
 }
 

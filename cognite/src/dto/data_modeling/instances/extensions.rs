@@ -1,20 +1,13 @@
 use serde::Serialize;
 
-use crate::models::{
-    instances::{NodeOrEdge, NodeOrEdgeCreate},
-    views::ViewReference,
-};
+use crate::models::{instances::NodeOrEdge, views::ViewReference};
+
+use super::NodeOrEdgeCreate;
 
 pub mod common;
 pub mod files;
 pub mod timeseries;
 pub mod units;
-
-/// Trait to convert this type into a writeable node
-pub trait IntoWritable<TProperties> {
-    /// Try converting to writeable node/edge.
-    fn try_into_writable(self) -> crate::Result<NodeOrEdgeCreate<TProperties>>;
-}
 
 /// Trait to convert from Node/Edge into this type.
 pub trait FromReadable<TProperties>
@@ -42,7 +35,58 @@ pub trait WithView {
     const EXTERNAL_ID: &'static str;
     /// Default version
     const VERSION: &'static str;
-    // / Get view for instance
-    // fn view(&self) -> ViewReference;
-    // fn with_view(&mut self, view: ViewReference);
 }
+
+pub trait WithInstance<TProperties>
+where
+    TProperties: Serialize + Send,
+{
+    fn instance(self) -> NodeOrEdgeCreate<TProperties>;
+}
+
+impl<T, TProperties> From<T> for NodeOrEdgeCreate<TProperties>
+where
+    T: WithView + WithInstance<TProperties>,
+    TProperties: Serialize + Send,
+{
+    fn from(value: T) -> NodeOrEdgeCreate<TProperties> {
+        value.instance()
+    }
+}
+
+// pub enum InstanceType {
+//     NODE,
+//     EDGE,
+// }
+// pub trait WithType {
+//     const TYPE: InstanceType;
+// }
+
+// impl<'a, V, T> IntoWritable<V> for T
+// where
+//     // Self: WithType + WithView<'a>,
+//     T: WithType + WithView<'a>, // + FromReadable<dyn Serialize>,
+//     V: Serialize + Send,
+// {
+//     fn try_into_writable(self) -> crate::Result<V> {
+//         todo!()
+//         // Ok(NodeOrEdgeCreate::Node(NodeWrite {
+//         //     space: self.id.space.to_owned(),
+//         //     external_id: self.id.external_id.to_owned(),
+//         //     existing_version: None,
+//         //     r#type: None,
+//         //     sources: Some(vec![EdgeOrNodeData {
+//         //         source: SourceReference::View(
+//         //             self.view()
+//         //                 .unwrap_or(ViewReference {
+//         //                     space: T::SPACE.to_string(),
+//         //                     external_id: T::EXTERNAL_ID.to_string(),
+//         //                     version: T::VERSION.to_string(),
+//         //                 })
+//         //                 .to_owned(),
+//         //         ),
+//         //         properties: self.properties(),
+//         //     }]),
+//         // }))
+//     }
+// }

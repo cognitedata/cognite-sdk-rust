@@ -13,7 +13,7 @@ use crate::{
 
 use super::{
     common::{CogniteAuditable, CogniteDescribable},
-    FromReadable, IntoWritable, WithView,
+    FromReadable, WithInstance, WithView,
 };
 
 #[derive(Clone, Debug, Default)]
@@ -26,7 +26,7 @@ pub struct CogniteUnit {
     /// An audit of the lifecycle of the instance
     pub audit: CogniteAuditable,
     /// Unit instance.
-    pub unit: Unit,
+    pub properties: Unit,
 }
 
 impl CogniteUnit {
@@ -41,7 +41,7 @@ impl CogniteUnit {
         CogniteUnit {
             id: InstanceId { space, external_id },
             view: None,
-            unit: Unit::new(name),
+            properties: Unit::new(name),
             ..Default::default()
         }
     }
@@ -53,12 +53,9 @@ impl WithView for CogniteUnit {
     const VERSION: &'static str = "v1";
 }
 
-impl IntoWritable<Unit> for CogniteUnit
-where
-    Self: WithView,
-{
-    fn try_into_writable(self) -> crate::Result<NodeOrEdgeCreate<Unit>> {
-        Ok(NodeOrEdgeCreate::Node(NodeWrite {
+impl WithInstance<Unit> for CogniteUnit {
+    fn instance(self) -> NodeOrEdgeCreate<Unit> {
+        NodeOrEdgeCreate::Node(NodeWrite {
             space: self.id.space.to_owned(),
             external_id: self.id.external_id.to_owned(),
             existing_version: None,
@@ -73,9 +70,9 @@ where
                         })
                         .to_owned(),
                 ),
-                properties: self.unit,
+                properties: self.properties,
             }]),
-        }))
+        })
     }
 }
 
@@ -109,7 +106,7 @@ impl FromReadable<Unit> for CogniteUnit {
                         last_updated_time: node_definition.last_updated_time,
                         deleted_time: node_definition.deleted_time,
                     },
-                    unit: unit.to_owned(),
+                    properties: unit.to_owned(),
                 })
             }
             _ => Err(Error::Other("Invalid type".to_string())),

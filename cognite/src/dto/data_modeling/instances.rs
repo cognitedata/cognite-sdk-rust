@@ -16,7 +16,7 @@ pub use extensions::{
     files::{CogniteExtractorFile, FileObject},
     timeseries::{CogniteTimeseries, TimeSeriesType, Timeseries},
     units::{CogniteUnit, Unit},
-    FromReadable, IntoWritable, WithView,
+    FromReadable, WithView,
 };
 
 #[skip_serializing_none]

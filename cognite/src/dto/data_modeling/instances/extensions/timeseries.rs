@@ -13,7 +13,7 @@ use crate::{
 
 use super::{
     common::{CogniteAuditable, CogniteDescribable, CogniteSourceable},
-    FromReadable, IntoWritable, WithView,
+    FromReadable, WithInstance, WithView,
 };
 
 #[derive(Serialize, Deserialize, Clone, Debug, Default)]
@@ -37,7 +37,7 @@ pub struct CogniteTimeseries {
     /// An audit of the lifecycle of the instance
     pub audit: CogniteAuditable,
     /// Timeseries data.
-    pub timeseries: Timeseries,
+    pub properties: Timeseries,
 }
 
 impl CogniteTimeseries {
@@ -53,7 +53,7 @@ impl CogniteTimeseries {
         CogniteTimeseries {
             id: InstanceId { space, external_id },
             view: None,
-            timeseries: Timeseries::new(name, is_step),
+            properties: Timeseries::new(name, is_step),
             ..Default::default()
         }
     }
@@ -65,12 +65,9 @@ impl WithView for CogniteTimeseries {
     const VERSION: &'static str = "v1";
 }
 
-impl IntoWritable<Timeseries> for CogniteTimeseries
-where
-    Self: WithView,
-{
-    fn try_into_writable(self) -> crate::Result<NodeOrEdgeCreate<Timeseries>> {
-        Ok(NodeOrEdgeCreate::Node(NodeWrite {
+impl WithInstance<Timeseries> for CogniteTimeseries {
+    fn instance(self) -> NodeOrEdgeCreate<Timeseries> {
+        NodeOrEdgeCreate::Node(NodeWrite {
             space: self.id.space.to_owned(),
             external_id: self.id.external_id.to_owned(),
             existing_version: None,
@@ -85,9 +82,9 @@ where
                         })
                         .to_owned(),
                 ),
-                properties: self.timeseries,
+                properties: self.properties,
             }]),
-        }))
+        })
     }
 }
 
@@ -121,7 +118,7 @@ impl FromReadable<Timeseries> for CogniteTimeseries {
                         last_updated_time: node_definition.last_updated_time,
                         deleted_time: node_definition.deleted_time,
                     },
-                    timeseries: timeseries.to_owned(),
+                    properties: timeseries.to_owned(),
                 })
             }
             _ => Err(Error::Other("Invalid type".to_string())),
