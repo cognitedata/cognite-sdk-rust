@@ -44,49 +44,12 @@ where
     fn instance(self) -> NodeOrEdgeCreate<TProperties>;
 }
 
-impl<T, TProperties> From<T> for NodeOrEdgeCreate<TProperties>
+impl<TEntity, TProperties> From<TEntity> for NodeOrEdgeCreate<TProperties>
 where
-    T: WithView + WithInstance<TProperties>,
+    TEntity: WithView + WithInstance<TProperties>,
     TProperties: Serialize + Send,
 {
-    fn from(value: T) -> NodeOrEdgeCreate<TProperties> {
+    fn from(value: TEntity) -> NodeOrEdgeCreate<TProperties> {
         value.instance()
     }
 }
-
-// pub enum InstanceType {
-//     NODE,
-//     EDGE,
-// }
-// pub trait WithType {
-//     const TYPE: InstanceType;
-// }
-
-// impl<'a, V, T> IntoWritable<V> for T
-// where
-//     // Self: WithType + WithView<'a>,
-//     T: WithType + WithView<'a>, // + FromReadable<dyn Serialize>,
-//     V: Serialize + Send,
-// {
-//     fn try_into_writable(self) -> crate::Result<V> {
-//         todo!()
-//         // Ok(NodeOrEdgeCreate::Node(NodeWrite {
-//         //     space: self.id.space.to_owned(),
-//         //     external_id: self.id.external_id.to_owned(),
-//         //     existing_version: None,
-//         //     r#type: None,
-//         //     sources: Some(vec![EdgeOrNodeData {
-//         //         source: SourceReference::View(
-//         //             self.view()
-//         //                 .unwrap_or(ViewReference {
-//         //                     space: T::SPACE.to_string(),
-//         //                     external_id: T::EXTERNAL_ID.to_string(),
-//         //                     version: T::VERSION.to_string(),
-//         //                 })
-//         //                 .to_owned(),
-//         //         ),
-//         //         properties: self.properties(),
-//         //     }]),
-//         // }))
-//     }
-// }

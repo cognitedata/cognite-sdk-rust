@@ -159,7 +159,7 @@ impl Instances {
     /// * `replace` - Whether to replace all matching and existing values with the supplied values.
     pub async fn apply<TEntity, TProperties>(
         &self,
-        col: Vec<TEntity>,
+        col: &[TEntity],
         auto_create_direct_relations: Option<bool>,
         auto_create_start_nodes: Option<bool>,
         auto_create_end_nodes: Option<bool>,
@@ -168,11 +168,11 @@ impl Instances {
     ) -> Result<Vec<SlimNodeOrEdge>>
     where
         TProperties: Serialize + DeserializeOwned + Send + Sync,
-        TEntity: Into<NodeOrEdgeCreate<TProperties>> + Send,
+        TEntity: Clone + Into<NodeOrEdgeCreate<TProperties>> + Send,
     {
         let collection = col
-            .into_iter()
-            .map(|t| t.into())
+            .iter()
+            .map(|t| t.to_owned().into())
             .collect::<Vec<NodeOrEdgeCreate<_>>>();
 
         let collection = NodeAndEdgeCreateCollection {

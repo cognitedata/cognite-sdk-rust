@@ -64,7 +64,7 @@ async fn create_and_delete_file_instance() {
     let res = client
         .models
         .instances
-        .apply(vec![col], None, None, None, None, false)
+        .apply(&[col], None, None, None, None, false)
         .await
         .unwrap();
     let res = res.first().unwrap();
@@ -108,7 +108,7 @@ async fn create_and_delete_timeseries_instance() {
     let unit_res = client
         .models
         .instances
-        .apply(vec![unit], None, None, None, None, false)
+        .apply(&[unit], None, None, None, None, false)
         .await
         .unwrap();
     let unit_res = unit_res.first().unwrap();
@@ -138,14 +138,14 @@ async fn create_and_delete_timeseries_instance() {
         SlimNodeOrEdge::Node(slim_node_definition) => slim_node_definition,
         SlimNodeOrEdge::Edge(_) => panic!("Invalid type for unit"),
     };
-    timeseries.timeseries.unit = InstanceId {
+    timeseries.properties.unit = InstanceId {
         space: space.clone(),
         external_id: unit.external_id.to_owned(),
     };
     let timeseries_res = client
         .models
         .instances
-        .apply(vec![timeseries], None, None, None, None, false)
+        .apply(&[timeseries], None, None, None, None, false)
         .await
         .unwrap();
     let timeseries_res = timeseries_res.first().unwrap();

@@ -217,7 +217,7 @@ async fn create_delete_dm_files() {
     let res = client
         .models
         .instances
-        .apply(vec![col], None, None, None, None, false)
+        .apply(&[col], None, None, None, None, false)
         .await
         .unwrap();
     let res = res.first().unwrap();
@@ -269,7 +269,7 @@ async fn create_core_dm_multipart_file() {
     let res = client
         .models
         .instances
-        .apply(vec![col], None, None, None, None, false)
+        .apply(&[col], None, None, None, None, false)
         .await
         .unwrap();
     let res = res.first().unwrap();
