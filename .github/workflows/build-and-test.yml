@@ -22,7 +22,7 @@ jobs:
       - name: Run cargo format
         run: cargo fmt --check
       - name: Test
-        run: cargo test --features=integration_tests
+        run: cargo test --features=integration_tests --test-threads=2
         env:
           COGNITE_PROJECT: opcua-interface-test
           COGNITE_BASE_URL: https://greenfield.cognitedata.com
