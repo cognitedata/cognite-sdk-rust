@@ -258,7 +258,7 @@ async fn create_delete_dm_files() {
     });
     let mut data: Option<ItemsVec<NodeOrEdgeSpecification>> = None;
 
-    for _ in 0..5 {
+    for _ in 0..10 {
         match client.models.instances.delete(&[node_specs.clone()]).await {
             Ok(res) => data = Some(res),
             Err(_) => {
@@ -338,7 +338,7 @@ async fn create_core_dm_multipart_file() {
     });
     let mut data: Option<ItemsVec<NodeOrEdgeSpecification>> = None;
 
-    for _ in 0..5 {
+    for _ in 0..10 {
         match client.models.instances.delete(&[node_specs.clone()]).await {
             Ok(res) => data = Some(res),
             Err(_) => {

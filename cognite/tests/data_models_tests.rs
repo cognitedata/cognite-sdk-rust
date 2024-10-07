@@ -100,7 +100,7 @@ async fn create_and_delete_file_instance() {
 
     let mut data: Option<ItemsVec<NodeOrEdgeSpecification>> = None;
 
-    for _ in 0..5 {
+    for _ in 0..10 {
         match client.models.instances.delete(&[node_specs.clone()]).await {
             Ok(res) => data = Some(res),
             Err(_) => {
@@ -156,7 +156,7 @@ async fn create_and_delete_timeseries_instance() {
 
     let mut data: Option<ItemsVec<NodeOrEdgeSpecification>> = None;
 
-    for _ in 0..5 {
+    for _ in 0..10 {
         match client.models.instances.delete(&[node_specs.clone()]).await {
             Ok(res) => data = Some(res),
             Err(_) => {
