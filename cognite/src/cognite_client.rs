@@ -138,6 +138,7 @@ impl CogniteClient {
             resource: env_or_none!(COGNITE_RESOURCE),
             audience: env_or_none!(COGNITE_AUDIENCE),
             scopes: env_or_none!(COGNITE_SCOPES),
+            default_expires_in: None,
         };
 
         CogniteClient::new_from_oidc(&api_base_url, auth_config, &project_name, app_name, config)
