@@ -2,6 +2,8 @@
 
 mod common;
 
+use std::time::Duration;
+
 use cognite::models::spaces::SpaceCreate;
 
 use cognite::models::*;
@@ -136,14 +138,24 @@ async fn create_and_delete_timeseries_instance() {
     let timeseries = timeseries_retrieve.first().unwrap();
     assert_eq!(external_id.to_string(), timeseries.id.external_id);
 
-    let timeseries_del = client
-        .models
-        .instances
-        .delete(&[timeseries_spec])
-        .await
-        .unwrap();
+    let mut data: Option<ItemsVec<NodeOrEdgeSpecification>> = None;
+
+    for _ in 0..5 {
+        match client
+            .models
+            .instances
+            .delete(&[timeseries_spec.clone()])
+            .await
+        {
+            Ok(res) => data = Some(res),
+            Err(_) => {
+                tokio::time::sleep(Duration::from_secs(1)).await;
+                continue;
+            }
+        }
+    }
+
+    let timeseries_del = data.unwrap();
     let timeseries_del = timeseries_del.items.first().unwrap();
     assert!(matches!(timeseries_del, NodeOrEdgeSpecification::Node(_)));
-
-    // No need to ensure unit delete because it gets deleted with timeseries apparently.
 }
