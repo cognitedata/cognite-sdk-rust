@@ -10,8 +10,7 @@ use cognite::*;
 
 use common::*;
 use instances::{
-    CogniteExtractorFile, CogniteTimeseries, CogniteUnit, InstanceId, NodeOrEdgeSpecification,
-    SlimNodeOrEdge,
+    CogniteExtractorFile, CogniteTimeseries, InstanceId, NodeOrEdgeSpecification, SlimNodeOrEdge,
 };
 use uuid::Uuid;
 
@@ -104,29 +103,6 @@ async fn create_and_delete_timeseries_instance() {
     let external_id = Uuid::new_v4().to_string();
     let space = std::env::var("CORE_DM_TEST_SPACE").unwrap();
     let name = "random".to_string();
-    let unit = CogniteUnit::new(space.to_string(), external_id.to_string(), name.to_string());
-    let unit_res = client
-        .models
-        .instances
-        .apply(&[unit], None, None, None, None, false)
-        .await
-        .unwrap();
-    let unit_res = unit_res.first().unwrap();
-    assert!(matches!(unit_res, SlimNodeOrEdge::Node(_)));
-
-    let unit_spec = NodeOrEdgeSpecification::Node(ItemId {
-        space: space.to_string(),
-        external_id: external_id.to_string(),
-    });
-    let unit_retrieve: Vec<CogniteUnit> = client
-        .models
-        .instances
-        .fetch(&[unit_spec.clone()], None)
-        .await
-        .unwrap();
-    let unit_retrieve = unit_retrieve.first().unwrap();
-    println!("{:?}", unit_retrieve);
-    assert_eq!(external_id.to_string(), unit_retrieve.id.external_id);
 
     let mut timeseries = CogniteTimeseries::new(
         space.to_string(),
@@ -134,13 +110,9 @@ async fn create_and_delete_timeseries_instance() {
         name.to_string(),
         None,
     );
-    let unit = match unit_res {
-        SlimNodeOrEdge::Node(slim_node_definition) => slim_node_definition,
-        SlimNodeOrEdge::Edge(_) => panic!("Invalid type for unit"),
-    };
     timeseries.properties.unit = InstanceId {
-        space: space.clone(),
-        external_id: unit.external_id.to_owned(),
+        space: "cdf_cdm_units".to_string(),
+        external_id: "temperature:deg_c".to_string(),
     };
     let timeseries_res = client
         .models

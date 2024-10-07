@@ -77,7 +77,7 @@ impl WithInstance<Unit> for CogniteUnit {
 }
 
 impl FromReadable<Unit> for CogniteUnit {
-    fn try_from_readable(
+    fn try_from(
         value: NodeOrEdge<Unit>,
         view: Option<&ViewReference>,
     ) -> crate::Result<CogniteUnit> {

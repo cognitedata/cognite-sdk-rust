@@ -79,7 +79,7 @@ impl WithInstance<FileObject> for CogniteExtractorFile {
 }
 
 impl FromReadable<FileObject> for CogniteExtractorFile {
-    fn try_from_readable(
+    fn try_from(
         value: NodeOrEdge<FileObject>,
         view: Option<&ViewReference>,
     ) -> crate::Result<CogniteExtractorFile> {

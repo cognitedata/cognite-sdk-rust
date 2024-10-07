@@ -89,7 +89,7 @@ impl WithInstance<Timeseries> for CogniteTimeseries {
 }
 
 impl FromReadable<Timeseries> for CogniteTimeseries {
-    fn try_from_readable(
+    fn try_from(
         value: NodeOrEdge<Timeseries>,
         view: Option<&ViewReference>,
     ) -> crate::Result<CogniteTimeseries> {

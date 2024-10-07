@@ -10,10 +10,10 @@ pub mod timeseries;
 pub mod units;
 
 /// Trait to convert from Node/Edge into this type.
-pub trait FromReadable<TProperties>
+pub trait FromReadable<TProperties>: Sized
 where
     TProperties: Serialize + Send,
-    Self: Sized,
+    Self: WithView,
 {
     /// Try converting from node/edge into this type.
     ///
@@ -21,7 +21,7 @@ where
     ///
     /// * `value` - Node/edge to retrieved.
     /// * `view` - A view reference representing the source of this type.
-    fn try_from_readable(
+    fn try_from(
         value: NodeOrEdge<TProperties>,
         view: Option<&ViewReference>,
     ) -> crate::Result<Self>;
@@ -29,11 +29,11 @@ where
 
 /// Trait for data models special instance
 pub trait WithView {
-    /// Default space
+    /// Default space.
     const SPACE: &'static str;
-    /// Default external ID
+    /// Default external ID.
     const EXTERNAL_ID: &'static str;
-    /// Default version
+    /// Default version.
     const VERSION: &'static str;
 }
 

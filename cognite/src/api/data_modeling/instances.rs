@@ -143,7 +143,7 @@ impl Instances {
         response
             .items
             .into_iter()
-            .map(|item| TEntity::try_from_readable(item, view))
+            .map(|item| TEntity::try_from(item, view))
             .collect()
     }
 
