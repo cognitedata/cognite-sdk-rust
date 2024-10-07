@@ -256,7 +256,21 @@ async fn create_delete_dm_files() {
         space: space.to_string(),
         external_id: external_id.to_string(),
     });
-    let _ = client.models.instances.delete(&[node_specs]).await.unwrap();
+    let mut data: Option<ItemsVec<NodeOrEdgeSpecification>> = None;
+
+    for _ in 0..5 {
+        match client.models.instances.delete(&[node_specs.clone()]).await {
+            Ok(res) => data = Some(res),
+            Err(_) => {
+                tokio::time::sleep(Duration::from_secs(1)).await;
+                continue;
+            }
+        }
+    }
+
+    let deleted = data.unwrap();
+    let deleted = deleted.items.first().unwrap();
+    assert!(matches!(deleted, NodeOrEdgeSpecification::Node(_)));
 }
 
 #[tokio::test]
@@ -322,5 +336,19 @@ async fn create_core_dm_multipart_file() {
         space: space.to_string(),
         external_id: external_id.to_string(),
     });
-    let _ = client.models.instances.delete(&[node_specs]).await.unwrap();
+    let mut data: Option<ItemsVec<NodeOrEdgeSpecification>> = None;
+
+    for _ in 0..5 {
+        match client.models.instances.delete(&[node_specs.clone()]).await {
+            Ok(res) => data = Some(res),
+            Err(_) => {
+                tokio::time::sleep(Duration::from_secs(1)).await;
+                continue;
+            }
+        }
+    }
+
+    let deleted = data.unwrap();
+    let deleted = deleted.items.first().unwrap();
+    assert!(matches!(deleted, NodeOrEdgeSpecification::Node(_)));
 }

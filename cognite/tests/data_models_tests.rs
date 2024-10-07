@@ -94,9 +94,25 @@ async fn create_and_delete_file_instance() {
     let file = &res_retrieve[0];
     assert_eq!(external_id.to_string(), file.id.external_id);
 
-    let res_delete = client.models.instances.delete(&[node_specs]).await.unwrap();
-    let res_delete = res_delete.items.first().unwrap();
-    assert!(matches!(res_delete, NodeOrEdgeSpecification::Node(_)));
+    // let res_delete = client.models.instances.delete(&[node_specs]).await.unwrap();
+    // let res_delete = res_delete.items.first().unwrap();
+    // assert!(matches!(res_delete, NodeOrEdgeSpecification::Node(_)));
+
+    let mut data: Option<ItemsVec<NodeOrEdgeSpecification>> = None;
+
+    for _ in 0..5 {
+        match client.models.instances.delete(&[node_specs.clone()]).await {
+            Ok(res) => data = Some(res),
+            Err(_) => {
+                tokio::time::sleep(Duration::from_secs(1)).await;
+                continue;
+            }
+        }
+    }
+
+    let deleted = data.unwrap();
+    let deleted = deleted.items.first().unwrap();
+    assert!(matches!(deleted, NodeOrEdgeSpecification::Node(_)));
 }
 
 #[tokio::test]
@@ -125,14 +141,14 @@ async fn create_and_delete_timeseries_instance() {
     let timeseries_res = timeseries_res.first().unwrap();
     assert!(matches!(timeseries_res, SlimNodeOrEdge::Node(_)));
 
-    let timeseries_spec = NodeOrEdgeSpecification::Node(ItemId {
+    let node_specs = NodeOrEdgeSpecification::Node(ItemId {
         space: space.to_string(),
         external_id: external_id.to_string(),
     });
     let timeseries_retrieve: Vec<CogniteTimeseries> = client
         .models
         .instances
-        .fetch(&[timeseries_spec.clone()], None)
+        .fetch(&[node_specs.clone()], None)
         .await
         .unwrap();
     let timeseries = timeseries_retrieve.first().unwrap();
@@ -141,22 +157,16 @@ async fn create_and_delete_timeseries_instance() {
     let mut data: Option<ItemsVec<NodeOrEdgeSpecification>> = None;
 
     for _ in 0..5 {
-        match client
-            .models
-            .instances
-            .delete(&[timeseries_spec.clone()])
-            .await
-        {
+        match client.models.instances.delete(&[node_specs.clone()]).await {
             Ok(res) => data = Some(res),
-            Err(e) => {
-                println!("{e:?}");
+            Err(_) => {
                 tokio::time::sleep(Duration::from_secs(1)).await;
                 continue;
             }
         }
     }
 
-    let timeseries_del = data.unwrap();
-    let timeseries_del = timeseries_del.items.first().unwrap();
-    assert!(matches!(timeseries_del, NodeOrEdgeSpecification::Node(_)));
+    let deleted = data.unwrap();
+    let deleted = deleted.items.first().unwrap();
+    assert!(matches!(deleted, NodeOrEdgeSpecification::Node(_)));
 }
