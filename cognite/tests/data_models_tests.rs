@@ -148,7 +148,8 @@ async fn create_and_delete_timeseries_instance() {
             .await
         {
             Ok(res) => data = Some(res),
-            Err(_) => {
+            Err(e) => {
+                println!("{e:?}");
                 tokio::time::sleep(Duration::from_secs(1)).await;
                 continue;
             }
