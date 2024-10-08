@@ -1,10 +1,17 @@
 pub(crate) mod containers;
 pub(crate) mod data_models;
 pub(crate) mod instances;
+pub(crate) mod resource;
 pub(crate) mod spaces;
 pub(crate) mod views;
 
 use std::sync::Arc;
+
+pub use resource::files::FilesResource;
+pub use resource::{
+    DataModelsResource as ExtendedDataModelsResource, RetrieveExtendedCollection,
+    UpsertExtendedCollection, WithInstanceApiResource, WithView,
+};
 
 use crate::api::data_modeling::{instances::Instances, views::ViewsResource};
 use crate::ApiClient;
@@ -25,6 +32,8 @@ pub struct Models {
     pub data_models: DataModelsResource,
     /// Data modeling containers.
     pub containers: ContainersResource,
+    /// Custom data modeling instance (nodes and edges)
+    pub files: FilesResource,
 }
 
 impl Models {
@@ -34,7 +43,8 @@ impl Models {
             views: ViewsResource::new(api_client.clone()),
             spaces: SpacesResource::new(api_client.clone()),
             data_models: DataModelsResource::new(api_client.clone()),
-            containers: ContainersResource::new(api_client),
+            containers: ContainersResource::new(api_client.clone()),
+            files: FilesResource::new(Arc::new(Instances::new(api_client))),
         }
     }
 }

@@ -103,7 +103,7 @@ impl<'a> MultipartUploader<'a> {
 }
 
 impl Files {
-    /// Upload a stream to an url, the url is received from `Files::upload`
+    /// Upload a stream to a url, the url is received from `Files::upload`
     ///
     /// # Arguments
     ///
@@ -243,6 +243,71 @@ impl Files {
             .await
     }
 
+    /// Get an upload link for a file with given identity.
+    ///
+    /// # Arguments
+    ///
+    /// `id` - Identity of file metadata or data models file.
+    pub async fn get_upload_link(&self, id: &Identity) -> Result<FileUploadResult<UploadUrl>> {
+        match id {
+            Identity::InstanceId { instance_id: _ } | Identity::ExternalId { external_id: _ } => {
+                let id_json = serde_json::to_string(&Items::new([id]))?;
+                let mut res = self
+                    .api_client
+                    .post_json::<Items<Vec<FileUploadResult<UploadUrl>>>>(
+                        "files/uploadlink",
+                        id_json,
+                    )
+                    .await?;
+                if res.items.is_empty() {
+                    Err(Error::Other(
+                        "File with given identity not found.".to_string(),
+                    ))
+                } else {
+                    Ok(res.items.remove(0))
+                }
+            }
+            Identity::Id { id: _ } => Err(Error::Other(
+                "Identity cannot be an internal id.".to_string(),
+            )),
+        }
+    }
+
+    /// Get multipart upload link for an existing file metadata or data models file.
+    ///
+    /// # Arguments
+    ///
+    /// * `id` - Identity of file metadata or data models file.
+    /// * `parts` - Number of parts to be uploaded.
+    pub async fn get_multipart_upload_link(
+        &self,
+        id: &Identity,
+        parts: u32,
+    ) -> Result<FileUploadResult<MultiUploadUrls>> {
+        match id {
+            Identity::InstanceId { instance_id: _ } | Identity::ExternalId { external_id: _ } => {
+                let mut res = self
+                    .api_client
+                    .post_with_query::<Items<Vec<FileUploadResult<MultiUploadUrls>>>, _, _>(
+                        "files/multiuploadlink",
+                        &Items::new([id]),
+                        Some(MultipartGetUploadLinkQuery::new(parts)),
+                    )
+                    .await?;
+                if res.items.is_empty() {
+                    Err(Error::Other(
+                        "File with given identity not found.".to_string(),
+                    ))
+                } else {
+                    Ok(res.items.remove(0))
+                }
+            }
+            Identity::Id { id: _ } => Err(Error::Other(
+                "Identity cannot be an internal id.".to_string(),
+            )),
+        }
+    }
+
     /// Create a file, specifying that it should be uploaded in multiple parts.
     ///
     /// This returns a `MultipartUploader`, which wraps the upload process.
@@ -260,6 +325,32 @@ impl Files {
         item: &AddFile,
     ) -> Result<(MultipartUploader<'a>, FileMetadata)> {
         let res = self.init_multipart_upload(overwrite, parts, item).await?;
+        Ok((
+            MultipartUploader::new(
+                self,
+                Identity::Id {
+                    id: res.metadata.id,
+                },
+                res.extra,
+            ),
+            res.metadata,
+        ))
+    }
+
+    /// Upload files for an existing file metadata or data models file.
+    ///
+    /// This returns a `MultipartUploader`, which wraps the upload process.
+    ///
+    /// # Arguments
+    ///
+    /// * `parts` - The number of parts to upload, should be a number between 1 and 250.
+    /// * `id` - Identity of file metadata or data models file.
+    pub async fn multipart_upload_existing<'a>(
+        &'a self,
+        id: &Identity,
+        parts: u32,
+    ) -> Result<(MultipartUploader<'a>, FileMetadata)> {
+        let res = self.get_multipart_upload_link(id, parts).await?;
         Ok((
             MultipartUploader::new(
                 self,

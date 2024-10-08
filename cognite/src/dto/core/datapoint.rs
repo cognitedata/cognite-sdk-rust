@@ -515,6 +515,7 @@ impl From<Identity> for TimeSeriesReference {
             Identity::ExternalId {
                 external_id: ext_id,
             } => TimeSeriesReference::ExternalId(ext_id),
+            _ => unimplemented!(),
         }
     }
 }

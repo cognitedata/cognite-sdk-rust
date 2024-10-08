@@ -2,7 +2,10 @@ use std::collections::HashMap;
 
 use serde::{de::Visitor, Deserialize, Serialize};
 
-use crate::IntegerOrString;
+use crate::{
+    models::{instances::PropertiesObject, views::ViewReference},
+    IntegerOrString,
+};
 
 /// Wrapper around an u64 value that can be deserialized from
 /// a string.
@@ -57,4 +60,20 @@ impl<'de> Deserialize<'de> for MaybeStringU64 {
 pub trait FromErrorDetail: Sized {
     /// Try to obtain a new instance of self from the detail object.
     fn from_detail(detail: &HashMap<String, IntegerOrString>) -> Option<Self>;
+}
+
+/// Get instance type of special data models type.
+///
+/// # Arguments
+///
+/// * `view` - View reference of source.
+/// # `properties` - Instance properties object of special type.
+pub fn get_instance_properties<TProperties>(
+    view: ViewReference,
+    properties: &mut PropertiesObject<TProperties>,
+) -> Option<&TProperties> {
+    let space = view.space;
+    let key = format!("{}/{}", view.external_id, view.version);
+
+    properties.get_mut(&space).and_then(|v| v.get(&key))
 }

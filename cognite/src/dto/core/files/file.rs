@@ -3,8 +3,8 @@ use serde_with::skip_serializing_none;
 use std::collections::HashMap;
 
 use crate::{
-    CogniteExternalId, EqIdentity, Identity, IntoPatch, IntoPatchItem, Patch, UpdateList,
-    UpdateMap, UpdateSetNull, UpsertOptions,
+    models::instances::InstanceId, CogniteExternalId, EqIdentity, Identity, IntoPatch,
+    IntoPatchItem, Patch, UpdateList, UpdateMap, UpdateSetNull, UpsertOptions,
 };
 
 #[skip_serializing_none]
@@ -57,6 +57,8 @@ pub struct UploadUrl {
     /// URL for uploading data to this file. Returned only in response to
     /// `upload`.
     pub upload_url: String,
+    /// Optional instance id of the file if in data models.
+    pub instance_id: Option<InstanceId>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Default, Clone)]
@@ -67,6 +69,8 @@ pub struct MultiUploadUrls {
     pub upload_id: String,
     /// Upload URL for each part of the file.
     pub upload_urls: Vec<String>,
+    /// Optional instance id of the file if in data models.
+    pub instance_id: Option<InstanceId>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Default, Clone)]
@@ -138,6 +142,7 @@ impl EqIdentity for AddFile {
         match id {
             Identity::Id { id: _ } => false,
             Identity::ExternalId { external_id } => self.external_id.as_ref() == Some(external_id),
+            _ => false,
         }
     }
 }
