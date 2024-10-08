@@ -257,7 +257,7 @@ async fn create_delete_dm_files() {
         space: space.to_string(),
         external_id: external_id.to_string(),
     });
-    let mut deleted = client
+    let deleted = client
         .models
         .instances
         .delete(&[node_specs.clone()])

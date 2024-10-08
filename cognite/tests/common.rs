@@ -2,7 +2,6 @@
 use cognite::ClientConfig;
 use cognite::CogniteClient;
 use once_cell::sync::Lazy;
-use prost_types::Duration;
 use rand::{distributions::Alphanumeric, Rng};
 use tokio::sync::Semaphore;
 

@@ -2,8 +2,6 @@
 
 mod common;
 
-use std::time::Duration;
-
 use cognite::models::spaces::SpaceCreate;
 
 use cognite::models::*;
@@ -146,7 +144,7 @@ async fn create_and_delete_timeseries_instance() {
     let timeseries = timeseries_retrieve.first().unwrap();
     assert_eq!(external_id.to_string(), timeseries.id.external_id);
 
-    let mut deleted = client
+    let deleted = client
         .models
         .instances
         .delete(&[node_specs.clone()])
