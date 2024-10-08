@@ -68,8 +68,7 @@ where
 }
 
 pub struct Backoff {
-    pub jitter: f64,
-    pub initial_backoff: f64,
+    jitter: f64,
     next_backoff: f64,
     max_backoff: f64,
     multiplier: f64,
@@ -79,10 +78,9 @@ impl Default for Backoff {
     fn default() -> Self {
         Self {
             jitter: 0.5,
-            initial_backoff: 0.,
-            next_backoff: Default::default(),
-            max_backoff: 2.,
-            multiplier: 2.,
+            next_backoff: 0.,
+            max_backoff: 5.,
+            multiplier: 3.,
         }
     }
 }
@@ -98,26 +96,3 @@ impl Iterator for Backoff {
         Some(Duration::from_secs_f64(backoff))
     }
 }
-
-// #[allow(dead_code)]
-// pub async fn retry_backoff<T, E>(mut callback: impl for<'a> Retry<'a, T, E>) -> Option<T> {
-//     let mut jitter: f64 = 0.5;
-//     let mut next_backoff: f64 = 0.;
-//     let max_backoff: f64 = 2.;
-//     let multiplier: f64 = 2.;
-//
-//     for _ in 0..10 {
-//         match callback().await {
-//             Ok(res) => return Some(res),
-//             Err(_) => {
-//                 jitter = thread_rng().gen_range(-jitter..jitter);
-//                 let mut backoff = (next_backoff + jitter).min(max_backoff);
-//                 backoff = backoff.max(0.0);
-//                 tokio::time::sleep(Duration::from_secs_f64(backoff)).await;
-//                 next_backoff = (next_backoff * multiplier).min(max_backoff);
-//                 continue;
-//             }
-//         }
-//     }
-//     None
-// }
