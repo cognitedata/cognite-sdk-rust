@@ -248,14 +248,7 @@ async fn retrieve_latest() {
     let latest = latest.into_iter().next().unwrap();
     assert_eq!(
         99.0,
-        latest
-            .datapoints
-            .numeric()
-            .unwrap()
-            .first()
-            .unwrap()
-            .value
-            .unwrap()
+        latest.datapoint.unwrap().numeric().unwrap().value.unwrap()
     );
 
     delete_test_ts(&client, ts.id).await;
@@ -334,6 +327,31 @@ async fn create_retrieve_double_datapoints_with_status() {
     assert_eq!("Bad", dpl[2].status.as_ref().unwrap().to_string());
     assert!(dpl[3].value.unwrap().is_infinite());
     assert_eq!("Bad", dpl[3].status.as_ref().unwrap().to_string());
+
+    // Retrieve latest
+    let latest = client
+        .time_series
+        .retrieve_latest_datapoints(
+            &[LatestDatapointsQuery {
+                before: Some((start + 10000).to_string()),
+                include_status: Some(true),
+                ignore_bad_data_points: Some(false),
+                id: Identity::from(ts.id),
+                ..Default::default()
+            }],
+            false,
+        )
+        .await
+        .unwrap();
+
+    let dpl = latest.into_iter().next().unwrap();
+    let dpl = match dpl.datapoint {
+        Some(LatestDatapoint::Numeric(d)) => d,
+        d => panic!("Unexpected variant {d:?}"),
+    };
+
+    assert_eq!("Bad", dpl.status.as_ref().unwrap().to_string());
+    assert!(dpl.value.unwrap().is_infinite());
 
     delete_test_ts(&client, ts.id).await;
 }
