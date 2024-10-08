@@ -18,6 +18,7 @@ use uuid::Uuid;
 
 #[tokio::test]
 async fn create_retrieve_delete_spaces() {
+    let _permit = CDM_CONCURRENCY_PERMITS.acquire().await.unwrap();
     let space_id = format!("{}-space-1", PREFIX.as_str());
     let client = get_client();
     let new_space = SpaceCreate {
@@ -57,6 +58,7 @@ async fn create_retrieve_delete_spaces() {
 
 #[tokio::test]
 async fn create_and_delete_file_instance() {
+    let _permit = CDM_CONCURRENCY_PERMITS.acquire().await.unwrap();
     let client = CogniteClient::new_oidc("testing_instances", None).unwrap();
     let external_id = Uuid::new_v4().to_string();
     let space = std::env::var("CORE_DM_TEST_SPACE").unwrap();
@@ -117,6 +119,7 @@ async fn create_and_delete_file_instance() {
 
 #[tokio::test]
 async fn create_and_delete_timeseries_instance() {
+    let _permit = CDM_CONCURRENCY_PERMITS.acquire().await.unwrap();
     let client = CogniteClient::new_oidc("testing_instances", None).unwrap();
     let external_id = Uuid::new_v4().to_string();
     let space = std::env::var("CORE_DM_TEST_SPACE").unwrap();

@@ -2,7 +2,9 @@
 use cognite::ClientConfig;
 use cognite::CogniteClient;
 use once_cell::sync::Lazy;
+use prost_types::Duration;
 use rand::{distributions::Alphanumeric, Rng};
+use tokio::sync::Semaphore;
 
 #[allow(dead_code)]
 pub fn get_client() -> CogniteClient {
@@ -47,3 +49,6 @@ pub static PREFIX: Lazy<String> = Lazy::new(|| {
 pub fn get_path(base_url: &str, project: &str, endpoint: &str) -> String {
     format!("{}/api/v1/projects/{}/{}", base_url, project, endpoint)
 }
+
+#[allow(dead_code)]
+pub static CDM_CONCURRENCY_PERMITS: Semaphore = Semaphore::const_new(2);

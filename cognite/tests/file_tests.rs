@@ -209,6 +209,7 @@ async fn create_multipart_file() {
 
 #[tokio::test]
 async fn create_delete_dm_files() {
+    let _permit = CDM_CONCURRENCY_PERMITS.acquire().await.unwrap();
     let client = CogniteClient::new_oidc("testing_instances", None).unwrap();
     let external_id = Uuid::new_v4().to_string();
     let space = std::env::var("CORE_DM_TEST_SPACE").unwrap();
@@ -275,6 +276,7 @@ async fn create_delete_dm_files() {
 
 #[tokio::test]
 async fn create_core_dm_multipart_file() {
+    let _permit = CDM_CONCURRENCY_PERMITS.acquire().await.unwrap();
     let client = CogniteClient::new_oidc("testing_instances", None).unwrap();
     let external_id = Uuid::new_v4().to_string();
     let space = std::env::var("CORE_DM_TEST_SPACE").unwrap();
@@ -336,19 +338,8 @@ async fn create_core_dm_multipart_file() {
         space: space.to_string(),
         external_id: external_id.to_string(),
     });
-    let mut data: Option<ItemsVec<NodeOrEdgeSpecification>> = None;
-
-    for _ in 0..10 {
-        match client.models.instances.delete(&[node_specs.clone()]).await {
-            Ok(res) => data = Some(res),
-            Err(_) => {
-                tokio::time::sleep(Duration::from_secs(1)).await;
-                continue;
-            }
-        }
-    }
-
-    let deleted = data.unwrap();
+    let deleted = client.models.instances.delete(&[node_specs.clone()]).await;
+    let deleted = deleted.unwrap();
     let deleted = deleted.items.first().unwrap();
     assert!(matches!(deleted, NodeOrEdgeSpecification::Node(_)));
 }
