@@ -96,23 +96,12 @@ async fn create_and_delete_file_instance() {
     let file = &res_retrieve[0];
     assert_eq!(external_id.to_string(), file.id.external_id);
 
-    // let res_delete = client.models.instances.delete(&[node_specs]).await.unwrap();
-    // let res_delete = res_delete.items.first().unwrap();
-    // assert!(matches!(res_delete, NodeOrEdgeSpecification::Node(_)));
-
-    let mut data: Option<ItemsVec<NodeOrEdgeSpecification>> = None;
-
-    for _ in 0..10 {
-        match client.models.instances.delete(&[node_specs.clone()]).await {
-            Ok(res) => data = Some(res),
-            Err(_) => {
-                tokio::time::sleep(Duration::from_secs(1)).await;
-                continue;
-            }
-        }
-    }
-
-    let deleted = data.unwrap();
+    let deleted = client
+        .models
+        .instances
+        .delete(&[node_specs.clone()])
+        .await
+        .unwrap();
     let deleted = deleted.items.first().unwrap();
     assert!(matches!(deleted, NodeOrEdgeSpecification::Node(_)));
 }
@@ -157,19 +146,12 @@ async fn create_and_delete_timeseries_instance() {
     let timeseries = timeseries_retrieve.first().unwrap();
     assert_eq!(external_id.to_string(), timeseries.id.external_id);
 
-    let mut data: Option<ItemsVec<NodeOrEdgeSpecification>> = None;
-
-    for _ in 0..10 {
-        match client.models.instances.delete(&[node_specs.clone()]).await {
-            Ok(res) => data = Some(res),
-            Err(_) => {
-                tokio::time::sleep(Duration::from_secs(1)).await;
-                continue;
-            }
-        }
-    }
-
-    let deleted = data.unwrap();
+    let mut deleted = client
+        .models
+        .instances
+        .delete(&[node_specs.clone()])
+        .await
+        .unwrap();
     let deleted = deleted.items.first().unwrap();
     assert!(matches!(deleted, NodeOrEdgeSpecification::Node(_)));
 }
