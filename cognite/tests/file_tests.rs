@@ -262,7 +262,10 @@ async fn create_delete_dm_files() {
     let mut deleted: Option<ItemsVec<NodeOrEdgeSpecification>> = None;
     for _ in 0..10 {
         match client.models.instances.delete(&[node_specs.clone()]).await {
-            Ok(res) => deleted = Some(res),
+            Ok(res) => {
+                deleted = Some(res);
+                break;
+            }
             Err(_) => {
                 tokio::time::sleep(backoff.next().unwrap()).await;
                 continue;
@@ -343,7 +346,10 @@ async fn create_core_dm_multipart_file() {
     let mut deleted: Option<ItemsVec<NodeOrEdgeSpecification>> = None;
     for _ in 0..10 {
         match client.models.instances.delete(&[node_specs.clone()]).await {
-            Ok(res) => deleted = Some(res),
+            Ok(res) => {
+                deleted = Some(res);
+                break;
+            }
             Err(_) => {
                 tokio::time::sleep(backoff.next().unwrap()).await;
                 continue;

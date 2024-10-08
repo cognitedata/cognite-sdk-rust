@@ -98,7 +98,10 @@ async fn create_and_delete_file_instance() {
     let mut deleted: Option<ItemsVec<NodeOrEdgeSpecification>> = None;
     for _ in 0..10 {
         match client.models.instances.delete(&[node_specs.clone()]).await {
-            Ok(res) => deleted = Some(res),
+            Ok(res) => {
+                deleted = Some(res);
+                break;
+            }
             Err(_) => {
                 tokio::time::sleep(backoff.next().unwrap()).await;
                 continue;
@@ -150,19 +153,14 @@ async fn create_and_delete_timeseries_instance() {
     let timeseries = timeseries_retrieve.first().unwrap();
     assert_eq!(external_id.to_string(), timeseries.id.external_id);
 
-    // async fn delete(// client: &CogniteClient,
-    //     // node_specs: &[NodeOrEdgeSpecification],
-    // ) -> Result<ItemsVec<NodeOrEdgeSpecification>> {
-    //     client.models.instances.delete(&node_specs).await
-    // }
-    // let delete = async move { client.models.instances.delete(&node_specs).await };
-    //
-    // let d = retry_backoff(delete).await;
     let mut backoff = Backoff::default();
     let mut deleted: Option<ItemsVec<NodeOrEdgeSpecification>> = None;
     for _ in 0..10 {
         match client.models.instances.delete(&[node_specs.clone()]).await {
-            Ok(res) => deleted = Some(res),
+            Ok(res) => {
+                deleted = Some(res);
+                break;
+            }
             Err(_) => {
                 tokio::time::sleep(backoff.next().unwrap()).await;
                 continue;
