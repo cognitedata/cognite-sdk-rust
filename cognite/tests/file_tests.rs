@@ -257,12 +257,19 @@ async fn create_delete_dm_files() {
         space: space.to_string(),
         external_id: external_id.to_string(),
     });
-    let deleted = client
-        .models
-        .instances
-        .delete(&[node_specs.clone()])
-        .await
-        .unwrap();
+
+    let mut backoff = Backoff::default();
+    let mut deleted: Option<ItemsVec<NodeOrEdgeSpecification>> = None;
+    for _ in 0..10 {
+        match client.models.instances.delete(&[node_specs.clone()]).await {
+            Ok(res) => deleted = Some(res),
+            Err(_) => {
+                tokio::time::sleep(backoff.next().unwrap()).await;
+                continue;
+            }
+        }
+    }
+    let deleted = deleted.unwrap();
     let deleted = deleted.items.first().unwrap();
     assert!(matches!(deleted, NodeOrEdgeSpecification::Node(_)));
 }
@@ -331,12 +338,19 @@ async fn create_core_dm_multipart_file() {
         space: space.to_string(),
         external_id: external_id.to_string(),
     });
-    let deleted = client
-        .models
-        .instances
-        .delete(&[node_specs.clone()])
-        .await
-        .unwrap();
+
+    let mut backoff = Backoff::default();
+    let mut deleted: Option<ItemsVec<NodeOrEdgeSpecification>> = None;
+    for _ in 0..10 {
+        match client.models.instances.delete(&[node_specs.clone()]).await {
+            Ok(res) => deleted = Some(res),
+            Err(_) => {
+                tokio::time::sleep(backoff.next().unwrap()).await;
+                continue;
+            }
+        }
+    }
+    let deleted = deleted.unwrap();
     let deleted = deleted.items.first().unwrap();
     assert!(matches!(deleted, NodeOrEdgeSpecification::Node(_)));
 }

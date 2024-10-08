@@ -94,12 +94,18 @@ async fn create_and_delete_file_instance() {
     let file = &res_retrieve[0];
     assert_eq!(external_id.to_string(), file.id.external_id);
 
-    let deleted = client
-        .models
-        .instances
-        .delete(&[node_specs.clone()])
-        .await
-        .unwrap();
+    let mut backoff = Backoff::default();
+    let mut deleted: Option<ItemsVec<NodeOrEdgeSpecification>> = None;
+    for _ in 0..10 {
+        match client.models.instances.delete(&[node_specs.clone()]).await {
+            Ok(res) => deleted = Some(res),
+            Err(_) => {
+                tokio::time::sleep(backoff.next().unwrap()).await;
+                continue;
+            }
+        }
+    }
+    let deleted = deleted.unwrap();
     let deleted = deleted.items.first().unwrap();
     assert!(matches!(deleted, NodeOrEdgeSpecification::Node(_)));
 }
@@ -144,12 +150,26 @@ async fn create_and_delete_timeseries_instance() {
     let timeseries = timeseries_retrieve.first().unwrap();
     assert_eq!(external_id.to_string(), timeseries.id.external_id);
 
-    let deleted = client
-        .models
-        .instances
-        .delete(&[node_specs.clone()])
-        .await
-        .unwrap();
+    // async fn delete(// client: &CogniteClient,
+    //     // node_specs: &[NodeOrEdgeSpecification],
+    // ) -> Result<ItemsVec<NodeOrEdgeSpecification>> {
+    //     client.models.instances.delete(&node_specs).await
+    // }
+    // let delete = async move { client.models.instances.delete(&node_specs).await };
+    //
+    // let d = retry_backoff(delete).await;
+    let mut backoff = Backoff::default();
+    let mut deleted: Option<ItemsVec<NodeOrEdgeSpecification>> = None;
+    for _ in 0..10 {
+        match client.models.instances.delete(&[node_specs.clone()]).await {
+            Ok(res) => deleted = Some(res),
+            Err(_) => {
+                tokio::time::sleep(backoff.next().unwrap()).await;
+                continue;
+            }
+        }
+    }
+    let deleted = deleted.unwrap();
     let deleted = deleted.items.first().unwrap();
     assert!(matches!(deleted, NodeOrEdgeSpecification::Node(_)));
 }
