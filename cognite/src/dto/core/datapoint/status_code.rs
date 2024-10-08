@@ -13,10 +13,10 @@ use std::{
     str::FromStr,
 };
 
-use serde::{Deserialize, Serialize};
+use serde::{ser::SerializeStruct, Deserialize, Serialize};
 use thiserror::Error;
 
-#[derive(Copy, Clone, PartialEq, Eq, Serialize, Deserialize, Hash, Default)]
+#[derive(Copy, Clone, PartialEq, Eq, Hash, Default)]
 /// Wrapper around an OPC-UA status code, with utilities for displaying,
 /// parsing, and reading.
 pub struct StatusCode(u32);
@@ -288,6 +288,39 @@ impl StatusCode {
         code.validate()?;
 
         Ok(code)
+    }
+}
+
+impl Serialize for StatusCode {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        let mut s = serializer.serialize_struct("StatusCode", 1)?;
+        s.serialize_field("code", &self.bits())?;
+        s.end()
+    }
+}
+
+#[derive(Deserialize)]
+struct JsonStatusCode {
+    code: Option<i64>,
+    symbol: Option<String>,
+}
+
+impl<'de> Deserialize<'de> for StatusCode {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        let v = JsonStatusCode::deserialize(deserializer)?;
+        if let Some(c) = v.code {
+            Ok(StatusCode::try_from(c).unwrap_or(StatusCode::Invalid))
+        } else if let Some(s) = v.symbol {
+            Ok(StatusCode::try_parse(&s).unwrap_or(StatusCode::Invalid))
+        } else {
+            Ok(StatusCode::Good)
+        }
     }
 }
 
