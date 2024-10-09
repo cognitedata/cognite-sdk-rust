@@ -4,6 +4,7 @@ mod synthetic;
 pub use self::filter::*;
 pub use self::synthetic::*;
 
+use crate::models::instances::CogniteTimeseries;
 use crate::IntoPatch;
 use crate::IntoPatchItem;
 use crate::UpsertOptions;
@@ -78,6 +79,14 @@ pub struct AddTimeSeries {
     pub security_categories: Option<Vec<i64>>,
     /// Data set this time series belongs to.
     pub data_set_id: Option<i64>,
+}
+
+/// Add Core DM or classic time series.
+pub enum AddDmOrTimeSeries<'a> {
+    /// Classic time series.
+    TimeSeries(&'a [AddTimeSeries]),
+    /// Core DM timeseries
+    Cdm(&'a [CogniteTimeseries]),
 }
 
 impl From<TimeSeries> for AddTimeSeries {

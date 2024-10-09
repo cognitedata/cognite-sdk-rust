@@ -325,16 +325,7 @@ impl Files {
         item: &AddFile,
     ) -> Result<(MultipartUploader<'a>, FileMetadata)> {
         let res = self.init_multipart_upload(overwrite, parts, item).await?;
-        Ok((
-            MultipartUploader::new(
-                self,
-                Identity::Id {
-                    id: res.metadata.id,
-                },
-                res.extra,
-            ),
-            res.metadata,
-        ))
+        self.create_multipart_upload(res)
     }
 
     /// Upload files for an existing file metadata or data models file.
@@ -351,6 +342,13 @@ impl Files {
         parts: u32,
     ) -> Result<(MultipartUploader<'a>, FileMetadata)> {
         let res = self.get_multipart_upload_link(id, parts).await?;
+        self.create_multipart_upload(res)
+    }
+
+    fn create_multipart_upload(
+        &self,
+        res: FileUploadResult<MultiUploadUrls>,
+    ) -> Result<(MultipartUploader, FileMetadata)> {
         Ok((
             MultipartUploader::new(
                 self,
