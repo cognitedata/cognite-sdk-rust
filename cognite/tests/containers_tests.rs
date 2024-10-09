@@ -17,7 +17,7 @@ mod fixtures;
 pub use fixtures::*;
 
 #[tokio::test]
-async fn create_and_delete_container() {
+async fn create_retrieve_delete_container() {
     let container_external_id = format!("{}", PREFIX.as_str().replace("-", "_"));
     let new_container = ContainerCreate {
         constraints: HashMap::new(),
@@ -56,6 +56,18 @@ async fn create_and_delete_container() {
         .await
         .unwrap();
     assert!(container_created.len() == 1);
+
+    let containers_retrieved = client
+        .models
+        .containers
+        .retrieve(&vec![ItemId {
+            space: std::env::var("CORE_DM_TEST_SPACE").unwrap(),
+            external_id: container_external_id.clone(),
+        }])
+        .await
+        .unwrap();
+
+    assert!(containers_retrieved.first().unwrap().name == Some("Container1-Name".to_string()));
 
     let container_deleted = client
         .models
