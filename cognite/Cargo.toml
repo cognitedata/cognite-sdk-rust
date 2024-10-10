@@ -1,13 +1,13 @@
 [package]
 authors = [
-    "Einar Marstrander Omang <einar.omang@cognite.com>",
-    "Haakon Garseg Mørk <haakon.mork@cognite.com>",
-    "Niek Beckers <niek.beckers@cognite.com>",
+  "Einar Marstrander Omang <einar.omang@cognite.com>",
+  "Haakon Garseg Mørk <haakon.mork@cognite.com>",
+  "Niek Beckers <niek.beckers@cognite.com>",
 ]
 edition = "2021"
 name = "cognite"
 publish = false
-version = "0.3.1"
+version = "0.3.0"
 
 [features]
 default = ["rustls-022"]
@@ -27,31 +27,34 @@ prost-types = "^0.13"
 
 http = { "version" = "^1", optional = true }
 reqwest-011 = { package = "reqwest", version = "^0.11", optional = true, features = [
-    "gzip",
-    "json",
-    "multipart",
-    "rustls-tls-native-roots",
-    "stream",
+  "gzip",
+  "json",
+  "multipart",
+  "rustls-tls-native-roots",
+  "stream",
 ], default-features = false } # Default brings in openssl
 reqwest-012 = { package = "reqwest", version = "^0.12", optional = true, features = [
-    "gzip",
-    "json",
-    "multipart",
-    "rustls-tls-native-roots",
-    "stream",
+  "gzip",
+  "json",
+  "multipart",
+  "rustls-tls-native-roots",
+  "stream",
 ], default-features = false } # Default brings in openssl
 reqwest-middleware-02 = { package = "reqwest-middleware", optional = true, version = "^0.2" }
 reqwest-middleware-03 = { package = "reqwest-middleware", optional = true, version = "^0.3" }
 
 anyhow = "^1"
-rand = "^0.8"
+rand = "^0.8.5"
 serde = { version = "^1", features = ["derive"] }
 serde_json = "^1"
 serde_with = "^3"
 task-local-extensions = { version = "^0.1", optional = true }
 thiserror = "^1"
 tokio = { version = "^1", default-features = false, features = ["fs"] }
-tokio-util = { version = "^0.7", default-features = false, features = ["codec", "io"] }
+tokio-util = { version = "^0.7", default-features = false, features = [
+  "codec",
+  "io",
+] }
 
 [target.'cfg(not(target_arch = "wasm32"))'.dev-dependencies]
 tokio = { version = "1.37.0", features = ["macros", "rt-multi-thread"] }
@@ -60,7 +63,6 @@ wiremock = "0.6.0"
 
 [dev-dependencies]
 once_cell = { version = "1.19.0" }
-rand = "0.8.5"
 uuid = { version = "1.10.0", features = ["v4"] }
 wiremock = "0.6.0"
 

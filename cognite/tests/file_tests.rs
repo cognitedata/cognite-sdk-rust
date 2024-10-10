@@ -1,9 +1,10 @@
-// #![cfg(feature = "integration_tests")]
+#![cfg(feature = "integration_tests")]
 
 use bytes::Bytes;
-use cognite::models::data_models::CogniteExtractorFile;
-use cognite::models::instances::{InstanceId, NodeOrEdgeSpecification, SlimNodeOrEdge};
-use cognite::models::{ItemId, UpsertExtendedCollection};
+use cognite::models::instances::{
+    CogniteExtractorFile, InstanceId, NodeOrEdgeSpecification, SlimNodeOrEdge,
+};
+use cognite::models::ItemId;
 use cognite::prelude::*;
 use cognite::{files::*, Identity};
 use futures::TryStreamExt;
@@ -208,6 +209,7 @@ async fn create_multipart_file() {
 
 #[tokio::test]
 async fn create_delete_dm_files() {
+    let _permit = CDM_CONCURRENCY_PERMITS.acquire().await.unwrap();
     let client = CogniteClient::new_oidc("testing_instances", None).unwrap();
     let external_id = Uuid::new_v4().to_string();
     let space = std::env::var("CORE_DM_TEST_SPACE").unwrap();
@@ -215,8 +217,8 @@ async fn create_delete_dm_files() {
     let col = CogniteExtractorFile::new(space.to_string(), external_id.to_string(), name);
     let res = client
         .models
-        .files
-        .upsert(vec![col], None, None, None, None, None)
+        .instances
+        .apply(&[col], None, None, None, None, false)
         .await
         .unwrap();
     let res = res.first().unwrap();
@@ -255,11 +257,29 @@ async fn create_delete_dm_files() {
         space: space.to_string(),
         external_id: external_id.to_string(),
     });
-    let _ = client.models.instances.delete(&[node_specs]).await.unwrap();
+
+    let mut backoff = Backoff::default();
+    let mut deleted: Option<ItemsVec<NodeOrEdgeSpecification>> = None;
+    for _ in 0..10 {
+        match client.models.instances.delete(&[node_specs.clone()]).await {
+            Ok(res) => {
+                deleted = Some(res);
+                break;
+            }
+            Err(_) => {
+                tokio::time::sleep(backoff.next().unwrap()).await;
+                continue;
+            }
+        }
+    }
+    let deleted = deleted.unwrap();
+    let deleted = deleted.items.first().unwrap();
+    assert!(matches!(deleted, NodeOrEdgeSpecification::Node(_)));
 }
 
 #[tokio::test]
 async fn create_core_dm_multipart_file() {
+    let _permit = CDM_CONCURRENCY_PERMITS.acquire().await.unwrap();
     let client = CogniteClient::new_oidc("testing_instances", None).unwrap();
     let external_id = Uuid::new_v4().to_string();
     let space = std::env::var("CORE_DM_TEST_SPACE").unwrap();
@@ -267,8 +287,8 @@ async fn create_core_dm_multipart_file() {
     let col = CogniteExtractorFile::new(space.to_string(), external_id.to_string(), name);
     let res = client
         .models
-        .files
-        .upsert(vec![col], None, None, None, None, None)
+        .instances
+        .apply(&[col], None, None, None, None, false)
         .await
         .unwrap();
     let res = res.first().unwrap();
@@ -321,5 +341,22 @@ async fn create_core_dm_multipart_file() {
         space: space.to_string(),
         external_id: external_id.to_string(),
     });
-    let _ = client.models.instances.delete(&[node_specs]).await.unwrap();
+
+    let mut backoff = Backoff::default();
+    let mut deleted: Option<ItemsVec<NodeOrEdgeSpecification>> = None;
+    for _ in 0..10 {
+        match client.models.instances.delete(&[node_specs.clone()]).await {
+            Ok(res) => {
+                deleted = Some(res);
+                break;
+            }
+            Err(_) => {
+                tokio::time::sleep(backoff.next().unwrap()).await;
+                continue;
+            }
+        }
+    }
+    let deleted = deleted.unwrap();
+    let deleted = deleted.items.first().unwrap();
+    assert!(matches!(deleted, NodeOrEdgeSpecification::Node(_)));
 }

@@ -245,9 +245,9 @@ impl TimeSeriesResource {
         &self,
         items: &[LatestDatapointsQuery],
         ignore_unknown_ids: bool,
-    ) -> Result<Vec<DatapointsResponse>> {
+    ) -> Result<Vec<LatestDatapointsResponse>> {
         let query = Items::new_with_extra_fields(items, IgnoreUnknownIds { ignore_unknown_ids });
-        let datapoints_response: DatapointsListResponse = self
+        let datapoints_response: Items<Vec<LatestDatapointsResponse>> = self
             .api_client
             .post("timeseries/data/latest", &query)
             .await?;

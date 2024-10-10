@@ -5,9 +5,11 @@ use crate::dto::data_modeling::instances::SlimNodeOrEdge;
 use crate::models::instances::{
     AggregateInstancesRequest, AggregateInstancesResponse, FilterInstancesRequest,
     InstancesFilterResponse, NodeAndEdgeCreateCollection, NodeAndEdgeRetrieveRequest,
-    NodeAndEdgeRetrieveResponse, NodeOrEdge, NodeOrEdgeSpecification, QueryInstancesRequest,
-    QueryInstancesResponse, SearchInstancesRequest,
+    NodeAndEdgeRetrieveResponse, NodeOrEdge, NodeOrEdgeCreate, NodeOrEdgeSpecification,
+    QueryInstancesRequest, QueryInstancesResponse, SearchInstancesRequest, SourceReferenceInternal,
 };
+use crate::models::instances::{FromReadable, WithView};
+use crate::models::views::ViewReference;
 use crate::Result;
 use crate::{DeleteWithResponse, FilterWithRequest, RetrieveWithRequest, UpsertCollection};
 use crate::{Resource, WithBasePath};
@@ -106,5 +108,81 @@ impl Instances {
         self.api_client
             .post(&format!("{}/search", Self::BASE_PATH), &req)
             .await
+    }
+
+    /// Fetch special data models instance collection.
+    ///
+    /// # Arguments
+    ///
+    /// * `items` - A list of specifications of node/edges to retrieve.
+    pub async fn fetch<TEntity, TProperties>(
+        &self,
+        items: &[NodeOrEdgeSpecification],
+        view: Option<&ViewReference>,
+    ) -> Result<Vec<TEntity>>
+    where
+        TProperties: Serialize + DeserializeOwned + Send + Sync,
+        TEntity: FromReadable<TProperties> + WithView + Send,
+    {
+        let response: NodeAndEdgeRetrieveResponse<TProperties> = self
+            .retrieve(&NodeAndEdgeRetrieveRequest {
+                sources: Some(vec![SourceReferenceInternal {
+                    source: view
+                        .unwrap_or(&ViewReference {
+                            space: TEntity::SPACE.to_owned(),
+                            external_id: TEntity::EXTERNAL_ID.to_owned(),
+                            version: TEntity::VERSION.to_owned(),
+                        })
+                        .to_owned()
+                        .into(),
+                }]),
+                items: items.to_vec(),
+                include_typing: None,
+            })
+            .await?;
+        response
+            .items
+            .into_iter()
+            .map(|item| TEntity::try_from(item, view))
+            .collect()
+    }
+
+    /// Upsert data models instances of this type.
+    ///
+    /// # Arguments
+    ///
+    /// * `col` - A list of this type to be created.
+    /// * `auto_create_direct_relation` - Whether to auto create direct relation that do no exist.
+    /// * `auto_create_start_nodes` - Whether to auto create end nodes that do not exist.
+    /// * `auto_create_end_nodes` - Whether to auto create end nodes that do not exist.
+    /// * `skip_on_version_conflict` - Whether to skip when a version conflict is encountered.
+    /// * `replace` - Whether to replace all matching and existing values with the supplied values.
+    pub async fn apply<TEntity, TProperties>(
+        &self,
+        col: &[TEntity],
+        auto_create_direct_relations: Option<bool>,
+        auto_create_start_nodes: Option<bool>,
+        auto_create_end_nodes: Option<bool>,
+        skip_on_version_conflict: Option<bool>,
+        replace: bool,
+    ) -> Result<Vec<SlimNodeOrEdge>>
+    where
+        TProperties: Serialize + DeserializeOwned + Send + Sync,
+        TEntity: Clone + Into<NodeOrEdgeCreate<TProperties>> + Send,
+    {
+        let collection = col
+            .iter()
+            .map(|t| t.to_owned().into())
+            .collect::<Vec<NodeOrEdgeCreate<_>>>();
+
+        let collection = NodeAndEdgeCreateCollection {
+            items: collection,
+            auto_create_direct_relations: auto_create_direct_relations.or(Some(true)),
+            auto_create_start_nodes,
+            auto_create_end_nodes,
+            skip_on_version_conflict,
+            replace: Some(replace),
+        };
+        self.upsert(&collection).await
     }
 }
