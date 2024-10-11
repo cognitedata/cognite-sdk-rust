@@ -20,12 +20,6 @@ pub enum Identity {
         /// External ID, unique for the given resource.
         external_id: String,
     },
-    #[serde(rename_all = "camelCase")]
-    /// Identity for data models.
-    InstanceId {
-        /// Instance id of the given resource.
-        instance_id: InstanceId,
-    },
 }
 
 impl Identity {
@@ -161,13 +155,17 @@ impl From<i64> for CogniteId {
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone, Hash, Eq, PartialEq)]
+#[serde(rename_all_fields = "camelCase")]
 #[serde(untagged)]
 /// Identity or instance ID.
 pub enum IdentityOrInstance {
     /// Identity, external ID or internal ID.
     Identity(Identity),
     /// Instance ID, refering to a node in data modeling.
-    InstanceId(InstanceId),
+    InstanceId {
+        /// Instance id.
+        instance_id: InstanceId,
+    },
 }
 
 impl FromErrorDetail for IdentityOrInstance {
@@ -176,10 +174,12 @@ impl FromErrorDetail for IdentityOrInstance {
             ApiErrorDetail::get_string(detail, "space"),
             ApiErrorDetail::get_string(detail, "externalId"),
         ) {
-            Some(Self::InstanceId(InstanceId {
-                space: space.to_owned(),
-                external_id: external_id.to_owned(),
-            }))
+            Some(Self::InstanceId {
+                instance_id: InstanceId {
+                    space: space.to_owned(),
+                    external_id: external_id.to_owned(),
+                },
+            })
         } else {
             Identity::from_detail(detail).map(Self::Identity)
         }

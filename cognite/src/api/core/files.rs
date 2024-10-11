@@ -6,7 +6,7 @@ use crate::api::resource::*;
 use crate::dto::core::files::*;
 use crate::dto::items::Items;
 use crate::error::Result;
-use crate::{Error, PartitionedFilter};
+use crate::{Error, IdentityOrInstance, PartitionedFilter};
 use crate::{Identity, ItemsVec, Patch};
 
 /// Files store documents, binary blobs, and other file data and relate it to assets.
@@ -248,28 +248,21 @@ impl Files {
     /// # Arguments
     ///
     /// `id` - Identity of file metadata or data models file.
-    pub async fn get_upload_link(&self, id: &Identity) -> Result<FileUploadResult<UploadUrl>> {
-        match id {
-            Identity::InstanceId { instance_id: _ } | Identity::ExternalId { external_id: _ } => {
-                let id_json = serde_json::to_string(&Items::new([id]))?;
-                let mut res = self
-                    .api_client
-                    .post_json::<Items<Vec<FileUploadResult<UploadUrl>>>>(
-                        "files/uploadlink",
-                        id_json,
-                    )
-                    .await?;
-                if res.items.is_empty() {
-                    Err(Error::Other(
-                        "File with given identity not found.".to_string(),
-                    ))
-                } else {
-                    Ok(res.items.remove(0))
-                }
-            }
-            Identity::Id { id: _ } => Err(Error::Other(
-                "Identity cannot be an internal id.".to_string(),
-            )),
+    pub async fn get_upload_link(
+        &self,
+        id: &IdentityOrInstance,
+    ) -> Result<FileUploadResult<UploadUrl>> {
+        let id_json = serde_json::to_string(&Items::new([id]))?;
+        let mut res = self
+            .api_client
+            .post_json::<Items<Vec<FileUploadResult<UploadUrl>>>>("files/uploadlink", id_json)
+            .await?;
+        if res.items.is_empty() {
+            Err(Error::Other(
+                "File with given identity not found.".to_string(),
+            ))
+        } else {
+            Ok(res.items.remove(0))
         }
     }
 
@@ -281,30 +274,23 @@ impl Files {
     /// * `parts` - Number of parts to be uploaded.
     pub async fn get_multipart_upload_link(
         &self,
-        id: &Identity,
+        id: &IdentityOrInstance,
         parts: u32,
     ) -> Result<FileUploadResult<MultiUploadUrls>> {
-        match id {
-            Identity::InstanceId { instance_id: _ } | Identity::ExternalId { external_id: _ } => {
-                let mut res = self
-                    .api_client
-                    .post_with_query::<Items<Vec<FileUploadResult<MultiUploadUrls>>>, _, _>(
-                        "files/multiuploadlink",
-                        &Items::new([id]),
-                        Some(MultipartGetUploadLinkQuery::new(parts)),
-                    )
-                    .await?;
-                if res.items.is_empty() {
-                    Err(Error::Other(
-                        "File with given identity not found.".to_string(),
-                    ))
-                } else {
-                    Ok(res.items.remove(0))
-                }
-            }
-            Identity::Id { id: _ } => Err(Error::Other(
-                "Identity cannot be an internal id.".to_string(),
-            )),
+        let mut res = self
+            .api_client
+            .post_with_query::<Items<Vec<FileUploadResult<MultiUploadUrls>>>, _, _>(
+                "files/multiuploadlink",
+                &Items::new([id]),
+                Some(MultipartGetUploadLinkQuery::new(parts)),
+            )
+            .await?;
+        if res.items.is_empty() {
+            Err(Error::Other(
+                "File with given identity not found.".to_string(),
+            ))
+        } else {
+            Ok(res.items.remove(0))
         }
     }
 
@@ -338,7 +324,7 @@ impl Files {
     /// * `id` - Identity of file metadata or data models file.
     pub async fn multipart_upload_existing<'a>(
         &'a self,
-        id: &Identity,
+        id: &IdentityOrInstance,
         parts: u32,
     ) -> Result<(MultipartUploader<'a>, FileMetadata)> {
         let res = self.get_multipart_upload_link(id, parts).await?;
@@ -406,7 +392,7 @@ impl Files {
     /// # Arguments
     ///
     /// * `ids` - List of file IDs or external IDs.
-    pub async fn download_link(&self, ids: &[Identity]) -> Result<Vec<FileDownloadUrl>> {
+    pub async fn download_link(&self, ids: &[IdentityOrInstance]) -> Result<Vec<FileDownloadUrl>> {
         let items = Items::new(ids);
         let file_links_response: ItemsVec<FileDownloadUrl> =
             self.api_client.post("files/downloadlink", &items).await?;
@@ -432,7 +418,7 @@ impl Files {
     /// * `id` - ID or external ID of file to download.
     pub async fn download_file(
         &self,
-        id: Identity,
+        id: IdentityOrInstance,
     ) -> Result<impl TryStream<Ok = bytes::Bytes, Error = crate::reqwest::Error>> {
         let items = vec![id];
         let links = self.download_link(&items).await?;

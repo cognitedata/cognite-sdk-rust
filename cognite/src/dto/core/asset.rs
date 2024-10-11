@@ -169,7 +169,6 @@ impl EqIdentity for AddAsset {
         match id {
             Identity::Id { id: _ } => false,
             Identity::ExternalId { external_id } => self.external_id.as_ref() == Some(external_id),
-            _ => false,
         }
     }
 }

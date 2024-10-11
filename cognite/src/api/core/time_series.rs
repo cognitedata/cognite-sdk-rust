@@ -105,8 +105,7 @@ impl TimeSeriesResource {
             Some(m) => m,
             None => return result,
         };
-        let to_create = generator(&missing_idts);
-        match to_create {
+        match generator(&missing_idts) {
             AddDmOrTimeSeries::TimeSeries(to_create) => {
                 let futures = to_create
                     .chunks(1000)

@@ -9,9 +9,7 @@ use cognite::models::*;
 use cognite::*;
 
 use common::*;
-use instances::{
-    CogniteExtractorFile, CogniteTimeseries, InstanceId, NodeOrEdgeSpecification, SlimNodeOrEdge,
-};
+use instances::{CogniteExtractorFile, CogniteTimeseries, NodeOrEdgeSpecification, SlimNodeOrEdge};
 use uuid::Uuid;
 
 #[tokio::test]
@@ -121,16 +119,12 @@ async fn create_and_delete_timeseries_instance() {
     let space = std::env::var("CORE_DM_TEST_SPACE").unwrap();
     let name = "random".to_string();
 
-    let mut timeseries = CogniteTimeseries::new(
+    let timeseries = CogniteTimeseries::new(
         space.to_string(),
         external_id.to_string(),
         name.to_string(),
         None,
     );
-    timeseries.properties.unit = InstanceId {
-        space: "cdf_cdm_units".to_string(),
-        external_id: "temperature:deg_c".to_string(),
-    };
     let timeseries_res = client
         .models
         .instances

@@ -147,9 +147,9 @@ async fn download_test_file() {
 
     let data: Vec<Bytes> = client
         .files
-        .download_file(Identity::ExternalId {
+        .download_file(IdentityOrInstance::Identity(Identity::ExternalId {
             external_id: "rust-sdk-test-file".to_string(),
-        })
+        }))
         .await
         .unwrap()
         .try_collect()
@@ -188,9 +188,9 @@ async fn create_multipart_file() {
 
     let data: Vec<Bytes> = client
         .files
-        .download_file(Identity::ExternalId {
+        .download_file(IdentityOrInstance::Identity(Identity::ExternalId {
             external_id: id.to_owned(),
-        })
+        }))
         .await
         .unwrap()
         .try_collect()
@@ -233,12 +233,14 @@ async fn create_delete_dm_files() {
         }
     };
     assert_eq!(external_id.to_string(), res_node.external_id);
-    let id = Identity::InstanceId {
+    let id = IdentityOrInstance::InstanceId {
         instance_id: InstanceId {
             space: space.to_string(),
             external_id: external_id.to_string(),
         },
     };
+    let id_json = serde_json::to_string(&id).unwrap();
+    println!("{id_json}");
 
     let res = client.files.get_upload_link(&id).await.unwrap();
     let size = tokio::fs::metadata("tests/dummyfile.txt")
@@ -303,7 +305,7 @@ async fn create_core_dm_multipart_file() {
         }
     };
     assert_eq!(external_id.to_string(), res_node.external_id);
-    let id = Identity::InstanceId {
+    let id = IdentityOrInstance::InstanceId {
         instance_id: InstanceId {
             space: space.to_string(),
             external_id: external_id.to_string(),

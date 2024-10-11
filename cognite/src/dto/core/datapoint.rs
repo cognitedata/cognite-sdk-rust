@@ -515,7 +515,6 @@ impl From<Identity> for TimeSeriesReference {
             Identity::ExternalId {
                 external_id: ext_id,
             } => TimeSeriesReference::ExternalId(ext_id),
-            _ => unimplemented!(),
         }
     }
 }
@@ -559,7 +558,9 @@ impl From<TimeSeriesReference> for IdentityOrInstance {
             TimeSeriesReference::ExternalId(external_id) => {
                 IdentityOrInstance::Identity(Identity::ExternalId { external_id })
             }
-            TimeSeriesReference::InstanceId(i) => Self::InstanceId(i.into()),
+            TimeSeriesReference::InstanceId(i) => Self::InstanceId {
+                instance_id: i.into(),
+            },
         }
     }
 }

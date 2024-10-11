@@ -142,7 +142,7 @@ pub struct Timeseries {
     /// Unit as specified in the source system.
     pub source_unit: String,
     /// Direct relation to the unit of the time series.
-    pub unit: InstanceId,
+    pub unit: Option<InstanceId>,
     /// List of assets to which this file relates.
     pub assets: Option<Vec<InstanceId>>,
     /// List of activities associated with this time series.
