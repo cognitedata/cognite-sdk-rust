@@ -25,7 +25,7 @@ impl Update<Patch<PatchFile>, FileMetadata> for Files {}
 /// Utility for uploading files in multiple parts.
 pub struct MultipartUploader<'a> {
     resource: &'a Files,
-    id: Identity,
+    id: IdentityOrInstance,
     urls: MultiUploadUrls,
 }
 
@@ -37,7 +37,7 @@ impl<'a> MultipartUploader<'a> {
     /// * `resource` - Files resource.
     /// * `id` - ID of the file to upload.
     /// * `urls` - Upload URLs returned from `init_multipart_upload`.
-    pub fn new(resource: &'a Files, id: Identity, urls: MultiUploadUrls) -> Self {
+    pub fn new(resource: &'a Files, id: IdentityOrInstance, urls: MultiUploadUrls) -> Self {
         Self { resource, id, urls }
     }
 
@@ -338,9 +338,9 @@ impl Files {
         Ok((
             MultipartUploader::new(
                 self,
-                Identity::Id {
+                IdentityOrInstance::Identity(Identity::Id {
                     id: res.metadata.id,
-                },
+                }),
                 res.extra,
             ),
             res.metadata,
@@ -377,7 +377,11 @@ impl Files {
     ///
     /// * `id` - ID of the file that was uploaded.
     /// * `upload_id` - `upload_id` returned by `init_multipart_upload`.
-    pub async fn complete_multipart_upload(&self, id: Identity, upload_id: String) -> Result<()> {
+    pub async fn complete_multipart_upload(
+        &self,
+        id: IdentityOrInstance,
+        upload_id: String,
+    ) -> Result<()> {
         self.api_client
             .post::<serde_json::Value, _>(
                 "files/completemultipartupload",

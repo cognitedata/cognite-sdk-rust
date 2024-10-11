@@ -323,12 +323,16 @@ async fn create_core_dm_multipart_file() {
     session.upload_part_blob(1, content_2).await.unwrap();
 
     session.complete().await.unwrap();
+    tokio::time::sleep(Duration::from_secs(3)).await;
+    let id_json = serde_json::to_string(&id).unwrap();
+    println!("{id_json}");
     let mut data: Option<_> = None;
+    let mut backoff = Backoff::default();
     for _ in 0..=3 {
         match client.files.download_file(id.clone()).await {
             Ok(d) => data = Some(d),
             Err(_) => {
-                tokio::time::sleep(Duration::from_secs(1)).await;
+                tokio::time::sleep(backoff.next().unwrap()).await;
                 continue;
             }
         }
