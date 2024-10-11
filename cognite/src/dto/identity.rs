@@ -142,10 +142,6 @@ pub trait EqIdentity {
     fn eq(&self, id: &Identity) -> bool;
 }
 
-pub trait EqIdentityOrInstance {
-    fn eq(&self, id: &IdentityOrInstance) -> bool;
-}
-
 impl From<String> for CogniteExternalId {
     fn from(external_id: String) -> Self {
         CogniteExternalId { external_id }
