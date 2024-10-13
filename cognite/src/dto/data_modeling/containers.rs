@@ -11,7 +11,7 @@ use crate::{
 use super::common::{CDFExternalIdReference, PrimitiveProperty, TextProperty};
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
-#[serde(rename_all = "camelCase")]
+#[serde(rename_all = "camelCase", tag = "type")]
 /// Property variants in containers.
 pub enum ContainerPropertyType {
     /// Text property
