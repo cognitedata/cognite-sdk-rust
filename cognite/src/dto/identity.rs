@@ -2,7 +2,9 @@ use std::collections::HashMap;
 
 use serde::{Deserialize, Serialize};
 
-use crate::{models::instances::InstanceId, ApiErrorDetail, FromErrorDetail, IntegerOrString};
+use crate::{
+    models::instances::InstanceId, ApiErrorDetail, FromErrorDetail, IntegerStringOrObject,
+};
 
 #[derive(Serialize, Deserialize, Debug, Hash, PartialEq, Eq, Clone)]
 #[serde(rename_all = "camelCase")]
@@ -95,7 +97,7 @@ impl From<&str> for Identity {
 }
 
 impl FromErrorDetail for Identity {
-    fn from_detail(detail: &HashMap<String, IntegerOrString>) -> Option<Self> {
+    fn from_detail(detail: &HashMap<String, Box<IntegerStringOrObject>>) -> Option<Self> {
         ApiErrorDetail::get_integer(detail, "id")
             .map(|id| Identity::Id { id })
             .or_else(|| {
@@ -115,7 +117,7 @@ pub struct CogniteId {
 }
 
 impl FromErrorDetail for CogniteId {
-    fn from_detail(detail: &HashMap<String, IntegerOrString>) -> Option<Self> {
+    fn from_detail(detail: &HashMap<String, Box<IntegerStringOrObject>>) -> Option<Self> {
         ApiErrorDetail::get_integer(detail, "id").map(|id| CogniteId { id })
     }
 }
@@ -129,7 +131,7 @@ pub struct CogniteExternalId {
 }
 
 impl FromErrorDetail for CogniteExternalId {
-    fn from_detail(detail: &HashMap<String, IntegerOrString>) -> Option<Self> {
+    fn from_detail(detail: &HashMap<String, Box<IntegerStringOrObject>>) -> Option<Self> {
         ApiErrorDetail::get_string(detail, "externalId").map(|external_id| CogniteExternalId {
             external_id: external_id.to_owned(),
         })
@@ -169,17 +171,20 @@ pub enum IdentityOrInstance {
 }
 
 impl FromErrorDetail for IdentityOrInstance {
-    fn from_detail(detail: &HashMap<String, IntegerOrString>) -> Option<Self> {
-        if let (Some(space), Some(external_id)) = (
-            ApiErrorDetail::get_string(detail, "space"),
-            ApiErrorDetail::get_string(detail, "externalId"),
-        ) {
-            Some(Self::InstanceId {
-                instance_id: InstanceId {
-                    space: space.to_owned(),
-                    external_id: external_id.to_owned(),
-                },
-            })
+    fn from_detail(detail: &HashMap<String, Box<IntegerStringOrObject>>) -> Option<Self> {
+        if let Some(object) = ApiErrorDetail::get_object(detail, "instanceId") {
+            match (
+                ApiErrorDetail::get_string(object, "space"),
+                ApiErrorDetail::get_string(object, "externalId"),
+            ) {
+                (Some(space), Some(external_id)) => Some(Self::InstanceId {
+                    instance_id: InstanceId {
+                        space: space.to_owned(),
+                        external_id: external_id.to_owned(),
+                    },
+                }),
+                _ => None,
+            }
         } else {
             Identity::from_detail(detail).map(Self::Identity)
         }

@@ -49,7 +49,7 @@ impl CogniteTimeseries {
     /// * `external_id` - A unique external id for this entity.
     /// * `name` - A name for the entity.
     /// # `is_step` - Specifies whether the time series is a step time series or not.
-    pub fn new(space: String, external_id: String, name: String, is_step: Option<bool>) -> Self {
+    pub fn new(space: String, external_id: String, name: String, is_step: bool) -> Self {
         CogniteTimeseries {
             id: InstanceId { space, external_id },
             view: None,
@@ -153,10 +153,10 @@ pub struct Timeseries {
 
 impl Timeseries {
     /// Create a new timeseries instance.
-    pub fn new(name: String, is_step: Option<bool>) -> Self {
+    pub fn new(name: String, is_step: bool) -> Self {
         Self {
             description: CogniteDescribable::new(name),
-            is_step: is_step.unwrap_or_default(),
+            is_step,
             ..Default::default()
         }
     }

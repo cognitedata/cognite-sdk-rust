@@ -18,19 +18,22 @@ pub struct ApiErrorWrapper {
 #[serde(rename_all = "camelCase")]
 #[serde(untagged)]
 /// Value that is either an integer or a string.
-pub enum IntegerOrString {
+pub enum IntegerStringOrObject {
     /// 64 bit integer.
     Integer(i64),
     /// String.
     String(String),
+    /// Object.
+    Object(HashMap<String, Box<IntegerStringOrObject>>),
 }
 
-impl IntegerOrString {
+impl IntegerStringOrObject {
     /// Return self as integer, or none.
     pub fn integer(&self) -> Option<i64> {
         match self {
             Self::Integer(i) => Some(*i),
             Self::String(s) => s.parse().ok(),
+            _ => None,
         }
     }
     /// Return self as string, or none.
@@ -38,6 +41,14 @@ impl IntegerOrString {
         match self {
             Self::Integer(_) => None,
             Self::String(s) => Some(s),
+            _ => None,
+        }
+    }
+    /// Return self as object, or none.
+    pub fn object(&self) -> Option<&HashMap<String, Box<Self>>> {
+        match self {
+            Self::Object(o) => Some(o),
+            _ => None,
         }
     }
 }
@@ -45,7 +56,7 @@ impl IntegerOrString {
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
 /// Details about API errors.
-pub struct ApiErrorDetail(pub Vec<HashMap<String, IntegerOrString>>);
+pub struct ApiErrorDetail(pub Vec<HashMap<String, Box<IntegerStringOrObject>>>);
 
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
@@ -68,18 +79,30 @@ impl ApiErrorDetail {
     }
 
     /// Get a value from `map` as integer.
-    pub fn get_integer(map: &HashMap<String, IntegerOrString>, key: &str) -> Option<i64> {
+    pub fn get_integer(
+        map: &HashMap<String, Box<IntegerStringOrObject>>,
+        key: &str,
+    ) -> Option<i64> {
         map.get(key).and_then(|f| f.integer())
     }
     /// Get a value from `map` as string.
     pub fn get_string<'a>(
-        map: &'a HashMap<String, IntegerOrString>,
+        map: &'a HashMap<String, Box<IntegerStringOrObject>>,
         key: &str,
     ) -> Option<&'a String> {
         map.get(key).and_then(|f| f.string())
     }
+
+    /// Get an value from `map` as a nested object.
+    pub fn get_object<'a>(
+        map: &'a HashMap<String, Box<IntegerStringOrObject>>,
+        key: &str,
+    ) -> Option<&'a HashMap<String, Box<IntegerStringOrObject>>> {
+        map.get(key).and_then(|f| f.object())
+    }
+
     /// Iterate over elements.
-    pub fn iter(&self) -> impl Iterator<Item = &HashMap<String, IntegerOrString>> + '_ {
+    pub fn iter(&self) -> impl Iterator<Item = &HashMap<String, Box<IntegerStringOrObject>>> + '_ {
         self.0.iter()
     }
 }

@@ -82,11 +82,11 @@ pub struct AddTimeSeries {
 }
 
 /// Add Core DM or classic time series.
-pub enum AddDmOrTimeSeries<'a> {
+pub enum AddDmOrTimeSeries {
     /// Classic time series.
-    TimeSeries(&'a [AddTimeSeries]),
+    TimeSeries(Box<AddTimeSeries>),
     /// Core DM timeseries
-    Cdm(&'a [CogniteTimeseries]),
+    Cdm(Box<CogniteTimeseries>),
 }
 
 impl From<TimeSeries> for AddTimeSeries {

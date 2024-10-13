@@ -123,7 +123,7 @@ async fn create_and_delete_timeseries_instance() {
         space.to_string(),
         external_id.to_string(),
         name.to_string(),
-        None,
+        false,
     );
     let timeseries_res = client
         .models

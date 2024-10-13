@@ -474,7 +474,7 @@ impl<'de> Deserialize<'de> for LatestDatapointsResponse {
 /// Add datapoints to a time series.
 pub struct AddDatapoints {
     /// ID or external ID of time series to insert into.
-    pub id: Identity,
+    pub id: IdentityOrInstance,
     /// Data points to insert.
     pub datapoints: DatapointsEnumType,
 }
@@ -488,7 +488,7 @@ impl AddDatapoints {
     /// * `datapoints` - Datapoints to insert.
     pub fn new(id: i64, datapoints: DatapointsEnumType) -> AddDatapoints {
         AddDatapoints {
-            id: Identity::Id { id },
+            id: IdentityOrInstance::Identity(Identity::Id { id }),
             datapoints,
         }
     }
@@ -500,9 +500,9 @@ impl AddDatapoints {
     /// * `datapoints` - Datapoints to insert.
     pub fn new_external_id(external_id: &str, datapoints: DatapointsEnumType) -> AddDatapoints {
         AddDatapoints {
-            id: Identity::ExternalId {
+            id: IdentityOrInstance::Identity(Identity::ExternalId {
                 external_id: external_id.to_string(),
-            },
+            }),
             datapoints,
         }
     }
@@ -515,6 +515,20 @@ impl From<Identity> for TimeSeriesReference {
             Identity::ExternalId {
                 external_id: ext_id,
             } => TimeSeriesReference::ExternalId(ext_id),
+        }
+    }
+}
+
+impl From<IdentityOrInstance> for TimeSeriesReference {
+    fn from(idt: IdentityOrInstance) -> TimeSeriesReference {
+        match idt {
+            IdentityOrInstance::Identity(Identity::Id { id }) => TimeSeriesReference::Id(id),
+            IdentityOrInstance::Identity(Identity::ExternalId {
+                external_id: ext_id,
+            }) => TimeSeriesReference::ExternalId(ext_id),
+            IdentityOrInstance::InstanceId { instance_id } => {
+                TimeSeriesReference::InstanceId(instance_id.into())
+            }
         }
     }
 }
@@ -558,8 +572,8 @@ impl From<TimeSeriesReference> for IdentityOrInstance {
             TimeSeriesReference::ExternalId(external_id) => {
                 IdentityOrInstance::Identity(Identity::ExternalId { external_id })
             }
-            TimeSeriesReference::InstanceId(i) => Self::InstanceId {
-                instance_id: i.into(),
+            TimeSeriesReference::InstanceId(instance_id) => IdentityOrInstance::InstanceId {
+                instance_id: instance_id.into(),
             },
         }
     }
