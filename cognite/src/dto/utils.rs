@@ -4,7 +4,7 @@ use serde::{de::Visitor, Deserialize, Serialize};
 
 use crate::{
     models::{instances::PropertiesObject, views::ViewReference},
-    IntegerOrString,
+    IntegerStringOrObject,
 };
 
 /// Wrapper around an u64 value that can be deserialized from
@@ -59,7 +59,7 @@ impl<'de> Deserialize<'de> for MaybeStringU64 {
 /// Trait implemented for types that can be retrieved from an error detail element.
 pub trait FromErrorDetail: Sized {
     /// Try to obtain a new instance of self from the detail object.
-    fn from_detail(detail: &HashMap<String, IntegerOrString>) -> Option<Self>;
+    fn from_detail(detail: &HashMap<String, Box<IntegerStringOrObject>>) -> Option<Self>;
 }
 
 /// Get instance type of special data models type.

@@ -6,6 +6,12 @@ pub use common::*;
 
 use cognite::time_series::*;
 use cognite::*;
+use models::{
+    instances::{
+        CogniteTimeseries, InstanceId, NodeOrEdgeSpecification, TimeSeriesType, Timeseries,
+    },
+    ItemId,
+};
 
 #[tokio::test]
 async fn create_and_delete_time_series() {
@@ -36,4 +42,85 @@ async fn create_and_delete_time_series() {
         .map(|ts| Identity::Id { id: ts.id })
         .collect();
     client.time_series.delete(&id_list, true).await.unwrap();
+}
+
+#[tokio::test]
+async fn create_and_delete_missing() {
+    let space = std::env::var("CORE_DM_TEST_SPACE").unwrap();
+    let external_id_classic = uuid::Uuid::new_v4().to_string();
+    let external_id_cdm = uuid::Uuid::new_v4().to_string();
+    let add_datapoints = vec![
+        AddDatapoints {
+            id: IdentityOrInstance::InstanceId {
+                instance_id: InstanceId {
+                    space: space.to_string(),
+                    external_id: external_id_cdm.to_string(),
+                },
+            },
+            datapoints: DatapointsEnumType::StringDatapoints(vec![DatapointString {
+                timestamp: 1,
+                value: Some("0.5".to_string()),
+                status: None,
+            }]),
+        },
+        AddDatapoints {
+            id: IdentityOrInstance::Identity(Identity::ExternalId {
+                external_id: external_id_classic.to_string(),
+            }),
+            datapoints: DatapointsEnumType::NumericDatapoints(vec![DatapointDouble {
+                timestamp: 1,
+                value: Some(0.5),
+                status: None,
+            }]),
+        },
+    ];
+    let client = get_client();
+    client
+        .time_series
+        .insert_datapoints_create_missing(add_datapoints, &|id_or_instance| {
+            id_or_instance
+                .iter()
+                .map(|v| match v {
+                    IdentityOrInstance::Identity(Identity::ExternalId { external_id }) => {
+                        AddDmOrTimeSeries::TimeSeries(Box::new(AddTimeSeries {
+                            external_id: Some(external_id.to_string()),
+                            ..Default::default()
+                        }))
+                    }
+                    IdentityOrInstance::InstanceId { instance_id } => {
+                        let mut timeseries = CogniteTimeseries::new(
+                            instance_id.space.to_string(),
+                            instance_id.external_id.to_string(),
+                            Timeseries::new(uuid::Uuid::new_v4().to_string(), false),
+                        );
+                        timeseries.properties.r#type = TimeSeriesType::String;
+                        AddDmOrTimeSeries::Cdm(Box::new(timeseries))
+                    }
+                    _ => panic!("Invalid identity received."),
+                })
+                .collect::<Vec<_>>()
+                .into_iter()
+        })
+        .await
+        .unwrap();
+
+    client
+        .time_series
+        .delete(
+            &[Identity::ExternalId {
+                external_id: external_id_classic,
+            }],
+            false,
+        )
+        .await
+        .unwrap();
+    let _ = client
+        .models
+        .instances
+        .delete(&[NodeOrEdgeSpecification::Node(ItemId {
+            space: space.to_string(),
+            external_id: external_id_cdm.to_string(),
+        })])
+        .await
+        .unwrap();
 }

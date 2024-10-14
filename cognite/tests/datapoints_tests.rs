@@ -49,7 +49,7 @@ async fn create_retrieve_delete_double_datapoints() {
     client
         .time_series
         .insert_datapoints(vec![AddDatapoints {
-            id: Identity::Id { id: ts.id },
+            id: IdentityOrInstance::Identity(Identity::Id { id: ts.id }),
             datapoints: DatapointsEnumType::NumericDatapoints(
                 (0..100)
                     .map(|i| DatapointDouble {
@@ -133,7 +133,7 @@ async fn create_retrieve_delete_string_datapoints() {
     client
         .time_series
         .insert_datapoints(vec![AddDatapoints {
-            id: Identity::Id { id: ts.id },
+            id: IdentityOrInstance::Identity(Identity::Id { id: ts.id }),
             datapoints: DatapointsEnumType::StringDatapoints(
                 (0..100)
                     .map(|i| DatapointString {
@@ -217,7 +217,7 @@ async fn retrieve_latest() {
     client
         .time_series
         .insert_datapoints(vec![AddDatapoints {
-            id: Identity::Id { id: ts.id },
+            id: IdentityOrInstance::Identity(Identity::Id { id: ts.id }),
             datapoints: DatapointsEnumType::NumericDatapoints(
                 (0..100)
                     .map(|i| DatapointDouble {
@@ -269,7 +269,7 @@ async fn create_retrieve_double_datapoints_with_status() {
     client
         .time_series
         .insert_datapoints(vec![AddDatapoints {
-            id: Identity::Id { id: ts.id },
+            id: IdentityOrInstance::Identity(Identity::Id { id: ts.id }),
             datapoints: DatapointsEnumType::NumericDatapoints(vec![
                 DatapointDouble {
                     timestamp: start + 1000,

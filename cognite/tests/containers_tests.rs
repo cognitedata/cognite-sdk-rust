@@ -18,7 +18,7 @@ pub use fixtures::*;
 
 #[tokio::test]
 async fn create_retrieve_delete_container() {
-    let container_external_id = format!("{}", PREFIX.as_str().replace("-", "_"));
+    let container_external_id = PREFIX.as_str().replace('-', "_").to_string();
     let new_container = ContainerCreate {
         constraints: HashMap::new(),
         space: std::env::var("CORE_DM_TEST_SPACE").unwrap(),
@@ -60,7 +60,7 @@ async fn create_retrieve_delete_container() {
     let containers_retrieved = client
         .models
         .containers
-        .retrieve(&vec![ItemId {
+        .retrieve(&[ItemId {
             space: std::env::var("CORE_DM_TEST_SPACE").unwrap(),
             external_id: container_external_id.clone(),
         }])

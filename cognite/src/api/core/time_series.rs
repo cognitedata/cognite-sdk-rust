@@ -3,6 +3,7 @@ use std::iter::FromIterator;
 
 use futures::FutureExt;
 
+use crate::api::data_modeling::instances::Instances;
 use crate::api::resource::*;
 use crate::dto::core::datapoint::*;
 use crate::dto::core::time_series::*;
@@ -93,7 +94,7 @@ impl TimeSeriesResource {
     ///     })
     /// )
     /// ```
-    pub async fn insert_datapoints_proto_create_missing<T: Iterator<Item = AddTimeSeries>>(
+    pub async fn insert_datapoints_proto_create_missing<T: Iterator<Item = AddDmOrTimeSeries>>(
         &self,
         add_datapoints: &DataPointInsertionRequest,
         generator: &impl Fn(&[IdentityOrInstance]) -> T,
@@ -104,13 +105,30 @@ impl TimeSeriesResource {
             Some(m) => m,
             None => return result,
         };
-        let to_create = generator(&missing_idts).collect::<Vec<_>>();
-        let futures = to_create
-            .chunks(1000)
-            // Since we're discarding the output, don't collect it here.
-            .map(|c| self.create_ignore_duplicates(c).map(|r| r.map(|_| ())));
-
-        execute_with_parallelism(futures, 4).await?;
+        let (time_series, dm_time_series) =
+            generator(&missing_idts).fold((vec![], vec![]), |mut acc, v| {
+                match v {
+                    AddDmOrTimeSeries::TimeSeries(add_time_series) => acc.0.push(*add_time_series),
+                    AddDmOrTimeSeries::Cdm(cognite_timeseries) => acc.1.push(*cognite_timeseries),
+                }
+                acc
+            });
+        if !time_series.is_empty() {
+            let futures = time_series
+                .chunks(1000)
+                // Since we're discarding the output, don't collect it here.
+                .map(|c| self.create_ignore_duplicates(c).map(|r| r.map(|_| ())));
+            execute_with_parallelism(futures, 4).await?;
+        }
+        if !dm_time_series.is_empty() {
+            let instance_resource = Instances::new(self.api_client.clone());
+            let futures = dm_time_series.chunks(1000).map(|c| {
+                instance_resource
+                    .apply(c, None, None, None, None, false)
+                    .map(|r| r.map(|_| ()))
+            });
+            execute_with_parallelism(futures, 4).await?;
+        }
 
         self.insert_datapoints_proto(add_datapoints).await
     }
@@ -136,7 +154,7 @@ impl TimeSeriesResource {
     ///     })
     /// )
     /// ```
-    pub async fn insert_datapoints_create_missing<T: Iterator<Item = AddTimeSeries>>(
+    pub async fn insert_datapoints_create_missing<T: Iterator<Item = AddDmOrTimeSeries>>(
         &self,
         add_datapoints: Vec<AddDatapoints>,
         generator: &impl Fn(&[IdentityOrInstance]) -> T,

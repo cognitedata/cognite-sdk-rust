@@ -4,6 +4,7 @@ mod synthetic;
 pub use self::filter::*;
 pub use self::synthetic::*;
 
+use crate::models::instances::CogniteTimeseries;
 use crate::IntoPatch;
 use crate::IntoPatchItem;
 use crate::UpsertOptions;
@@ -80,6 +81,14 @@ pub struct AddTimeSeries {
     pub data_set_id: Option<i64>,
 }
 
+/// Add Core DM or classic time series.
+pub enum AddDmOrTimeSeries {
+    /// Classic time series.
+    TimeSeries(Box<AddTimeSeries>),
+    /// Core DM timeseries
+    Cdm(Box<CogniteTimeseries>),
+}
+
 impl From<TimeSeries> for AddTimeSeries {
     fn from(time_serie: TimeSeries) -> AddTimeSeries {
         AddTimeSeries {
@@ -103,7 +112,6 @@ impl EqIdentity for AddTimeSeries {
         match id {
             Identity::Id { id: _ } => false,
             Identity::ExternalId { external_id } => self.external_id.as_ref() == Some(external_id),
-            _ => false,
         }
     }
 }

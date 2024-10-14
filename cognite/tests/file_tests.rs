@@ -2,7 +2,7 @@
 
 use bytes::Bytes;
 use cognite::models::instances::{
-    CogniteExtractorFile, InstanceId, NodeOrEdgeSpecification, SlimNodeOrEdge,
+    CogniteExtractorFile, FileObject, InstanceId, NodeOrEdgeSpecification, SlimNodeOrEdge,
 };
 use cognite::models::ItemId;
 use cognite::prelude::*;
@@ -147,9 +147,9 @@ async fn download_test_file() {
 
     let data: Vec<Bytes> = client
         .files
-        .download_file(Identity::ExternalId {
+        .download_file(IdentityOrInstance::Identity(Identity::ExternalId {
             external_id: "rust-sdk-test-file".to_string(),
-        })
+        }))
         .await
         .unwrap()
         .try_collect()
@@ -188,9 +188,9 @@ async fn create_multipart_file() {
 
     let data: Vec<Bytes> = client
         .files
-        .download_file(Identity::ExternalId {
+        .download_file(IdentityOrInstance::Identity(Identity::ExternalId {
             external_id: id.to_owned(),
-        })
+        }))
         .await
         .unwrap()
         .try_collect()
@@ -214,7 +214,11 @@ async fn create_delete_dm_files() {
     let external_id = Uuid::new_v4().to_string();
     let space = std::env::var("CORE_DM_TEST_SPACE").unwrap();
     let name = "random".to_string();
-    let col = CogniteExtractorFile::new(space.to_string(), external_id.to_string(), name);
+    let col = CogniteExtractorFile::new(
+        space.to_string(),
+        external_id.to_string(),
+        FileObject::new(name),
+    );
     let res = client
         .models
         .instances
@@ -233,7 +237,7 @@ async fn create_delete_dm_files() {
         }
     };
     assert_eq!(external_id.to_string(), res_node.external_id);
-    let id = Identity::InstanceId {
+    let id = IdentityOrInstance::InstanceId {
         instance_id: InstanceId {
             space: space.to_string(),
             external_id: external_id.to_string(),
@@ -284,7 +288,11 @@ async fn create_core_dm_multipart_file() {
     let external_id = Uuid::new_v4().to_string();
     let space = std::env::var("CORE_DM_TEST_SPACE").unwrap();
     let name = "random".to_string();
-    let col = CogniteExtractorFile::new(space.to_string(), external_id.to_string(), name);
+    let col = CogniteExtractorFile::new(
+        space.to_string(),
+        external_id.to_string(),
+        FileObject::new(name),
+    );
     let res = client
         .models
         .instances
@@ -303,7 +311,7 @@ async fn create_core_dm_multipart_file() {
         }
     };
     assert_eq!(external_id.to_string(), res_node.external_id);
-    let id = Identity::InstanceId {
+    let id = IdentityOrInstance::InstanceId {
         instance_id: InstanceId {
             space: space.to_string(),
             external_id: external_id.to_string(),
@@ -321,12 +329,16 @@ async fn create_core_dm_multipart_file() {
     session.upload_part_blob(1, content_2).await.unwrap();
 
     session.complete().await.unwrap();
+    tokio::time::sleep(Duration::from_secs(3)).await;
+    let id_json = serde_json::to_string(&id).unwrap();
+    println!("{id_json}");
     let mut data: Option<_> = None;
+    let mut backoff = Backoff::default();
     for _ in 0..=3 {
         match client.files.download_file(id.clone()).await {
             Ok(d) => data = Some(d),
             Err(_) => {
-                tokio::time::sleep(Duration::from_secs(1)).await;
+                tokio::time::sleep(backoff.next().unwrap()).await;
                 continue;
             }
         }

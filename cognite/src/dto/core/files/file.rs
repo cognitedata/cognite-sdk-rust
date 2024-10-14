@@ -3,8 +3,8 @@ use serde_with::skip_serializing_none;
 use std::collections::HashMap;
 
 use crate::{
-    models::instances::InstanceId, CogniteExternalId, EqIdentity, Identity, IntoPatch,
-    IntoPatchItem, Patch, UpdateList, UpdateMap, UpdateSetNull, UpsertOptions,
+    models::instances::InstanceId, CogniteExternalId, EqIdentity, Identity, IdentityOrInstance,
+    IntoPatch, IntoPatchItem, Patch, UpdateList, UpdateMap, UpdateSetNull, UpsertOptions,
 };
 
 #[skip_serializing_none]
@@ -142,7 +142,6 @@ impl EqIdentity for AddFile {
         match id {
             Identity::Id { id: _ } => false,
             Identity::ExternalId { external_id } => self.external_id.as_ref() == Some(external_id),
-            _ => false,
         }
     }
 }
@@ -229,7 +228,7 @@ impl From<FileMetadata> for Patch<PatchFile> {
 pub struct FileDownloadUrl {
     #[serde(flatten)]
     /// ID of the file.
-    pub id: Identity,
+    pub id: IdentityOrInstance,
     /// Temporary download URL for the file.
     pub download_url: String,
 }
@@ -248,7 +247,7 @@ pub struct FileAggregates {
 pub struct CompleteMultipartUpload {
     #[serde(flatten)]
     /// ID of the file.
-    pub id: Identity,
+    pub id: IdentityOrInstance,
     /// Upload ID returned by `init_multipart_upload`
     pub upload_id: String,
 }
