@@ -9,7 +9,10 @@ use cognite::models::*;
 use cognite::*;
 
 use common::*;
-use instances::{CogniteExtractorFile, CogniteTimeseries, NodeOrEdgeSpecification, SlimNodeOrEdge};
+use instances::{
+    CogniteExtractorFile, CogniteTimeseries, FileObject, NodeOrEdgeSpecification, SlimNodeOrEdge,
+    Timeseries,
+};
 use uuid::Uuid;
 
 #[tokio::test]
@@ -59,7 +62,11 @@ async fn create_and_delete_file_instance() {
     let external_id = Uuid::new_v4().to_string();
     let space = std::env::var("CORE_DM_TEST_SPACE").unwrap();
     let name = "random".to_string();
-    let col = CogniteExtractorFile::new(space.to_string(), external_id.to_string(), name);
+    let col = CogniteExtractorFile::new(
+        space.to_string(),
+        external_id.to_string(),
+        FileObject::new(name),
+    );
     let res = client
         .models
         .instances
@@ -122,8 +129,7 @@ async fn create_and_delete_timeseries_instance() {
     let timeseries = CogniteTimeseries::new(
         space.to_string(),
         external_id.to_string(),
-        name.to_string(),
-        false,
+        Timeseries::new(name.to_string(), false),
     );
     let timeseries_res = client
         .models

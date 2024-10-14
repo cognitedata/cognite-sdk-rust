@@ -2,7 +2,7 @@
 
 use bytes::Bytes;
 use cognite::models::instances::{
-    CogniteExtractorFile, InstanceId, NodeOrEdgeSpecification, SlimNodeOrEdge,
+    CogniteExtractorFile, FileObject, InstanceId, NodeOrEdgeSpecification, SlimNodeOrEdge,
 };
 use cognite::models::ItemId;
 use cognite::prelude::*;
@@ -214,7 +214,11 @@ async fn create_delete_dm_files() {
     let external_id = Uuid::new_v4().to_string();
     let space = std::env::var("CORE_DM_TEST_SPACE").unwrap();
     let name = "random".to_string();
-    let col = CogniteExtractorFile::new(space.to_string(), external_id.to_string(), name);
+    let col = CogniteExtractorFile::new(
+        space.to_string(),
+        external_id.to_string(),
+        FileObject::new(name),
+    );
     let res = client
         .models
         .instances
@@ -239,8 +243,6 @@ async fn create_delete_dm_files() {
             external_id: external_id.to_string(),
         },
     };
-    let id_json = serde_json::to_string(&id).unwrap();
-    println!("{id_json}");
 
     let res = client.files.get_upload_link(&id).await.unwrap();
     let size = tokio::fs::metadata("tests/dummyfile.txt")
@@ -286,7 +288,11 @@ async fn create_core_dm_multipart_file() {
     let external_id = Uuid::new_v4().to_string();
     let space = std::env::var("CORE_DM_TEST_SPACE").unwrap();
     let name = "random".to_string();
-    let col = CogniteExtractorFile::new(space.to_string(), external_id.to_string(), name);
+    let col = CogniteExtractorFile::new(
+        space.to_string(),
+        external_id.to_string(),
+        FileObject::new(name),
+    );
     let res = client
         .models
         .instances

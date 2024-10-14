@@ -7,7 +7,9 @@ pub use common::*;
 use cognite::time_series::*;
 use cognite::*;
 use models::{
-    instances::{CogniteTimeseries, InstanceId, NodeOrEdgeSpecification, TimeSeriesType},
+    instances::{
+        CogniteTimeseries, InstanceId, NodeOrEdgeSpecification, TimeSeriesType, Timeseries,
+    },
     ItemId,
 };
 
@@ -89,8 +91,7 @@ async fn create_and_delete_missing() {
                         let mut timeseries = CogniteTimeseries::new(
                             instance_id.space.to_string(),
                             instance_id.external_id.to_string(),
-                            uuid::Uuid::new_v4().to_string(),
-                            false,
+                            Timeseries::new(uuid::Uuid::new_v4().to_string(), false),
                         );
                         timeseries.properties.r#type = TimeSeriesType::String;
                         AddDmOrTimeSeries::Cdm(Box::new(timeseries))

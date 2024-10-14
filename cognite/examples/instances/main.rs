@@ -1,6 +1,6 @@
 use cognite::{
     models::{
-        instances::{CogniteExtractorFile, NodeOrEdgeSpecification},
+        instances::{CogniteExtractorFile, FileObject, NodeOrEdgeSpecification},
         ItemId,
     },
     CogniteClient, DeleteWithResponse,
@@ -13,7 +13,7 @@ async fn main() {
     let external_id = Uuid::new_v4().to_string();
     let space = std::env::var("CORE_DM_TEST_SPACE").unwrap();
     let name = "random".to_string();
-    let col = CogniteExtractorFile::new(space.to_string(), external_id, name);
+    let col = CogniteExtractorFile::new(space.to_string(), external_id, FileObject::new(name));
     let res = client
         .models
         .instances
