@@ -61,11 +61,10 @@ async fn create_and_delete_file_instance() {
     let client = CogniteClient::new_oidc("testing_instances", None).unwrap();
     let external_id = Uuid::new_v4().to_string();
     let space = std::env::var("CORE_DM_TEST_SPACE").unwrap();
-    let name = "random".to_string();
     let col = CogniteExtractorFile::new(
         space.to_string(),
         external_id.to_string(),
-        FileObject::new(name),
+        FileObject::new(None),
     );
     let res = client
         .models
@@ -124,12 +123,11 @@ async fn create_and_delete_timeseries_instance() {
     let client = CogniteClient::new_oidc("testing_instances", None).unwrap();
     let external_id = Uuid::new_v4().to_string();
     let space = std::env::var("CORE_DM_TEST_SPACE").unwrap();
-    let name = "random".to_string();
 
     let timeseries = CogniteTimeseries::new(
         space.to_string(),
         external_id.to_string(),
-        Timeseries::new(name.to_string(), false),
+        Timeseries::new(None, false),
     );
     let timeseries_res = client
         .models

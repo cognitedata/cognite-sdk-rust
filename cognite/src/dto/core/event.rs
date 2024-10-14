@@ -4,6 +4,7 @@ mod filter;
 pub use self::aggregate::*;
 pub use self::filter::*;
 
+use crate::IdentityOrInstance;
 use crate::UpsertOptions;
 use crate::{
     EqIdentity, Identity, IntoPatch, IntoPatchItem, Patch, UpdateList, UpdateMap, UpdateSetNull,
@@ -96,10 +97,12 @@ impl From<Event> for AddEvent {
 }
 
 impl EqIdentity for AddEvent {
-    fn eq(&self, id: &Identity) -> bool {
+    fn eq(&self, id: &IdentityOrInstance) -> bool {
         match id {
-            Identity::Id { id: _ } => false,
-            Identity::ExternalId { external_id } => self.external_id.as_ref() == Some(external_id),
+            IdentityOrInstance::Identity(Identity::ExternalId { external_id }) => {
+                self.external_id.as_ref() == Some(external_id)
+            }
+            _ => false,
         }
     }
 }

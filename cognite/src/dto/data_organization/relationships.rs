@@ -5,8 +5,9 @@ use serde_with::skip_serializing_none;
 use crate::sequences::Sequence;
 use crate::time_series::TimeSeries;
 use crate::{
-    CogniteExternalId, Identity, IntoPatch, IntoPatchItem, LabelsFilter, Partition, Patch, Range,
-    SetCursor, UpdateList, UpdateSet, UpdateSetNull, UpsertOptions, WithPartition,
+    CogniteExternalId, Identity, IdentityOrInstance, IntoPatch, IntoPatchItem, LabelsFilter,
+    Partition, Patch, Range, SetCursor, UpdateList, UpdateSet, UpdateSetNull, UpsertOptions,
+    WithPartition,
 };
 
 use crate::{assets::Asset, events::Event, files::FileMetadata};
@@ -160,9 +161,9 @@ pub struct PatchRelationship {
 impl IntoPatch<Patch<PatchRelationship>> for Relationship {
     fn patch(self, options: &UpsertOptions) -> Patch<PatchRelationship> {
         Patch::<PatchRelationship> {
-            id: Identity::ExternalId {
+            id: IdentityOrInstance::Identity(Identity::ExternalId {
                 external_id: self.external_id,
-            },
+            }),
             update: PatchRelationship {
                 source_type: self.source_type.patch(options),
                 source_external_id: self.source_external_id.patch(options),

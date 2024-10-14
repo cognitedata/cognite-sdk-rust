@@ -4,8 +4,8 @@ use serde::{Deserialize, Serialize};
 use serde_with::skip_serializing_none;
 
 use crate::{
-    Identity, IntoPatch, IntoPatchItem, Patch, Range, UpdateList, UpdateMap, UpdateSet,
-    UpsertOptions,
+    Identity, IdentityOrInstance, IntoPatch, IntoPatchItem, Patch, Range, UpdateList, UpdateMap,
+    UpdateSet, UpsertOptions,
 };
 
 #[derive(Serialize, Deserialize, Clone, Default, Debug)]
@@ -154,9 +154,9 @@ pub struct PatchExtPipe {
 impl IntoPatch<Patch<PatchExtPipe>> for ExtPipe {
     fn patch(self, options: &UpsertOptions) -> Patch<PatchExtPipe> {
         Patch::<PatchExtPipe> {
-            id: Identity::ExternalId {
+            id: IdentityOrInstance::Identity(Identity::ExternalId {
                 external_id: self.external_id,
-            },
+            }),
             update: PatchExtPipe {
                 external_id: None,
                 name: self.name.patch(options),

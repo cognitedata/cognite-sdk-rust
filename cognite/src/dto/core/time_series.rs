@@ -5,6 +5,7 @@ pub use self::filter::*;
 pub use self::synthetic::*;
 
 use crate::models::instances::CogniteTimeseries;
+use crate::IdentityOrInstance;
 use crate::IntoPatch;
 use crate::IntoPatchItem;
 use crate::UpsertOptions;
@@ -108,10 +109,12 @@ impl From<TimeSeries> for AddTimeSeries {
 }
 
 impl EqIdentity for AddTimeSeries {
-    fn eq(&self, id: &Identity) -> bool {
+    fn eq(&self, id: &IdentityOrInstance) -> bool {
         match id {
-            Identity::Id { id: _ } => false,
-            Identity::ExternalId { external_id } => self.external_id.as_ref() == Some(external_id),
+            IdentityOrInstance::Identity(Identity::ExternalId { external_id }) => {
+                self.external_id.as_ref() == Some(external_id)
+            }
+            _ => false,
         }
     }
 }

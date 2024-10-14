@@ -5,6 +5,7 @@ pub use self::aggregate::*;
 pub use self::filter::*;
 
 use crate::dto::identity::Identity;
+use crate::IdentityOrInstance;
 use crate::UpsertOptions;
 use crate::{CogniteExternalId, CogniteId, EqIdentity, IntoPatch, IntoPatchItem, UpdateList};
 use crate::{Patch, UpdateMap, UpdateSet, UpdateSetNull};
@@ -165,10 +166,12 @@ impl From<Asset> for AddAsset {
 }
 
 impl EqIdentity for AddAsset {
-    fn eq(&self, id: &Identity) -> bool {
+    fn eq(&self, id: &IdentityOrInstance) -> bool {
         match id {
-            Identity::Id { id: _ } => false,
-            Identity::ExternalId { external_id } => self.external_id.as_ref() == Some(external_id),
+            IdentityOrInstance::Identity(Identity::ExternalId { external_id }) => {
+                self.external_id.as_ref() == Some(external_id)
+            }
+            _ => false,
         }
     }
 }

@@ -9,8 +9,8 @@ use serde::{de::DeserializeOwned, Serialize};
 
 use crate::dto::items::*;
 use crate::{
-    ApiClient, EqIdentity, Filter, Identity, IntoParams, IntoPatch, Partition, Patch, Result,
-    Search, SetCursor, UpsertOptions, WithPartition,
+    ApiClient, EqIdentity, Filter, IdentityOrInstance, IntoParams, IntoPatch, Partition, Patch,
+    Result, Search, SetCursor, UpsertOptions, WithPartition,
 };
 
 use super::utils::{get_duplicates_from_result, get_missing_from_result};
@@ -213,7 +213,7 @@ where
         async move {
             let resp = self.create(creates).await;
 
-            let duplicates: Option<Vec<Identity>> = get_duplicates_from_result(&resp);
+            let duplicates: Option<Vec<IdentityOrInstance>> = get_duplicates_from_result(&resp);
 
             if let Some(duplicates) = duplicates {
                 let next: Vec<&TCreate> = creates
@@ -284,7 +284,7 @@ where
             let resp: Result<ItemsVec<TResponse>> =
                 self.get_client().post(Self::BASE_PATH, &items).await;
 
-            let duplicates: Option<Vec<Identity>> = get_duplicates_from_result(&resp);
+            let duplicates: Option<Vec<IdentityOrInstance>> = get_duplicates_from_result(&resp);
 
             if let Some(duplicates) = duplicates {
                 let mut to_create = Vec::with_capacity(upserts.len() - duplicates.len());
@@ -520,7 +520,7 @@ where
     {
         async move {
             let response = self.update(updates).await;
-            let missing: Option<Vec<Identity>> = get_missing_from_result(&response);
+            let missing: Option<Vec<IdentityOrInstance>> = get_missing_from_result(&response);
 
             if let Some(missing) = missing {
                 let next: Vec<&TUpdate> = updates

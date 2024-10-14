@@ -32,7 +32,7 @@ pub struct CogniteSourceable {
 /// Cognite describable.
 pub struct CogniteDescribable {
     /// Name of the instance.
-    pub name: String,
+    pub name: Option<String>,
     /// Description of the instance.
     pub description: Option<String>,
     /// Text based labels for generic use, limited to 1000.
@@ -43,7 +43,7 @@ pub struct CogniteDescribable {
 
 impl CogniteDescribable {
     /// Create a new describable instance.
-    pub fn new(name: String) -> Self {
+    pub fn new(name: Option<String>) -> Self {
         Self {
             name,
             ..Default::default()

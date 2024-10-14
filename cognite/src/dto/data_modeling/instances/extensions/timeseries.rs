@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use serde::{Deserialize, Serialize};
 use serde_with::skip_serializing_none;
 
@@ -49,13 +51,17 @@ pub struct Timeseries {
     pub assets: Option<Vec<InstanceId>>,
     /// List of activities associated with this time series.
     pub activities: Option<Vec<InstanceId>>,
+    /// A list of equipment the time series is related to.
+    pub equipment: Option<Vec<InstanceId>>,
     /// Type of datapoints the time series contains.
     pub r#type: TimeSeriesType,
+    /// Unstructured information extracted from source system.
+    pub extracted_data: Option<HashMap<String, String>>,
 }
 
 impl Timeseries {
     /// Create a new timeseries instance.
-    pub fn new(name: String, is_step: bool) -> Self {
+    pub fn new(name: Option<String>, is_step: bool) -> Self {
         Self {
             description: CogniteDescribable::new(name),
             is_step,

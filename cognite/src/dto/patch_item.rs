@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use serde::{Deserialize, Serialize};
 use serde_with::skip_serializing_none;
 
-use crate::{EqIdentity, Identity};
+use crate::{EqIdentity, IdentityOrInstance};
 
 /// Options for performing automatic upserts.
 #[derive(Clone, Copy, Debug, Default)]
@@ -330,7 +330,7 @@ where
 {
     #[serde(flatten)]
     /// Identity of resource to update.
-    pub id: Identity,
+    pub id: IdentityOrInstance,
     /// Resource patch.
     pub update: T,
 }
@@ -344,7 +344,7 @@ where
     /// # Arguments
     ///
     /// * `id` - Identity of resource to update.
-    pub fn new(id: Identity) -> Self {
+    pub fn new(id: IdentityOrInstance) -> Self {
         Patch::<T> {
             id,
             update: T::default(),
@@ -356,7 +356,7 @@ impl<T> EqIdentity for Patch<T>
 where
     T: Default,
 {
-    fn eq(&self, id: &Identity) -> bool {
+    fn eq(&self, id: &IdentityOrInstance) -> bool {
         &self.id == id
     }
 }
@@ -365,14 +365,16 @@ where
 macro_rules! to_idt {
     ($it:ident) => {
         if $it.id > 0 {
-            Identity::Id { id: $it.id }
+            IdentityOrInstance::Identity(Identity::Id { id: $it.id })
         } else {
             $it.external_id
                 .as_ref()
-                .map(|e| Identity::ExternalId {
-                    external_id: e.clone(),
+                .map(|e| {
+                    IdentityOrInstance::Identity(Identity::ExternalId {
+                        external_id: e.clone(),
+                    })
                 })
-                .unwrap_or_else(|| Identity::Id { id: $it.id })
+                .unwrap_or_else(|| IdentityOrInstance::Identity(Identity::Id { id: $it.id }))
         }
     };
 }

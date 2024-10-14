@@ -141,7 +141,7 @@ impl FromErrorDetail for CogniteExternalId {
 /// Trait indicating that a type can be compared to an identity.
 pub trait EqIdentity {
     /// Return true if the identity given by `id` points to self.
-    fn eq(&self, id: &Identity) -> bool;
+    fn eq(&self, id: &IdentityOrInstance) -> bool;
 }
 
 impl From<String> for CogniteExternalId {
@@ -168,6 +168,12 @@ pub enum IdentityOrInstance {
         /// Instance id.
         instance_id: InstanceId,
     },
+}
+
+impl Default for IdentityOrInstance {
+    fn default() -> Self {
+        IdentityOrInstance::Identity(Default::default())
+    }
 }
 
 impl FromErrorDetail for IdentityOrInstance {

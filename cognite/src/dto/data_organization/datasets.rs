@@ -3,6 +3,7 @@ use std::collections::HashMap;
 use serde::{Deserialize, Serialize};
 use serde_with::skip_serializing_none;
 
+use crate::IdentityOrInstance;
 use crate::{
     Identity, IntoPatch, IntoPatchItem, Patch, Range, UpdateMap, UpdateSetNull, UpsertOptions,
 };
