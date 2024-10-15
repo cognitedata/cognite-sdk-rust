@@ -59,17 +59,6 @@ pub struct Timeseries {
     pub extracted_data: Option<HashMap<String, String>>,
 }
 
-impl Timeseries {
-    /// Create a new timeseries instance.
-    pub fn new(name: Option<String>, is_step: bool) -> Self {
-        Self {
-            description: CogniteDescribable::new(name),
-            is_step,
-            ..Default::default()
-        }
-    }
-}
-
 impl From<CogniteTimeseries> for NodeOrEdgeCreate<Timeseries> {
     fn from(value: CogniteTimeseries) -> NodeOrEdgeCreate<Timeseries> {
         value.instance()

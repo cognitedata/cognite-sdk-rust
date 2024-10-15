@@ -216,7 +216,9 @@ async fn create_delete_dm_files() {
     let col = CogniteExtractorFile::new(
         space.to_string(),
         external_id.to_string(),
-        FileObject::new(None),
+        FileObject {
+            ..Default::default()
+        },
     );
     let res = client
         .models
@@ -289,7 +291,9 @@ async fn create_core_dm_multipart_file() {
     let col = CogniteExtractorFile::new(
         space.to_string(),
         external_id.to_string(),
-        FileObject::new(None),
+        FileObject {
+            ..Default::default()
+        },
     );
     let res = client
         .models

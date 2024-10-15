@@ -31,7 +31,7 @@ impl Create<AddTimeSeries, TimeSeries> for TimeSeriesResource {}
 impl FilterItems<TimeSeriesFilter, TimeSeries> for TimeSeriesResource {}
 impl FilterWithRequest<TimeSeriesFilterRequest, TimeSeries> for TimeSeriesResource {}
 impl<'a> SearchItems<'a, TimeSeriesFilter, TimeSeriesSearch, TimeSeries> for TimeSeriesResource {}
-impl RetrieveWithIgnoreUnknownIds<Identity, TimeSeries> for TimeSeriesResource {}
+impl RetrieveWithIgnoreUnknownIds<IdentityOrInstance, TimeSeries> for TimeSeriesResource {}
 impl Update<Patch<PatchTimeSeries>, TimeSeries> for TimeSeriesResource {}
 impl DeleteWithIgnoreUnknownIds<Identity> for TimeSeriesResource {}
 

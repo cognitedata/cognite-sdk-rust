@@ -64,7 +64,9 @@ async fn create_and_delete_file_instance() {
     let col = CogniteExtractorFile::new(
         space.to_string(),
         external_id.to_string(),
-        FileObject::new(None),
+        FileObject {
+            ..Default::default()
+        },
     );
     let res = client
         .models
@@ -127,7 +129,9 @@ async fn create_and_delete_timeseries_instance() {
     let timeseries = CogniteTimeseries::new(
         space.to_string(),
         external_id.to_string(),
-        Timeseries::new(None, false),
+        Timeseries {
+            ..Default::default()
+        },
     );
     let timeseries_res = client
         .models

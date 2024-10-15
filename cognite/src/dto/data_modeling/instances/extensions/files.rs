@@ -48,16 +48,6 @@ pub struct FileObject {
     pub extracted_data: Option<HashMap<String, String>>,
 }
 
-impl FileObject {
-    /// Create a new file object.
-    pub fn new(name: Option<String>) -> FileObject {
-        Self {
-            description: CogniteDescribable::new(name),
-            ..Default::default()
-        }
-    }
-}
-
 impl From<CogniteExtractorFile> for NodeOrEdgeCreate<FileObject> {
     fn from(value: CogniteExtractorFile) -> NodeOrEdgeCreate<FileObject> {
         value.instance()

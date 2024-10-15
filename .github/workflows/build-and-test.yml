@@ -31,3 +31,4 @@ jobs:
           COGNITE_CLIENT_ID: ${{ secrets.CLIENT_ID }}
           COGNITE_CLIENT_SECRET: ${{ secrets.CLIENT_SECRET }}
           CORE_DM_TEST_SPACE: ${{ secrets.CORE_DM_TEST_SPACE }}
+          COGNITE_DATA_SET_EXTERNAL_ID=${{ COGNITE_DATA_SET_EXTERNAL_ID }}

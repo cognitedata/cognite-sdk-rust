@@ -5,6 +5,7 @@ pub use self::filter::*;
 pub use self::synthetic::*;
 
 use crate::models::instances::CogniteTimeseries;
+use crate::models::instances::InstanceId;
 use crate::IdentityOrInstance;
 use crate::IntoPatch;
 use crate::IntoPatchItem;
@@ -23,6 +24,8 @@ pub struct TimeSeries {
     pub id: i64,
     /// Time series external ID. Must be unique for all time series in the project.
     pub external_id: Option<String>,
+    /// The ID of an instance in Cognite Data Models.
+    pub instance_id: Option<InstanceId>,
     /// Time series name.
     pub name: Option<String>,
     /// Whether this is a time series for string or double data points.

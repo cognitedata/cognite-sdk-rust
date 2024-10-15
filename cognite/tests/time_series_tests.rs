@@ -8,7 +8,8 @@ use cognite::time_series::*;
 use cognite::*;
 use models::{
     instances::{
-        CogniteTimeseries, InstanceId, NodeOrEdgeSpecification, TimeSeriesType, Timeseries,
+        CogniteTimeseries, InstanceId, NodeOrEdgeSpecification, SlimNodeOrEdge, TimeSeriesType,
+        Timeseries,
     },
     ItemId,
 };
@@ -45,7 +46,93 @@ async fn create_and_delete_time_series() {
 }
 
 #[tokio::test]
+async fn create_retrieve_and_delete_dm_time_series_with_classic() {
+    let _permit = CDM_CONCURRENCY_PERMITS.acquire().await.unwrap();
+    let space = std::env::var("CORE_DM_TEST_SPACE").unwrap();
+    let external_id = uuid::Uuid::new_v4().to_string();
+    let client = get_client();
+
+    let timeseries = CogniteTimeseries::new(
+        space.to_string(),
+        external_id.to_string(),
+        Timeseries {
+            ..Default::default()
+        },
+    );
+    let timeseries_res = client
+        .models
+        .instances
+        .apply(&[timeseries], None, None, None, None, false)
+        .await
+        .unwrap();
+    let timeseries_res = timeseries_res.first().unwrap();
+    assert!(matches!(timeseries_res, SlimNodeOrEdge::Node(_)));
+
+    let time_series_classic = client
+        .time_series
+        .retrieve(
+            &[IdentityOrInstance::InstanceId {
+                instance_id: InstanceId {
+                    space: space.to_string(),
+                    external_id: external_id.to_string(),
+                },
+            }],
+            false,
+        )
+        .await
+        .unwrap();
+    let time_series = time_series_classic.first().unwrap().to_owned();
+    let time_series_instance_id = InstanceId {
+        space: space.to_string(),
+        external_id: external_id.to_string(),
+    };
+    assert!(
+        matches!(time_series.instance_id.clone(), Some(instance_id) if instance_id == time_series_instance_id.clone())
+    );
+    let data_sets = client
+        .data_sets
+        .retrieve(
+            &[Identity::ExternalId {
+                external_id: std::env::var("COGNITE_DATA_SET_EXTERNAL_ID")
+                    .unwrap()
+                    .to_string(),
+            }],
+            false,
+        )
+        .await
+        .unwrap();
+    let time_series_patch = PatchTimeSeries {
+        data_set_id: Some(UpdateSetNull::Set {
+            set: data_sets.first().unwrap().id,
+        }),
+        ..Default::default()
+    };
+
+    client
+        .time_series
+        .update(&[Patch {
+            id: IdentityOrInstance::InstanceId {
+                instance_id: time_series_instance_id,
+            },
+            update: time_series_patch,
+        }])
+        .await
+        .unwrap();
+
+    let _ = client
+        .models
+        .instances
+        .delete(&[NodeOrEdgeSpecification::Node(ItemId {
+            space: space.to_string(),
+            external_id: external_id.to_string(),
+        })])
+        .await
+        .unwrap();
+}
+
+#[tokio::test]
 async fn create_and_delete_missing() {
+    let _permit = CDM_CONCURRENCY_PERMITS.acquire().await.unwrap();
     let space = std::env::var("CORE_DM_TEST_SPACE").unwrap();
     let external_id_classic = uuid::Uuid::new_v4().to_string();
     let external_id_cdm = uuid::Uuid::new_v4().to_string();
@@ -91,7 +178,9 @@ async fn create_and_delete_missing() {
                         let mut timeseries = CogniteTimeseries::new(
                             instance_id.space.to_string(),
                             instance_id.external_id.to_string(),
-                            Timeseries::new(None, false),
+                            Timeseries {
+                                ..Default::default()
+                            },
                         );
                         timeseries.properties.r#type = TimeSeriesType::String;
                         AddDmOrTimeSeries::Cdm(Box::new(timeseries))
