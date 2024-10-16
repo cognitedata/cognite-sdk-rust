@@ -29,13 +29,3 @@ pub struct Unit {
     /// Reference to the source of the unit definition.
     pub source_reference: Option<String>,
 }
-
-impl Unit {
-    /// Create a new timeseries instance.
-    pub fn new(name: String) -> Self {
-        Self {
-            description: CogniteDescribable::new(name),
-            ..Default::default()
-        }
-    }
-}

@@ -55,9 +55,8 @@ pub struct Timeseries {
 
 impl Timeseries {
     /// Create a new timeseries instance.
-    pub fn new(name: String, is_step: bool) -> Self {
+    pub fn new(is_step: bool) -> Self {
         Self {
-            description: CogniteDescribable::new(name),
             is_step,
             ..Default::default()
         }
