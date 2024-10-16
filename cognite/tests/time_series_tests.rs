@@ -91,7 +91,7 @@ async fn create_and_delete_missing() {
                         let mut timeseries = CogniteTimeseries::new(
                             instance_id.space.to_string(),
                             instance_id.external_id.to_string(),
-                            Timeseries::new(uuid::Uuid::new_v4().to_string(), false),
+                            Timeseries::new(false),
                         );
                         timeseries.properties.r#type = TimeSeriesType::String;
                         AddDmOrTimeSeries::Cdm(Box::new(timeseries))

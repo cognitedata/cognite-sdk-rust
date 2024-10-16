@@ -50,9 +50,8 @@ pub struct FileObject {
 
 impl FileObject {
     /// Create a new file object.
-    pub fn new(name: String) -> FileObject {
+    pub fn new() -> FileObject {
         Self {
-            description: CogniteDescribable::new(name),
             ..Default::default()
         }
     }

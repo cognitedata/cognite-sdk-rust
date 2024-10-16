@@ -12,8 +12,7 @@ async fn main() {
     let client = CogniteClient::new_oidc("testing_instances", None).unwrap();
     let external_id = Uuid::new_v4().to_string();
     let space = std::env::var("CORE_DM_TEST_SPACE").unwrap();
-    let name = "random".to_string();
-    let col = CogniteExtractorFile::new(space.to_string(), external_id, FileObject::new(name));
+    let col = CogniteExtractorFile::new(space.to_string(), external_id, FileObject::new());
     let res = client
         .models
         .instances
