@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 use serde_with::skip_serializing_none;
 
-use crate::Identity;
+use crate::{Identity, IdentityOrInstance};
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
@@ -123,7 +123,7 @@ pub struct DatapointsFilter {
 pub struct DatapointsQuery {
     #[serde(flatten)]
     /// ID or external ID of time series to retrieve data from.
-    pub id: Identity,
+    pub id: IdentityOrInstance,
     /// Get datapoints from, and including, this time.
     pub start: Option<TimestampOrRelative>,
     /// Get datapoints up to, but excluding, this point in time.
@@ -246,7 +246,7 @@ pub struct DeleteDatapointsQuery {
     pub exclusive_end: i64,
     #[serde(rename = "id", flatten)]
     /// ID or external ID of time series to retrieve data from.
-    pub id: Identity,
+    pub id: IdentityOrInstance,
 }
 
 impl DeleteDatapointsQuery {
@@ -257,9 +257,13 @@ impl DeleteDatapointsQuery {
     /// * `id` - ID or external ID of time series to delete from.
     /// * `inclusive_begin` - Inclusive start time, in milliseconds since epoch.
     /// * `exclusive_end` - Exclusive end time, in milliseconds since epoch.
-    pub fn new(id: Identity, inclusive_begin: i64, exclusive_end: i64) -> DeleteDatapointsQuery {
+    pub fn new(
+        id: impl Into<IdentityOrInstance>,
+        inclusive_begin: i64,
+        exclusive_end: i64,
+    ) -> DeleteDatapointsQuery {
         DeleteDatapointsQuery {
-            id,
+            id: id.into(),
             inclusive_begin,
             exclusive_end,
         }

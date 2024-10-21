@@ -49,7 +49,7 @@ async fn create_retrieve_delete_double_datapoints() {
     client
         .time_series
         .insert_datapoints(vec![AddDatapoints {
-            id: IdentityOrInstance::Identity(Identity::Id { id: ts.id }),
+            id: ts.id.into(),
             datapoints: DatapointsEnumType::NumericDatapoints(
                 (0..100)
                     .map(|i| DatapointDouble {
@@ -68,7 +68,7 @@ async fn create_retrieve_delete_double_datapoints() {
         .time_series
         .retrieve_datapoints(DatapointsFilter {
             items: vec![DatapointsQuery {
-                id: Identity::Id { id: ts.id },
+                id: ts.id.into(),
                 ..Default::default()
             }],
             start: Some((start + 5000).into()),
@@ -89,7 +89,7 @@ async fn create_retrieve_delete_double_datapoints() {
         .delete_datapoints(&[DeleteDatapointsQuery {
             inclusive_begin: start,
             exclusive_end: start + 50000,
-            id: Identity::Id { id: ts.id },
+            id: ts.id.into(),
         }])
         .await
         .unwrap();
@@ -99,7 +99,7 @@ async fn create_retrieve_delete_double_datapoints() {
         .time_series
         .retrieve_datapoints(DatapointsFilter {
             items: vec![DatapointsQuery {
-                id: Identity::Id { id: ts.id },
+                id: ts.id.into(),
                 ..Default::default()
             }],
             start: Some((start + 5000).into()),
@@ -152,7 +152,7 @@ async fn create_retrieve_delete_string_datapoints() {
         .time_series
         .retrieve_datapoints(DatapointsFilter {
             items: vec![DatapointsQuery {
-                id: Identity::Id { id: ts.id },
+                id: ts.id.into(),
                 ..Default::default()
             }],
             start: Some((start + 5000).into()),
@@ -173,7 +173,7 @@ async fn create_retrieve_delete_string_datapoints() {
         .delete_datapoints(&[DeleteDatapointsQuery {
             inclusive_begin: start,
             exclusive_end: start + 50000,
-            id: Identity::Id { id: ts.id },
+            id: ts.id.into(),
         }])
         .await
         .unwrap();
@@ -183,7 +183,7 @@ async fn create_retrieve_delete_string_datapoints() {
         .time_series
         .retrieve_datapoints(DatapointsFilter {
             items: vec![DatapointsQuery {
-                id: Identity::Id { id: ts.id },
+                id: ts.id.into(),
                 ..Default::default()
             }],
             start: Some((start + 5000).into()),
@@ -300,7 +300,7 @@ async fn create_retrieve_double_datapoints_with_status() {
         .time_series
         .retrieve_datapoints(DatapointsFilter {
             items: vec![DatapointsQuery {
-                id: Identity::from(ts.id),
+                id: ts.id.into(),
                 include_status: Some(true),
                 ignore_bad_data_points: Some(false),
                 ..Default::default()
