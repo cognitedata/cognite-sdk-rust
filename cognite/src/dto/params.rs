@@ -19,16 +19,15 @@ pub fn to_query<T>(name: &str, item: &Option<T>, params: &mut Vec<(String, Strin
 where
     T: Display,
 {
-    match item {
-        Some(it) => params.push((name.to_string(), it.to_string())),
-        None => (),
+    if let Some(it) = item {
+        params.push((name.to_string(), it.to_string()));
     }
 }
 
 /// Push a list of items to the query with name `name` if `item` is `Some`.
 pub fn to_query_vec(name: &str, item: &Option<Vec<String>>, params: &mut Vec<(String, String)>) {
-    match item {
-        Some(it) => params.push((
+    if let Some(it) = item {
+        params.push((
             name.to_string(),
             format!(
                 "[{}]",
@@ -37,15 +36,14 @@ pub fn to_query_vec(name: &str, item: &Option<Vec<String>>, params: &mut Vec<(St
                     .collect::<Vec<String>>()
                     .join(", ")
             ),
-        )),
-        None => (),
+        ));
     }
 }
 
 /// Push a list of numbers to the query with name `name` if `item` is `Some`.
 pub fn to_query_vec_i64(name: &str, item: &Option<Vec<i64>>, params: &mut Vec<(String, String)>) {
-    match item {
-        Some(it) => params.push((
+    if let Some(it) = item {
+        params.push((
             name.to_string(),
             format!(
                 "[{}]",
@@ -54,8 +52,7 @@ pub fn to_query_vec_i64(name: &str, item: &Option<Vec<i64>>, params: &mut Vec<(S
                     .collect::<Vec<String>>()
                     .join(", ")
             ),
-        )),
-        None => (),
+        ))
     }
 }
 

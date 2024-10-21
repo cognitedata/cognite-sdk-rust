@@ -170,6 +170,118 @@ pub enum IdentityOrInstance {
     },
 }
 
+impl IdentityOrInstance {
+    /// Create a new IdentityOrInstance using an internal ID.
+    pub fn id(id: i64) -> Self {
+        Self::Identity(Identity::id(id))
+    }
+
+    /// Create a new IdentityOrInstance using an external ID.
+    pub fn external_id(external_id: impl Into<String>) -> Self {
+        Self::Identity(Identity::external_id(external_id))
+    }
+
+    /// Create a new IdentityOrInstance using an instance ID.
+    pub fn instance_id(instance_id: impl Into<InstanceId>) -> Self {
+        Self::InstanceId {
+            instance_id: instance_id.into(),
+        }
+    }
+
+    /// Get self as internal ID.
+    pub fn as_id(&self) -> Option<i64> {
+        match self {
+            Self::Identity(i) => i.as_id(),
+            _ => None,
+        }
+    }
+
+    /// Get self as external ID.
+    pub fn as_external_id(&self) -> Option<&String> {
+        match self {
+            Self::Identity(i) => i.as_external_id(),
+            _ => None,
+        }
+    }
+
+    /// Get self as identity.
+    pub fn as_identity(&self) -> Option<&Identity> {
+        match self {
+            Self::Identity(i) => Some(i),
+            _ => None,
+        }
+    }
+
+    /// Get self as instance id.
+    pub fn as_instance_id(&self) -> Option<&InstanceId> {
+        match self {
+            Self::InstanceId { instance_id: i } => Some(i),
+            _ => None,
+        }
+    }
+}
+
+// Default impl is not super meaningful, but is useful in some cases
+impl Default for IdentityOrInstance {
+    fn default() -> Self {
+        Self::Identity(Default::default())
+    }
+}
+
+impl From<&str> for IdentityOrInstance {
+    fn from(value: &str) -> Self {
+        Self::Identity(Identity::from(value))
+    }
+}
+
+impl From<String> for IdentityOrInstance {
+    fn from(value: String) -> Self {
+        Self::Identity(Identity::from(value))
+    }
+}
+
+impl From<i64> for IdentityOrInstance {
+    fn from(value: i64) -> Self {
+        Self::Identity(Identity::from(value))
+    }
+}
+
+impl From<Identity> for IdentityOrInstance {
+    fn from(value: Identity) -> Self {
+        Self::Identity(value)
+    }
+}
+
+impl From<InstanceId> for IdentityOrInstance {
+    fn from(value: InstanceId) -> Self {
+        Self::InstanceId { instance_id: value }
+    }
+}
+
+impl PartialEq<i64> for IdentityOrInstance {
+    fn eq(&self, other: &i64) -> bool {
+        self.as_id().as_ref() == Some(other)
+    }
+}
+
+impl PartialEq<str> for IdentityOrInstance {
+    fn eq(&self, other: &str) -> bool {
+        self.as_external_id().map(|a| a.as_str()) == Some(other)
+    }
+}
+
+impl PartialEq<InstanceId> for IdentityOrInstance {
+    fn eq(&self, other: &InstanceId) -> bool {
+        self.as_instance_id() == Some(other)
+    }
+}
+
+impl PartialEq<Identity> for IdentityOrInstance {
+    fn eq(&self, other: &Identity) -> bool {
+        self.as_identity() == Some(other)
+    }
+}
+
 impl FromErrorDetail for IdentityOrInstance {
     fn from_detail(detail: &HashMap<String, Box<IntegerStringOrObject>>) -> Option<Self> {
         if let Some(object) = ApiErrorDetail::get_object(detail, "instanceId") {
