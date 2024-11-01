@@ -1,11 +1,8 @@
 use std::future::Future;
 use std::marker::PhantomData;
 
-use http::header::ACCEPT;
-use http::header::CONTENT_TYPE;
-use http::header::USER_AGENT;
-use http::HeaderName;
-use http::HeaderValue;
+use crate::reqwest::header::{HeaderName, HeaderValue, ACCEPT, CONTENT_TYPE, USER_AGENT};
+
 use prost::Message;
 use serde::de::DeserializeOwned;
 use serde::Serialize;
@@ -155,9 +152,9 @@ impl<'a, T> RequestBuilder<'a, T> {
     pub fn header<K, V>(mut self, key: K, value: V) -> Self
     where
         HeaderName: TryFrom<K>,
-        <HeaderName as TryFrom<K>>::Error: Into<http::Error>,
+        <HeaderName as TryFrom<K>>::Error: Into<crate::http::Error>,
         HeaderValue: TryFrom<V>,
-        <HeaderValue as TryFrom<V>>::Error: Into<http::Error>,
+        <HeaderValue as TryFrom<V>>::Error: Into<crate::http::Error>,
     {
         self.inner = self.inner.header(key, value);
         self
