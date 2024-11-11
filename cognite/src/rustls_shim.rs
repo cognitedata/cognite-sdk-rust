@@ -1,12 +1,14 @@
 #[cfg(feature = "rustls-022")]
 mod dep {
     pub use http::Extensions;
+    pub use http_10 as http;
     pub use reqwest_012 as reqwest;
     pub use reqwest_middleware_03 as reqwest_middleware;
 }
 
 #[cfg(feature = "rustls-021")]
 mod dep {
+    pub use http_02 as http;
     pub use reqwest_011 as reqwest;
     pub use reqwest_middleware_02 as reqwest_middleware;
     pub use task_local_extensions::Extensions;

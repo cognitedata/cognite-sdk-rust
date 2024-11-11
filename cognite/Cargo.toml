@@ -12,8 +12,8 @@ version = "0.4.1"
 [features]
 default = ["rustls-022"]
 integration_tests = []
-rustls-021 = ["reqwest-011", "reqwest-middleware-02", "task-local-extensions"]
-rustls-022 = ["http", "reqwest-012", "reqwest-middleware-03"]
+rustls-021 = ["http-02", "reqwest-011", "reqwest-middleware-02", "task-local-extensions"]
+rustls-022 = ["http-10", "reqwest-012", "reqwest-middleware-03"]
 
 [dependencies]
 async-trait = "^0.1"
@@ -25,7 +25,8 @@ futures-timer = "^3"
 prost = "^0.13"
 prost-types = "^0.13"
 
-http = { "version" = "^1", optional = true }
+http-10 = { package = "http", "version" = "^1", optional = true }
+http-02 = { package = "http", "version" = "0.2", optional = true }
 reqwest-011 = { package = "reqwest", version = "^0.11", optional = true, features = [
   "gzip",
   "json",
