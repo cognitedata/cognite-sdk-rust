@@ -31,7 +31,7 @@ impl WithView for CogniteTimeseries {
 #[skip_serializing_none]
 #[derive(Serialize, Deserialize, Clone, Debug, Default)]
 #[serde(rename_all = "camelCase")]
-/// The properties of the file object.
+/// The properties of the time series.
 pub struct Timeseries {
     #[serde(flatten)]
     /// Descriptions of the instance.
