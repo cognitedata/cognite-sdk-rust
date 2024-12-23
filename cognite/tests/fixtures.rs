@@ -185,6 +185,130 @@ pub fn get_instances_delete_response_string(
     format!(r#"{{"items": [ {items} ] }}"#)
 }
 
+pub fn get_edge_create_request(space: &str) -> String {
+    format!(
+        r#"
+        {{
+          "items": [
+            {{
+              "instanceType": "edge",
+              "space": "{space}",
+              "type": {{ "space": "{space}", "externalId": "typeNode" }},
+              "externalId": "edge1",
+              "startNode": {{ "space": "{space}", "externalId": "startNode" }},
+              "endNode": {{ "space": "{space}", "externalId": "endNode" }},
+              "sources": [
+                {{
+                  "source": {{
+                    "type": "view",
+                    "space": "{space}",
+                    "externalId": "View",
+                    "version": "1"
+                  }},
+                  "properties": {{ "string_field": "string value", "numeric_field": 42 }}
+                }}
+              ]
+            }}
+          ]
+        }}
+        "#
+    )
+}
+
+pub fn get_edge_create_response(space: &str, external_id: &str) -> String {
+    format!(
+        r#"
+          {{
+
+            "items": 
+
+        [
+
+                {{
+                    "instanceType": "edge",
+                    "version": 0,
+                    "wasModified": true,
+                    "space": "{space}",
+                    "externalId": "{external_id}",
+                    "createdTime": 1730204346000,
+                    "lastUpdatedTime": 1730204346000
+                }}
+            ]
+
+        }}  
+        "#
+    )
+}
+
+pub fn get_edge_query_request() -> String {
+    format!(
+        r#"
+            {{
+              "with": {{ "edge_query": {{ "edges": {{}} }} }},
+              "select": {{
+                "edge_query": {{
+                  "sources": [
+                    {{
+                      "source": {{
+                        "type": "view",
+                        "space": "my_space",
+                        "externalId": "View",
+                        "version": "1"
+                      }},
+                      "properties": ["*"]
+                    }}
+                  ]
+                }}
+              }}
+            }}
+        "#
+    )
+}
+
+pub fn get_edge_query_response() -> String {
+    format!(
+        r#"
+            {{
+              "items": {{
+                "edge_query": [
+                  {{
+                    "instanceType": "edge",
+                    "version": 1,
+                    "type": {{
+                      "space": "my_space",
+                      "externalId": "typeNode"
+                    }},
+                    "space": "my_space",
+                    "externalId": "edge1",
+                    "createdTime": 1734513651563,
+                    "lastUpdatedTime": 1734514198150,
+                    "startNode": {{
+                      "space": "my_space",
+                      "externalId": "startNode"
+                    }},
+                    "endNode": {{
+                      "space": "my_space",
+                      "externalId": "endNode"
+                    }},
+                    "properties": {{
+                      "my_space": {{
+                        "View/1": {{
+                          "string_field": "string_value",
+                          "numeric_field": 42
+                        }}
+                      }}
+                    }}
+                  }}
+                ]
+              }},
+              "nextCursor": {{
+                "my_query": "Z0FBQUFBQ"
+              }}
+            }}
+        "#
+    )
+}
+
 pub fn get_views_list_views_response() -> &'static str {
     r#"{
         "items": [

@@ -1,7 +1,10 @@
 #[cfg(test)]
 use cognite::models::instances::*;
+use cognite::models::{views::ViewReference, SourceReference, TaggedViewReference};
 use cognite::*;
+use std::collections::HashMap;
 
+use serde::{Deserialize, Serialize};
 use serde_json::json;
 use wiremock::matchers::{body_json_string, method, path};
 use wiremock::{Mock, MockServer, ResponseTemplate};
@@ -11,6 +14,127 @@ pub use common::*;
 
 mod fixtures;
 pub use fixtures::*;
+
+#[derive(Deserialize, Serialize, Debug)]
+struct EdgeProperties {
+    string_field: String,
+    numeric_field: i32,
+}
+
+#[tokio::test]
+async fn create_edge_with_properties() {
+    let project = "my_project";
+    let space = "my_space";
+    let edge_external_id = "edge1";
+    let mock_server = MockServer::start().await;
+
+    Mock::given(method("POST"))
+        .and(path(get_path("", project, "models/instances")))
+        .and(body_json_string(get_edge_create_request(space)))
+        .respond_with(
+            ResponseTemplate::new(200)
+                .set_body_string(get_edge_create_response(space, edge_external_id)),
+        )
+        .mount(&mock_server)
+        .await;
+
+    let client = get_client_for_mocking(&mock_server.uri(), project);
+
+    let instances: Vec<NodeOrEdgeCreate<EdgeProperties>> =
+        vec![NodeOrEdgeCreate::Edge(EdgeWrite {
+            space: space.to_string(),
+            r#type: InstanceId {
+                space: space.to_string(),
+                external_id: "typeNode".to_owned(),
+            },
+            start_node: InstanceId {
+                space: space.to_string(),
+                external_id: "startNode".to_owned(),
+            },
+            end_node: InstanceId {
+                space: space.to_string(),
+                external_id: "endNode".to_owned(),
+            },
+            external_id: edge_external_id.to_owned(),
+            sources: Some(vec![EdgeOrNodeData {
+                source: SourceReference::View(ViewReference {
+                    space: space.to_string(),
+                    external_id: "View".to_string(),
+                    version: "1".to_string(),
+                }),
+                properties: EdgeProperties {
+                    string_field: "string value".to_owned(),
+                    numeric_field: 42,
+                },
+            }]),
+            existing_version: None,
+        })];
+
+    let result = client
+        .models
+        .instances
+        .upsert(&NodeAndEdgeCreateCollection {
+            items: instances,
+            ..Default::default()
+        })
+        .await
+        .unwrap();
+
+    assert_eq!(
+        result
+            .iter()
+            .filter(|&x| matches!(x, SlimNodeOrEdge::Edge(_)))
+            .count(),
+        1
+    );
+}
+
+#[tokio::test]
+async fn query_edge_with_properties() {
+    let mock_server = MockServer::start().await;
+    let project = "my_project";
+    let space = "my_space";
+
+    // mock edge query
+    Mock::given(method("POST"))
+        .and(body_json_string(get_edge_query_request()))
+        .and(path(get_path("", project, "models/instances/query")))
+        .respond_with(ResponseTemplate::new(200).set_body_string(get_edge_query_response()))
+        .mount(&mock_server)
+        .await;
+    let client = get_client_for_mocking(&mock_server.uri(), project);
+    let query_request = QueryInstancesRequest {
+        with: HashMap::from([(
+            "edge_query".to_string(),
+            QueryTableExpression::Edge(QueryEdgeTableExpression {
+                edges: EdgesQuery {
+                    ..Default::default()
+                },
+                ..Default::default()
+            }),
+        )]),
+        cursors: None,
+        select: HashMap::from([(
+            "edge_query".to_string(),
+            SelectExpression {
+                sort: None,
+                limit: None,
+                sources: vec![SourceSelector {
+                    source: TaggedViewReference::View(ViewReference {
+                        space: space.to_string(),
+                        external_id: "View".to_string(),
+                        version: "1".to_string(),
+                    }),
+                    properties: vec!["*".to_string()],
+                }],
+            },
+        )]),
+        parameters: None,
+    };
+    let result: QueryInstancesResponse<EdgeProperties> =
+        client.models.instances.query(query_request).await.unwrap();
+    assert_eq!(result.items.iter().count(), 1);
+}
 
 #[tokio::test]
 async fn create_and_delete_instances() {
