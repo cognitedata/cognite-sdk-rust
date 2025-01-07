@@ -32,6 +32,12 @@ pub trait ResponseHandler {
 /// Response handler for parsing a payload as JSON.
 pub struct JsonResponseHandler<T>(PhantomData<fn() -> T>);
 
+impl<T> Default for JsonResponseHandler<T> {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl<T> JsonResponseHandler<T> {
     /// Create a new JSON response handler.
     pub fn new() -> Self {
@@ -50,6 +56,12 @@ impl<T: DeserializeOwned> ResponseHandler for JsonResponseHandler<T> {
 /// Response handler for parsing a payload as Protobuf.
 pub struct ProtoResponseHandler<T>(PhantomData<fn() -> T>);
 
+impl<T> Default for ProtoResponseHandler<T> {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl<T> ProtoResponseHandler<T> {
     /// Create a new protobuf response handler.
     pub fn new() -> Self {
@@ -67,6 +79,7 @@ impl<T: Message + Default + Send + Sync> ResponseHandler for ProtoResponseHandle
 }
 
 /// Response handler for just returning the raw response.
+#[derive(Default)]
 pub struct RawResponseHandler;
 
 impl ResponseHandler for RawResponseHandler {
@@ -78,6 +91,7 @@ impl ResponseHandler for RawResponseHandler {
 }
 
 /// Response handler for ignoring the response payload on success.
+#[derive(Default)]
 pub struct NoResponseHandler;
 
 impl ResponseHandler for NoResponseHandler {
