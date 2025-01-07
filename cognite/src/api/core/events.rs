@@ -21,7 +21,7 @@ impl Create<AddEvent, Event> for EventsResource {}
 impl DeleteWithIgnoreUnknownIds<Identity> for EventsResource {}
 impl Update<Patch<PatchEvent>, Event> for EventsResource {}
 impl RetrieveWithIgnoreUnknownIds<Identity, Event> for EventsResource {}
-impl<'a> SearchItems<'a, EventFilter, EventSearch, Event> for EventsResource {}
+impl SearchItems<'_, EventFilter, EventSearch, Event> for EventsResource {}
 impl FilterWithRequest<EventFilterQuery, Event> for EventsResource {}
 
 impl EventsResource {
