@@ -59,7 +59,7 @@ pub trait Retry<'a, T, E>: FnMut() -> <Self as Retry<'a, T, E>>::Fut {
     type Fut: Future<Output = Result<T, E>>;
 }
 
-impl<'a, T, E, F, Fut> Retry<'a, T, E> for F
+impl<T, E, F, Fut> Retry<'_, T, E> for F
 where
     F: FnMut() -> Fut,
     Fut: Future<Output = Result<T, E>>,
