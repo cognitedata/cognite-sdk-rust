@@ -252,10 +252,12 @@ impl Files {
         &self,
         id: &IdentityOrInstance,
     ) -> Result<FileUploadResult<UploadUrl>> {
-        let id_json = serde_json::to_string(&Items::new([id]))?;
         let mut res = self
             .api_client
-            .post_json::<Items<Vec<FileUploadResult<UploadUrl>>>>("files/uploadlink", id_json)
+            .post::<Items<Vec<FileUploadResult<UploadUrl>>>, _>(
+                "files/uploadlink",
+                &Items::new([id]),
+            )
             .await?;
         if res.items.is_empty() {
             Err(Error::Other(
