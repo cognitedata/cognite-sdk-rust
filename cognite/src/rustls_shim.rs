@@ -3,7 +3,7 @@ mod dep {
     pub use http::Extensions;
     pub use http_10 as http;
     pub use reqwest_012 as reqwest;
-    pub use reqwest_middleware_03 as reqwest_middleware;
+    pub use reqwest_middleware_04 as reqwest_middleware;
 }
 
 #[cfg(feature = "rustls-021")]

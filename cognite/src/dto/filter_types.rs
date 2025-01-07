@@ -146,7 +146,7 @@ impl Serialize for Partition {
 
 struct PartitionVisitor;
 
-impl<'de> Visitor<'de> for PartitionVisitor {
+impl Visitor<'_> for PartitionVisitor {
     type Value = Partition;
     fn visit_str<E>(self, v: &str) -> Result<Self::Value, E>
     where
