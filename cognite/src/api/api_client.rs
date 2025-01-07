@@ -11,7 +11,7 @@ use serde::ser::Serialize;
 
 use crate::error::{Error, Result};
 
-use super::request::RequestBuilder;
+use super::request_builder::RequestBuilder;
 
 /// API client, used to query CDF.
 pub struct ApiClient {

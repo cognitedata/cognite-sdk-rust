@@ -6,6 +6,6 @@ pub(crate) mod data_ingestion;
 pub(crate) mod data_modeling;
 pub(crate) mod data_organization;
 pub(crate) mod iam;
-pub(crate) mod request;
+pub(crate) mod request_builder;
 pub(crate) mod resource;
 pub(crate) mod utils;

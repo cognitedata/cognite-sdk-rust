@@ -1,6 +1,3 @@
-use std::future::Future;
-use std::marker::PhantomData;
-
 use crate::reqwest::header::{HeaderName, HeaderValue, ACCEPT, CONTENT_TYPE, USER_AGENT};
 
 use prost::Message;
@@ -13,71 +10,10 @@ use crate::Error;
 
 use crate::Result;
 
-/// Trait for a type that produces a typed response from a successful
-/// HTTP response message.
-pub trait ResponseHandler {
-    /// Output type.
-    type Output;
-    /// Accept header added to request.
-    const ACCEPT_HEADER: &'static str;
-
-    /// Consume the response and produce an instance of `Output`
-    ///
-    /// # Arguments
-    ///
-    /// * `response` - Response from API.
-    fn handle_response(
-        self,
-        response: Response,
-    ) -> impl Future<Output = Result<Self::Output>> + Send + Sync;
-}
-
-// Uses fn() -> T since that is covariant, and allows us to have a Send future
-// without T being Send, technically.
-/// Response handler for parsing a payload as JSON.
-pub struct JsonResponseHandler<T>(PhantomData<fn() -> T>);
-
-impl<T: DeserializeOwned> ResponseHandler for JsonResponseHandler<T> {
-    type Output = T;
-    const ACCEPT_HEADER: &'static str = "application/json";
-    async fn handle_response(self, response: Response) -> Result<Self::Output> {
-        Ok(response.json().await?)
-    }
-}
-
-/// Response handler for parsing a payload as Protobuf.
-pub struct ProtoResponseHandler<T>(PhantomData<fn() -> T>);
-
-impl<T: Message + Default + Send + Sync> ResponseHandler for ProtoResponseHandler<T> {
-    type Output = T;
-    const ACCEPT_HEADER: &'static str = "application/protobuf";
-    async fn handle_response(self, response: Response) -> Result<Self::Output> {
-        let bytes = response.bytes().await?;
-        Ok(T::decode(bytes)?)
-    }
-}
-
-/// Response handler for just returning the raw response.
-pub struct RawResponseHandler;
-
-impl ResponseHandler for RawResponseHandler {
-    type Output = Response;
-    const ACCEPT_HEADER: &'static str = "*/*";
-    async fn handle_response(self, response: Response) -> Result<Self::Output> {
-        Ok(response)
-    }
-}
-
-/// Response handler for ignoring the response payload on success.
-pub struct NoResponseHandler;
-
-impl ResponseHandler for NoResponseHandler {
-    type Output = ();
-    const ACCEPT_HEADER: &'static str = "*/*";
-    async fn handle_response(self, _response: Response) -> Result<Self::Output> {
-        Ok(())
-    }
-}
+use super::{
+    JsonResponseHandler, NoResponseHandler, ProtoResponseHandler, RawResponseHandler,
+    ResponseHandler,
+};
 
 /// Generic request builder. Used to construct custom requests towards CDF.
 pub struct RequestBuilder<'a, T = ()> {
@@ -207,14 +143,14 @@ impl<'a, T> RequestBuilder<'a, T> {
 impl<'a> RequestBuilder<'a, ()> {
     /// Expect the response for a successful request to be `T` encoded as JSON.
     pub fn accept_json<T: DeserializeOwned>(self) -> RequestBuilder<'a, JsonResponseHandler<T>> {
-        self.accept(JsonResponseHandler(PhantomData))
+        self.accept(JsonResponseHandler::new())
     }
 
     /// Expect the response for a successful request to be `T` encoded as protobuf.
     pub fn accept_protobuf<T: Message + Default + Send + Sync>(
         self,
     ) -> RequestBuilder<'a, ProtoResponseHandler<T>> {
-        self.accept(ProtoResponseHandler(PhantomData))
+        self.accept(ProtoResponseHandler::new())
     }
 
     /// Ignore the response for a successful request.
