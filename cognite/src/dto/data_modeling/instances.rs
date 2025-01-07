@@ -214,7 +214,7 @@ pub struct EdgeDefinition<TProperties> {
     /// Edge type.
     pub r#type: InstanceId,
     /// Edge version.
-    pub version: String,
+    pub version: i32,
     /// Edge external ID.
     pub external_id: String,
     /// Time this edge was created, in milliseconds since epoch.
