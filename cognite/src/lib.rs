@@ -12,6 +12,9 @@ mod rustls_shim;
 // Reqwest shim
 use rustls_shim::*;
 
+/// SDK library version.
+pub const VERSION: &str = env!("CARGO_PKG_VERSION");
+
 /// Utility methods and tooling.
 pub mod utils;
 
@@ -149,7 +152,7 @@ pub mod iam {
 }
 
 pub use self::{
-    api::{api_client::*, authenticator::*, resource::*, utils::*},
+    api::{api_client::*, authenticator::*, request_builder::*, resource::*, utils::*},
     auth::*,
     cognite_client::*,
     dto::{filter::*, filter_types::*, identity::*, items::*, params::*, patch_item::*, utils::*},
