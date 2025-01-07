@@ -14,7 +14,7 @@ impl WithBasePath for SequencesResource {
 
 impl List<LimitCursorPartitionQuery, Sequence> for SequencesResource {}
 impl Create<AddSequence, Sequence> for SequencesResource {}
-impl<'a> SearchItems<'a, SequenceFilter, SequenceSearch, Sequence> for SequencesResource {}
+impl SearchItems<'_, SequenceFilter, SequenceSearch, Sequence> for SequencesResource {}
 impl Update<Patch<PatchSequence>, Sequence> for SequencesResource {}
 impl DeleteWithIgnoreUnknownIds<Identity> for SequencesResource {}
 impl RetrieveWithIgnoreUnknownIds<Identity, Sequence> for SequencesResource {}

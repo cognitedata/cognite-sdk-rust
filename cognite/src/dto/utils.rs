@@ -27,7 +27,7 @@ impl<'de> Deserialize<'de> for MaybeStringU64 {
     {
         struct MaybeStringVisitor;
 
-        impl<'de> Visitor<'de> for MaybeStringVisitor {
+        impl Visitor<'_> for MaybeStringVisitor {
             type Value = MaybeStringU64;
 
             fn expecting(&self, formatter: &mut std::fmt::Formatter) -> std::fmt::Result {

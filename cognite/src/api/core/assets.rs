@@ -14,7 +14,7 @@ impl WithBasePath for AssetsResource {
 
 impl List<AssetQuery, Asset> for AssetsResource {}
 impl Create<AddAsset, Asset> for AssetsResource {}
-impl<'a> SearchItems<'a, AssetFilter, AssetSearch, Asset> for AssetsResource {}
+impl SearchItems<'_, AssetFilter, AssetSearch, Asset> for AssetsResource {}
 impl Update<Patch<PatchAsset>, Asset> for AssetsResource {}
 impl DeleteWithRequest<DeleteAssetsRequest> for AssetsResource {}
 impl FilterWithRequest<FilterAssetsRequest, Asset> for AssetsResource {}
