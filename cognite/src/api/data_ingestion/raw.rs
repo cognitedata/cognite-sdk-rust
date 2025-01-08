@@ -1,7 +1,12 @@
+use std::collections::VecDeque;
+
+use futures::stream::{try_unfold, SelectAll};
+use futures::{StreamExt, TryStream, TryStreamExt};
+
 use crate::api::resource::Resource;
 use crate::dto::items::Items;
 use crate::error::Result;
-use crate::raw::*;
+use crate::{raw::*, CursorState, CursorStreamState};
 use crate::{Cursor, ItemsVec, LimitCursorQuery};
 
 /// Raw is a NoSQL JSON store. Each project can have a variable number of databases,
@@ -143,6 +148,150 @@ impl RawResource {
     ) -> Result<ItemsVec<RawRow, Cursor>> {
         let path = format!("raw/dbs/{db_name}/tables/{table_name}/rows");
         self.api_client.get_with_params(&path, params).await
+    }
+
+    /// Retrieve all rows from a table, following cursors. This returns a stream, you can abort the stream whenever you
+    /// want and only resources retrieved up to that point will be returned.
+    ///
+    /// Each item in the stream will be a result, after the first error is returned the
+    /// stream will end.
+    ///
+    /// `limit` in the filter only affects how many rows are returned _per request_.
+    ///
+    /// # Arguments
+    ///
+    /// * `db_name` - Database to retrieve rows from.
+    /// * `table_name` - Table to retrieve rows from.
+    /// * `params` - Optional filter parameters. This can set a cursor to start streaming from there.
+    pub fn retrieve_all_rows_stream<'a>(
+        &'a self,
+        db_name: &'a str,
+        table_name: &'a str,
+        params: Option<RetrieveRowsQuery>,
+    ) -> impl TryStream<Ok = RawRow, Error = crate::Error, Item = Result<RawRow>> + Send + 'a {
+        let req = params.unwrap_or_default();
+        let initial_state = match &req.cursor {
+            Some(p) => CursorState::Some(p.to_owned()),
+            None => CursorState::Initial,
+        };
+        let state = CursorStreamState {
+            req,
+            responses: VecDeque::new(),
+            next_cursor: initial_state,
+        };
+
+        try_unfold(state, move |mut state| async move {
+            if let Some(next) = state.responses.pop_front() {
+                Ok(Some((next, state)))
+            } else {
+                let cursor = match std::mem::take(&mut state.next_cursor) {
+                    CursorState::Initial => None,
+                    CursorState::Some(x) => Some(x),
+                    CursorState::End => {
+                        return Ok(None);
+                    }
+                };
+                state.req.cursor = cursor;
+                let response = self
+                    .retrieve_rows(db_name, table_name, Some(state.req.clone()))
+                    .await?;
+
+                state.responses.extend(response.items);
+                state.next_cursor = match response.extra_fields.next_cursor {
+                    Some(x) => CursorState::Some(x),
+                    None => CursorState::End,
+                };
+                if let Some(next) = state.responses.pop_front() {
+                    Ok(Some((next, state)))
+                } else {
+                    Ok(None)
+                }
+            }
+        })
+    }
+
+    /// Retrieve all rows from a table, following cursors.
+    ///
+    /// `limit` in the filter only affects how many rows are returned _per request_.
+    ///
+    /// # Arguments
+    ///
+    /// * `db_name` - Database to retrieve rows from.
+    /// * `table_name` - Table to retrieve rows from.
+    /// * `params` - Optional filter parameters. This can set a cursor to start reading from there.
+    pub async fn retrieve_all_rows(
+        &self,
+        db_name: &str,
+        table_name: &str,
+        params: Option<RetrieveRowsQuery>,
+    ) -> Result<Vec<RawRow>> {
+        Ok(self
+            .retrieve_all_rows_stream(db_name, table_name, params)
+            .try_collect()
+            .await?)
+    }
+
+    /// Retrieve all rows from a table, following cursors and reading from multiple streams in parallel.
+    ///
+    /// The order of the returned values is not guaranteed to be in any way consistent.
+    ///
+    /// * `db_name` - Database to retrieve rows from.
+    /// * `table_name` - Table to retrieve rows from.
+    /// * `params` - Optional filter parameters.
+    pub async fn retrieve_all_rows_partitioned(
+        &self,
+        db_name: &str,
+        table_name: &str,
+        params: RetrieveAllPartitionedQuery,
+    ) -> Result<Vec<RawRow>> {
+        Ok(self
+            .retrieve_all_rows_partitioned_stream(db_name, table_name, params)
+            .await?
+            .try_collect()
+            .await?)
+    }
+
+    /// Retrieve all rows from a table, following cursors and reading from multiple streams in parallel.
+    ///
+    /// The order of the returned values is not guaranteed to be in any way consistent.
+    ///
+    /// * `db_name` - Database to retrieve rows from.
+    /// * `table_name` - Table to retrieve rows from.
+    /// * `params` - Optional filter parameters.
+    pub async fn retrieve_all_rows_partitioned_stream<'a>(
+        &'a self,
+        db_name: &'a str,
+        table_name: &'a str,
+        params: RetrieveAllPartitionedQuery,
+    ) -> Result<impl TryStream<Ok = RawRow, Error = crate::Error, Item = Result<RawRow>> + Send + 'a>
+    {
+        let cursors = self
+            .retrieve_cursors_for_parallel_reads(
+                db_name,
+                table_name,
+                Some(RetrieveCursorsQuery {
+                    min_last_updated_time: params.min_last_updated_time,
+                    max_last_updated_time: params.max_last_updated_time,
+                    number_of_cursors: params.number_of_cursors,
+                }),
+            )
+            .await?;
+
+        let mut streams = SelectAll::new();
+        for cursor in cursors {
+            let query = RetrieveRowsQuery {
+                limit: params.limit,
+                columns: params.columns.clone(),
+                cursor: Some(cursor),
+                min_last_updated_time: params.min_last_updated_time,
+                max_last_updated_time: params.max_last_updated_time,
+            };
+            streams.push(
+                self.retrieve_all_rows_stream(db_name, table_name, Some(query))
+                    .boxed(),
+            );
+        }
+        Ok(streams)
     }
 
     /// Insert rows into a table.
