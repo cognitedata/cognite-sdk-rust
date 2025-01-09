@@ -1,9 +1,8 @@
-use std::{future::Future, time::Duration};
+use std::{future::Future, sync::LazyLock, time::Duration};
 
 #[cfg(test)]
 use cognite::ClientConfig;
 use cognite::CogniteClient;
-use once_cell::sync::Lazy;
 use rand::{distributions::Alphanumeric, thread_rng, Rng};
 use tokio::sync::Semaphore;
 
@@ -35,7 +34,7 @@ pub fn get_client_for_mocking(api_base_url: &str, project_name: &str) -> Cognite
 }
 
 #[allow(dead_code)]
-pub static PREFIX: Lazy<String> = Lazy::new(|| {
+pub static PREFIX: LazyLock<String> = LazyLock::new(|| {
     format!(
         "rust-sdk-test-{}",
         rand::thread_rng()
