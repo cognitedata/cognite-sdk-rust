@@ -241,72 +241,70 @@ pub fn get_edge_create_response(space: &str, external_id: &str) -> String {
 }
 
 pub fn get_edge_query_request() -> String {
-    format!(
-        r#"
-            {{
-              "with": {{ "edge_query": {{ "edges": {{}} }} }},
-              "select": {{
-                "edge_query": {{
+    r#"
+            {
+              "with": { "edge_query": { "edges": {} } },
+              "select": {
+                "edge_query": {
                   "sources": [
-                    {{
-                      "source": {{
+                    {
+                      "source": {
                         "type": "view",
                         "space": "my_space",
                         "externalId": "View",
                         "version": "1"
-                      }},
+                      },
                       "properties": ["*"]
-                    }}
+                    }
                   ]
-                }}
-              }}
-            }}
+                }
+              }
+            }
         "#
-    )
+    .to_string()
 }
 
 pub fn get_edge_query_response() -> String {
-    format!(
-        r#"
-            {{
-              "items": {{
+    r#"
+            {
+              "items": {
                 "edge_query": [
-                  {{
+                  {
                     "instanceType": "edge",
                     "version": 1,
-                    "type": {{
+                    "type": {
                       "space": "my_space",
                       "externalId": "typeNode"
-                    }},
+                    },
                     "space": "my_space",
                     "externalId": "edge1",
                     "createdTime": 1734513651563,
                     "lastUpdatedTime": 1734514198150,
-                    "startNode": {{
+                    "startNode": {
                       "space": "my_space",
                       "externalId": "startNode"
-                    }},
-                    "endNode": {{
+                    },
+                    "endNode": {
                       "space": "my_space",
                       "externalId": "endNode"
-                    }},
-                    "properties": {{
-                      "my_space": {{
-                        "View/1": {{
+                    },
+                    "properties": {
+                      "my_space": {
+                        "View/1": {
                           "string_field": "string_value",
                           "numeric_field": 42
-                        }}
-                      }}
-                    }}
-                  }}
+                        }
+                      }
+                    }
+                  }
                 ]
-              }},
-              "nextCursor": {{
+              },
+              "nextCursor": {
                 "my_query": "Z0FBQUFBQ"
-              }}
-            }}
+              }
+            }
         "#
-    )
+    .to_string()
 }
 
 pub fn get_views_list_views_response() -> &'static str {

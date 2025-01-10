@@ -133,7 +133,7 @@ async fn query_edge_with_properties() {
     };
     let result: QueryInstancesResponse<EdgeProperties> =
         client.models.instances.query(query_request).await.unwrap();
-    assert_eq!(result.items.iter().count(), 1);
+    assert_eq!(result.items.len(), 1);
 }
 
 #[tokio::test]
