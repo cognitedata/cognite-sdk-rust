@@ -111,6 +111,11 @@ impl Retryable {
                 } else if status.is_server_error()
                     || status == StatusCode::REQUEST_TIMEOUT
                     || status == StatusCode::TOO_MANY_REQUESTS
+                    || success
+                        .headers()
+                        .get("cdf-is-auto-retryable")
+                        .and_then(|v| v.to_str().ok())
+                        .is_some_and(|v| v == "true")
                 {
                     Some(Retryable::Transient)
                 } else {

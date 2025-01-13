@@ -196,7 +196,7 @@ async fn handle_error(response: Response) -> Error {
 const SDK_USER_AGENT: &str = concat!("CogniteSdkRust/", env!("CARGO_PKG_VERSION"));
 const SDK_VERSION: &str = concat!("rust-sdk-v", env!("CARGO_PKG_VERSION"));
 
-impl<'a, T: ResponseHandler> RequestBuilder<'a, T> {
+impl<T: ResponseHandler> RequestBuilder<'_, T> {
     /// Send the request. This sets a few core headers, and converts any errors into
     /// [crate::Error]
     pub async fn send(mut self) -> Result<T::Output> {

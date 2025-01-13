@@ -188,9 +188,9 @@ where
     /// # Arguments
     ///
     /// * `creates` - List of resources to create.
-    fn create_from<'a>(
+    fn create_from(
         &self,
-        creates: &'a [impl Into<TCreate> + Sync + Clone],
+        creates: &[impl Into<TCreate> + Sync + Clone],
     ) -> impl Future<Output = Result<Vec<TResponse>>> + Send {
         async move {
             let to_add: Vec<TCreate> = creates.iter().map(|i| i.clone().into()).collect();
