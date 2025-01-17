@@ -1,12 +1,8 @@
 mod filter;
 #[allow(clippy::all)]
 #[allow(missing_docs)]
-mod proto {
-    include!(concat!(
-        env!("OUT_DIR"),
-        "/com.cognite.v1.timeseries.proto.rs"
-    ));
-}
+#[path = "datapoint/generated/com.cognite.v1.timeseries.proto.rs"]
+mod proto;
 mod status_code;
 
 use std::convert::TryFrom;

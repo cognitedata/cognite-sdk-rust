@@ -19,8 +19,15 @@ jobs:
         run: cargo clippy -- -D warnings
       - name: Check for non-default features
         run: cargo check --no-default-features --features rustls-021
-      - name: Run cargo format
-        run: cargo fmt --check
+      - name: Generate code
+        run: cargo run --bin cognite-codegen && cargo fmt --all
+      - name: Verify generated code matches committed code
+        run: |
+          if [[ -n $(git status --porcelain) ]]; then
+            echo "Workspace is not clean, it has not been formatted, or codegen is not up to date"
+            git status --porcelain
+            exit 1
+          fi
       - name: Test
         run: cargo test --features=integration_tests
         env:
