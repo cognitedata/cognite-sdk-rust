@@ -63,6 +63,5 @@ tokio-util = { version = "0.7.10" }
 wiremock = "0.6.0"
 
 [dev-dependencies]
-once_cell = { version = "1.19.0" }
 uuid = { version = "1.10.0", features = ["v4"] }
 wiremock = "0.6.0"

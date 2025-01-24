@@ -3,8 +3,8 @@ use std::future::Future;
 use std::{marker::PhantomData, sync::Arc};
 
 use futures::future::try_join_all;
-use futures::stream::try_unfold;
-use futures::TryStream;
+use futures::stream::{try_unfold, SelectAll};
+use futures::{StreamExt, TryStream};
 use serde::{de::DeserializeOwned, Serialize};
 
 use crate::dto::items::*;
@@ -690,17 +690,17 @@ where
 }
 
 #[derive(Debug, Default)]
-enum CursorState {
+pub(crate) enum CursorState {
     Initial,
     Some(String),
     #[default]
     End,
 }
 
-struct CursorStreamState<TFilter, TResponse> {
-    req: TFilter,
-    responses: VecDeque<TResponse>,
-    next_cursor: CursorState,
+pub(crate) struct CursorStreamState<TFilter, TResponse> {
+    pub(crate) req: TFilter,
+    pub(crate) responses: VecDeque<TResponse>,
+    pub(crate) next_cursor: CursorState,
 }
 
 /// Trait for resource types that allow filtering with a more complex request.
@@ -840,6 +840,36 @@ where
             }
             Ok(response_items)
         }
+    }
+
+    /// Filter resources using partitioned reads, following cursors until all partitions
+    /// are exhausted. This returns a stream.
+    ///
+    /// Note that the returned stream is simply a combinator of streams returned by
+    /// `filter_all_stream` for different partitions.
+    ///
+    /// The order of the returned values is not guaranteed to be in any way consistent.
+    ///
+    /// # Arguemnts
+    ///
+    /// * `filter` - Filter which items to retrieve.
+    /// * `num_partitions` - Number of partitions.
+    fn filter_all_partitioned_stream(
+        &self,
+        filter: TFilter,
+        num_partitions: u32,
+    ) -> impl TryStream<Ok = TResponse, Error = crate::Error, Item = Result<TResponse>> + Send
+    where
+        TFilter: SetCursor + WithPartition,
+        TResponse: Send + 'static,
+    {
+        let mut streams = SelectAll::new();
+        for partition in 0..num_partitions {
+            let part_filter = filter.with_partition(Partition::new(partition + 1, num_partitions));
+            streams.push(self.filter_all_stream(part_filter).boxed());
+        }
+
+        streams
     }
 }
 

@@ -158,3 +158,18 @@ impl IntoParams for EnsureParentQuery {
         params
     }
 }
+
+#[derive(Debug, Default, Clone)]
+/// Query for retrieving all rows using partitioned reads from a table.
+pub struct RetrieveAllPartitionedQuery {
+    /// Minimum last updated time, in millisecond since epoch.
+    pub min_last_updated_time: Option<i64>,
+    /// Maximum last updated time, in milliseconds since epoch.
+    pub max_last_updated_time: Option<i64>,
+    /// Requested number of parallel reads.
+    pub number_of_cursors: Option<i32>,
+    /// List of columns to return. Can be left out to return all columns.
+    pub columns: Option<Vec<String>>,
+    /// Maximum number of rows to return per request.
+    pub limit: Option<i32>,
+}
