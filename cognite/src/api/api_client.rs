@@ -1,11 +1,11 @@
-use crate::reqwest::header::{HeaderValue, CONTENT_LENGTH, CONTENT_TYPE};
-use crate::reqwest::{Body, Response};
-use crate::reqwest_middleware::ClientWithMiddleware;
 use crate::IntoParams;
 use anyhow::anyhow;
 use bytes::Bytes;
 use futures::{TryStream, TryStreamExt};
 use prost::Message;
+use reqwest::header::{HeaderValue, CONTENT_TYPE};
+use reqwest::Response;
+use reqwest_middleware::ClientWithMiddleware;
 use serde::de::DeserializeOwned;
 use serde::ser::Serialize;
 
@@ -78,7 +78,7 @@ impl ApiClient {
     pub async fn get_stream(
         &self,
         url: &str,
-    ) -> Result<impl TryStream<Ok = bytes::Bytes, Error = crate::reqwest::Error>> {
+    ) -> Result<impl TryStream<Ok = bytes::Bytes, Error = reqwest::Error>> {
         let r = RequestBuilder::<()>::get(self, url)
             .accept_raw()
             .send()
@@ -221,7 +221,7 @@ impl ApiClient {
     /// # Warning
     /// If `stream_chunked` is false, this will collect the input stream into a memory, which can
     /// be _very_ expensive.
-    ///
+    #[cfg_attr(target_arch = "wasm32", allow(unused_variables))]
     pub async fn put_stream<S>(
         &self,
         url: &str,
@@ -242,23 +242,27 @@ impl ApiClient {
                 .header("X-Upload-Content-Type", HeaderValue::from_str(mime_type)?);
         }
 
+        #[cfg(not(target_arch = "wasm32"))]
         if stream_chunked {
             if let Some(size) = known_size {
-                b = b.header(CONTENT_LENGTH, HeaderValue::from_str(&size.to_string())?);
+                b = b.header(
+                    reqwest::header::CONTENT_LENGTH,
+                    HeaderValue::from_str(&size.to_string())?,
+                );
             }
-            b = b.body(Body::wrap_stream(stream));
-        } else {
-            let body: Vec<S::Ok> = stream
-                .try_collect()
-                .await
-                .map_err(|e| Error::StreamError(anyhow!(e.into())))?;
-            let body: Vec<u8> = body
-                .into_iter()
-                .flat_map(Into::<bytes::Bytes>::into)
-                .collect();
-            b = b.body(body);
+            b = b.body(reqwest::Body::wrap_stream(stream));
+            return b.send().await;
         }
 
+        let body: Vec<S::Ok> = stream
+            .try_collect()
+            .await
+            .map_err(|e| Error::StreamError(anyhow!(e.into())))?;
+        let body: Vec<u8> = body
+            .into_iter()
+            .flat_map(Into::<bytes::Bytes>::into)
+            .collect();
+        b = b.body(body);
         b.send().await
     }
 
@@ -316,7 +320,7 @@ impl ApiClient {
     /// * `request_builder` - Request to send.
     pub async fn send_request(
         &self,
-        mut request_builder: crate::reqwest_middleware::RequestBuilder,
+        mut request_builder: reqwest_middleware::RequestBuilder,
     ) -> Result<Response> {
         request_builder.extensions().insert(self.client.clone());
 

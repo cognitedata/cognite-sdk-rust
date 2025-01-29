@@ -1,11 +1,11 @@
 // This file is adapted from reqwest-retry, which was a bit too opinionated for our use.
 // https://github.com/TrueLayer/reqwest-middleware
 
-use crate::reqwest::{Request, Response, StatusCode};
-use crate::reqwest_middleware::{Middleware, Next, Result};
-use crate::Extensions;
 use async_trait::async_trait;
+use http::Extensions;
 use rand::{thread_rng, Rng};
+use reqwest::{Request, Response, StatusCode};
+use reqwest_middleware::{Middleware, Next, Result};
 use std::time::Duration;
 
 /// Middleware for retrying requests.
@@ -15,7 +15,8 @@ pub struct CustomRetryMiddleware {
     initial_delay_ms: u64,
 }
 
-#[async_trait]
+#[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
+#[cfg_attr(not(target_arch = "wasm32"), async_trait)]
 impl Middleware for CustomRetryMiddleware {
     async fn handle(
         &self,
@@ -99,7 +100,7 @@ impl Retryable {
     ///
     /// * `res` - Request response.
     pub fn from_reqwest_response(
-        res: &crate::reqwest_middleware::Result<crate::reqwest::Response>,
+        res: &reqwest_middleware::Result<reqwest::Response>,
     ) -> Option<Self> {
         match res {
             Ok(success) => {
@@ -123,9 +124,14 @@ impl Retryable {
                 }
             }
             Err(error) => match error {
-                crate::reqwest_middleware::Error::Middleware(_) => Some(Retryable::Fatal),
-                crate::reqwest_middleware::Error::Reqwest(error) => {
-                    if error.is_timeout() || error.is_connect() {
+                reqwest_middleware::Error::Middleware(_) => Some(Retryable::Fatal),
+                reqwest_middleware::Error::Reqwest(error) => {
+                    #[cfg(not(target_arch = "wasm32"))]
+                    let is_connect = error.is_connect();
+                    #[cfg(target_arch = "wasm32")]
+                    let is_connect = false;
+
+                    if error.is_timeout() || is_connect {
                         Some(Retryable::Transient)
                     } else if error.is_body()
                         || error.is_decode()

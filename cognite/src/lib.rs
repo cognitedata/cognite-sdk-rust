@@ -7,16 +7,15 @@ mod auth;
 mod dto;
 mod error;
 mod retry;
-mod rustls_shim;
-
-// Reqwest shim
-use rustls_shim::*;
 
 /// SDK library version.
 pub const VERSION: &str = env!("CARGO_PKG_VERSION");
 
 /// Utility methods and tooling.
 pub mod utils;
+
+mod send_helper;
+pub(crate) use send_helper::{CondBoxedStream, CondSend, CondSync};
 
 /// Common types for DTOs.
 pub mod dto_common {

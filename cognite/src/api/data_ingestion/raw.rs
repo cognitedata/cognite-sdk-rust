@@ -168,7 +168,7 @@ impl RawResource {
         db_name: &'a str,
         table_name: &'a str,
         params: Option<RetrieveRowsQuery>,
-    ) -> impl TryStream<Ok = RawRow, Error = crate::Error, Item = Result<RawRow>> + Send + 'a {
+    ) -> impl TryStream<Ok = RawRow, Error = crate::Error, Item = Result<RawRow>> + 'a {
         let req = params.unwrap_or_default();
         let initial_state = match &req.cursor {
             Some(p) => CursorState::Some(p.to_owned()),
@@ -260,7 +260,7 @@ impl RawResource {
         db_name: &'a str,
         table_name: &'a str,
         params: RetrieveAllPartitionedQuery,
-    ) -> impl TryStream<Ok = RawRow, Error = crate::Error, Item = Result<RawRow>> + Send + 'a {
+    ) -> impl TryStream<Ok = RawRow, Error = crate::Error, Item = Result<RawRow>> + 'a {
         self.retrieve_cursors_for_parallel_reads(
             db_name,
             table_name,
@@ -283,7 +283,7 @@ impl RawResource {
                 };
                 streams.push(
                     self.retrieve_all_rows_stream(db_name, table_name, Some(query))
-                        .boxed(),
+                        .boxed_local(),
                 );
             }
             streams

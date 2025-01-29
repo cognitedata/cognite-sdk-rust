@@ -4,9 +4,9 @@ use std::marker::PhantomData;
 use prost::Message;
 use serde::de::DeserializeOwned;
 
-use crate::reqwest::Response;
+use reqwest::Response;
 
-use crate::Result;
+use crate::{CondSend, CondSync, Result};
 
 /// Trait for a type that produces a typed response from a successful
 /// HTTP response message.
@@ -24,7 +24,7 @@ pub trait ResponseHandler {
     fn handle_response(
         self,
         response: Response,
-    ) -> impl Future<Output = Result<Self::Output>> + Send + Sync;
+    ) -> impl Future<Output = Result<Self::Output>> + CondSend + CondSync;
 }
 
 // Uses fn() -> T since that is covariant, and allows us to have a Send future

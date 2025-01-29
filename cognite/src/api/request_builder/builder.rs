@@ -1,12 +1,12 @@
-use crate::reqwest::header::{HeaderName, HeaderValue, ACCEPT, CONTENT_TYPE, USER_AGENT};
+use reqwest::header::{HeaderName, HeaderValue, ACCEPT, CONTENT_TYPE, USER_AGENT};
 
 use prost::Message;
 use serde::de::DeserializeOwned;
 use serde::Serialize;
 
-use crate::reqwest::{IntoUrl, Response};
 use crate::ApiClient;
 use crate::Error;
+use reqwest::{IntoUrl, Response};
 
 use crate::Result;
 
@@ -17,7 +17,7 @@ use super::{
 
 /// Generic request builder. Used to construct custom requests towards CDF.
 pub struct RequestBuilder<'a, T = ()> {
-    inner: crate::reqwest_middleware::RequestBuilder,
+    inner: reqwest_middleware::RequestBuilder,
     client: &'a ApiClient,
     output: T,
 }
@@ -88,9 +88,9 @@ impl<'a, T> RequestBuilder<'a, T> {
     pub fn header<K, V>(mut self, key: K, value: V) -> Self
     where
         HeaderName: TryFrom<K>,
-        <HeaderName as TryFrom<K>>::Error: Into<crate::http::Error>,
+        <HeaderName as TryFrom<K>>::Error: Into<http::Error>,
         HeaderValue: TryFrom<V>,
-        <HeaderValue as TryFrom<V>>::Error: Into<crate::http::Error>,
+        <HeaderValue as TryFrom<V>>::Error: Into<http::Error>,
     {
         self.inner = self.inner.header(key, value);
         self
@@ -112,7 +112,7 @@ impl<'a, T> RequestBuilder<'a, T> {
     }
 
     /// Add a body to the request. You will typically want to set `CONTENT_TYPE` yourself.
-    pub fn body(mut self, body: impl Into<crate::reqwest::Body>) -> Self {
+    pub fn body(mut self, body: impl Into<reqwest::Body>) -> Self {
         self.inner = self.inner.body(body);
         self
     }
@@ -128,9 +128,7 @@ impl<'a, T> RequestBuilder<'a, T> {
 
     /// Modify the inner request builder.
     pub fn with_inner<
-        R: FnOnce(
-            crate::reqwest_middleware::RequestBuilder,
-        ) -> crate::reqwest_middleware::RequestBuilder,
+        R: FnOnce(reqwest_middleware::RequestBuilder) -> reqwest_middleware::RequestBuilder,
     >(
         mut self,
         m: R,
