@@ -4,7 +4,7 @@ use std::marker::PhantomData;
 use prost::Message;
 use serde::de::DeserializeOwned;
 
-use crate::reqwest::Response;
+use reqwest::Response;
 
 use crate::Result;
 

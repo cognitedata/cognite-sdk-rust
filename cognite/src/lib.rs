@@ -7,10 +7,6 @@ mod auth;
 mod dto;
 mod error;
 mod retry;
-mod rustls_shim;
-
-// Reqwest shim
-use rustls_shim::*;
 
 /// SDK library version.
 pub const VERSION: &str = env!("CARGO_PKG_VERSION");

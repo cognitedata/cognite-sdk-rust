@@ -10,10 +10,8 @@ publish = false
 version = "0.4.2"
 
 [features]
-default = ["rustls-022"]
+default = []
 integration_tests = []
-rustls-021 = ["http-02", "reqwest-011", "reqwest-middleware-02", "task-local-extensions"]
-rustls-022 = ["http-10", "reqwest-012", "reqwest-middleware-04"]
 
 [dependencies]
 async-trait = "^0.1"
@@ -25,24 +23,15 @@ futures-timer = "^3"
 prost = "^0.13"
 prost-types = "^0.13"
 
-http-10 = { package = "http", "version" = "^1", optional = true }
-http-02 = { package = "http", "version" = "0.2", optional = true }
-reqwest-011 = { package = "reqwest", version = "^0.11", optional = true, features = [
+http = {"version" = "^1" }
+reqwest = { version = "^0.12", features = [
   "gzip",
   "json",
   "multipart",
   "rustls-tls-native-roots",
   "stream",
 ], default-features = false } # Default brings in openssl
-reqwest-012 = { package = "reqwest", version = "^0.12", optional = true, features = [
-  "gzip",
-  "json",
-  "multipart",
-  "rustls-tls-native-roots",
-  "stream",
-], default-features = false } # Default brings in openssl
-reqwest-middleware-02 = { package = "reqwest-middleware", optional = true, version = "^0.2" }
-reqwest-middleware-04 = { package = "reqwest-middleware", optional = true, version = "^0.4" }
+reqwest-middleware = { version = "^0.4" }
 
 anyhow = "^1"
 rand = "^0.8.5"

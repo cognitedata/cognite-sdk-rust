@@ -1,11 +1,11 @@
-use crate::reqwest::header::{HeaderValue, CONTENT_LENGTH, CONTENT_TYPE};
-use crate::reqwest::{Body, Response};
-use crate::reqwest_middleware::ClientWithMiddleware;
 use crate::IntoParams;
 use anyhow::anyhow;
 use bytes::Bytes;
 use futures::{TryStream, TryStreamExt};
 use prost::Message;
+use reqwest::header::{HeaderValue, CONTENT_LENGTH, CONTENT_TYPE};
+use reqwest::{Body, Response};
+use reqwest_middleware::ClientWithMiddleware;
 use serde::de::DeserializeOwned;
 use serde::ser::Serialize;
 
@@ -78,7 +78,7 @@ impl ApiClient {
     pub async fn get_stream(
         &self,
         url: &str,
-    ) -> Result<impl TryStream<Ok = bytes::Bytes, Error = crate::reqwest::Error>> {
+    ) -> Result<impl TryStream<Ok = bytes::Bytes, Error = reqwest::Error>> {
         let r = RequestBuilder::<()>::get(self, url)
             .accept_raw()
             .send()
@@ -316,7 +316,7 @@ impl ApiClient {
     /// * `request_builder` - Request to send.
     pub async fn send_request(
         &self,
-        mut request_builder: crate::reqwest_middleware::RequestBuilder,
+        mut request_builder: reqwest_middleware::RequestBuilder,
     ) -> Result<Response> {
         request_builder.extensions().insert(self.client.clone());
 
