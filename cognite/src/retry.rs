@@ -5,7 +5,7 @@ use crate::reqwest::{Request, Response, StatusCode};
 use crate::reqwest_middleware::{Middleware, Next, Result};
 use crate::Extensions;
 use async_trait::async_trait;
-use rand::{thread_rng, Rng};
+use rand::{rng, Rng};
 use std::time::Duration;
 
 /// Middleware for retrying requests.
@@ -68,8 +68,7 @@ impl CustomRetryMiddleware {
                         retry_delay = self.max_delay_ms;
                     }
                     // Jitter so we land between initial * 2 ** attempt * 3/4 and initial * 2 ** attempt * 5/4
-                    retry_delay =
-                        retry_delay / 4 * 3 + thread_rng().gen_range(0..=(retry_delay / 2));
+                    retry_delay = retry_delay / 4 * 3 + rng().random_range(0..=(retry_delay / 2));
                     futures_timer::Delay::new(Duration::from_millis(retry_delay)).await;
                     n_past_retries += 1;
                     continue;
