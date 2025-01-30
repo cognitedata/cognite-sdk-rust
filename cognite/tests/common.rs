@@ -3,7 +3,7 @@ use std::{future::Future, sync::LazyLock, time::Duration};
 #[cfg(test)]
 use cognite::ClientConfig;
 use cognite::CogniteClient;
-use rand::{distributions::Alphanumeric, thread_rng, Rng};
+use rand::{distr::Alphanumeric, rng, Rng};
 use tokio::sync::Semaphore;
 
 #[allow(dead_code)]
@@ -37,7 +37,7 @@ pub fn get_client_for_mocking(api_base_url: &str, project_name: &str) -> Cognite
 pub static PREFIX: LazyLock<String> = LazyLock::new(|| {
     format!(
         "rust-sdk-test-{}",
-        rand::thread_rng()
+        rand::rng()
             .sample_iter(&Alphanumeric)
             .take(7)
             .map(char::from)
@@ -88,7 +88,7 @@ impl Iterator for Backoff {
     type Item = Duration;
 
     fn next(&mut self) -> Option<Self::Item> {
-        let jitter: f64 = thread_rng().gen_range(-self.jitter..self.jitter);
+        let jitter: f64 = rng().random_range(-self.jitter..self.jitter);
         let mut backoff = (self.next_backoff + jitter).min(self.max_backoff);
         backoff = backoff.max(0.);
         self.next_backoff = (self.next_backoff * self.multiplier).min(self.max_backoff);
