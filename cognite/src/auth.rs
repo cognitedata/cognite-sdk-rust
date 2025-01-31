@@ -1,7 +1,7 @@
-use crate::reqwest::{Request, Response};
-use crate::reqwest_middleware::{ClientWithMiddleware, Middleware, Next, Result};
-use crate::Extensions;
 use async_trait::async_trait;
+use http::Extensions;
+use reqwest::{Request, Response};
+use reqwest_middleware::{ClientWithMiddleware, Middleware, Next, Result};
 
 use crate::AuthHeaderManager;
 
@@ -49,7 +49,7 @@ impl Middleware for AuthenticatorMiddleware {
                 self.authenticator
                     .set_headers(req.headers_mut(), client)
                     .await
-                    .map_err(|e| crate::reqwest_middleware::Error::Middleware(e.into()))?;
+                    .map_err(|e| reqwest_middleware::Error::Middleware(e.into()))?;
             }
             // Once we're done, remove the flag
             extensions.remove::<AuthenticatorFlag>();

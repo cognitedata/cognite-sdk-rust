@@ -17,8 +17,6 @@ jobs:
           components: rustfmt, clippy
       - name: Run clippy
         run: cargo clippy -- -D warnings
-      - name: Check for non-default features
-        run: cargo check --no-default-features --features rustls-021
       - name: Generate code
         run: cargo run --bin cognite-codegen && cargo fmt --all
       - name: Verify generated code matches committed code
