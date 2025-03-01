@@ -9,6 +9,60 @@ use cognite::models::{
     ItemId, SourceReference,
 };
 
+pub fn get_instances_aggregate_request() -> String {
+    format!(
+        r#"
+            {{
+              "aggregates": [
+                {{ "histogram": {{ "property": "property_1", "interval": 1.0 }} }}
+              ],
+              "groupBy": ["property_to_group_by"],
+              "filter": {{
+                "hasData": [
+                  {{ "type": "container", "space": "space_1", "externalId": "container_1" }}
+                ]
+              }},
+              "instanceType": "node",
+              "view": {{
+                "type": "view",
+                "space": "space_1",
+                "externalId": "view_1",
+                "version": "1"
+              }}
+            }}
+        "#
+    )
+}
+
+pub fn get_instances_aggregate_response() -> String {
+    format!(
+        r#"
+        {{
+          "items": [
+            {{
+              "instanceType": "node",
+              "aggregates": [
+                {{
+                  "aggregate": "histogram",
+                  "interval": 1.0,
+                  "property": "head",
+                  "buckets": [
+                    {{
+                      "start": 0,
+                      "count": 1
+                    }}
+                  ]
+                }}
+              ],
+              "group": {{
+                "industry": "industry_1"
+              }}
+            }}]
+        }}
+        "#
+    )
+}
+
 fn get_mock_properties() -> HashMap<String, String> {
     let mut properties = std::collections::HashMap::new();
     properties.insert("key1".to_string(), "value1".to_string());

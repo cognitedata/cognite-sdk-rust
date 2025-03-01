@@ -1,5 +1,5 @@
 #[cfg(test)]
-use cognite::models::instances::*;
+use cognite::models::{instances::*, ItemId};
 use cognite::models::{views::ViewReference, SourceReference, TaggedViewReference};
 use cognite::*;
 use std::collections::HashMap;
@@ -14,6 +14,56 @@ pub use common::*;
 
 mod fixtures;
 pub use fixtures::*;
+
+#[tokio::test]
+async fn aggregate_instances() {
+    let mock_server = MockServer::start().await;
+
+    Mock::given(method("POST"))
+        .and(path(get_path(
+            "",
+            "cdf-project",
+            "models/instances/aggregate",
+        )))
+        .and(body_json_string(get_instances_aggregate_request()))
+        .respond_with(
+            ResponseTemplate::new(200).set_body_string(get_instances_aggregate_response()),
+        )
+        .mount(&mock_server)
+        .await;
+    let client = get_client_for_mocking(&mock_server.uri(), "cdf-project");
+
+    let aggregate_request = AggregateInstancesRequest {
+        query: None,
+        properties: None,
+        limit: None,
+        group_by: Some(vec!["property_to_group_by".to_string()]),
+        filter: Some(cognite::AdvancedFilter::HasData(vec![
+            SourceReference::Container(ItemId {
+                space: "space_1".to_string(),
+                external_id: "container_1".to_string(),
+            }),
+        ])),
+        aggregates: Some(vec![InstancesAggregate::Histogram {
+            property: "property_1".to_string(),
+            interval: 1_f64,
+        }]),
+        instance_type: InstanceType::Node,
+        view: ViewReference {
+            space: "space_1".to_owned(),
+            external_id: "view_1".to_owned(),
+            version: "1".to_owned(),
+        }
+        .into(),
+    };
+    let res = client
+        .models
+        .instances
+        .aggregate(aggregate_request)
+        .await
+        .unwrap();
+    assert_eq!(res.items.len(), 1);
+}
 
 #[derive(Deserialize, Serialize, Debug)]
 struct EdgeProperties {
