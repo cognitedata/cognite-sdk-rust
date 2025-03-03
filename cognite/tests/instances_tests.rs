@@ -1,5 +1,5 @@
 #[cfg(test)]
-use cognite::models::{instances::*, ItemId};
+use cognite::models::instances::{AggregateResult, *};
 use cognite::models::{views::ViewReference, SourceReference, TaggedViewReference};
 use cognite::*;
 use std::collections::HashMap;
@@ -37,17 +37,17 @@ async fn aggregate_instances() {
         query: None,
         properties: None,
         limit: None,
-        group_by: Some(vec!["property_to_group_by".to_string()]),
-        filter: Some(cognite::AdvancedFilter::HasData(vec![
-            SourceReference::Container(ItemId {
-                space: "space_1".to_string(),
-                external_id: "container_1".to_string(),
-            }),
-        ])),
-        aggregates: Some(vec![InstancesAggregate::Histogram {
-            property: "property_1".to_string(),
-            interval: 1_f64,
-        }]),
+        group_by: Some(vec!["industry".to_string()]),
+        filter: None,
+        aggregates: Some(vec![
+            InstancesAggregate::Max {
+                property: "property_1".to_string(),
+            },
+            InstancesAggregate::Histogram {
+                property: "property_1".to_string(),
+                interval: 1_f64,
+            },
+        ]),
         instance_type: InstanceType::Node,
         view: ViewReference {
             space: "space_1".to_owned(),
@@ -62,7 +62,16 @@ async fn aggregate_instances() {
         .aggregate(aggregate_request)
         .await
         .unwrap();
-    assert_eq!(res.items.len(), 1);
+    assert!(res.items[0]
+        .aggregates
+        .iter()
+        .any(|x| matches!(x, AggregateResult::Histogram { .. })));
+    assert!(res.items[0]
+        .aggregates
+        .iter()
+        .any(|x| matches!(x, AggregateResult::Max(_))));
+    // .any(|x| matches!(x, AggregateResult::Max(_))));
+    // assert_eq!(res.items.len(), 1);
 }
 
 #[derive(Deserialize, Serialize, Debug)]

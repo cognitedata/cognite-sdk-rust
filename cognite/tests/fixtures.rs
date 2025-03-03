@@ -8,20 +8,15 @@ use cognite::models::{
     views::ViewReference,
     ItemId, SourceReference,
 };
-
 pub fn get_instances_aggregate_request() -> String {
     format!(
         r#"
             {{
               "aggregates": [
+                {{"max":{{"property":"property_1"}} }},
                 {{ "histogram": {{ "property": "property_1", "interval": 1.0 }} }}
               ],
-              "groupBy": ["property_to_group_by"],
-              "filter": {{
-                "hasData": [
-                  {{ "type": "container", "space": "space_1", "externalId": "container_1" }}
-                ]
-              }},
+              "groupBy": ["industry"],
               "instanceType": "node",
               "view": {{
                 "type": "view",
@@ -45,14 +40,15 @@ pub fn get_instances_aggregate_response() -> String {
                 {{
                   "aggregate": "histogram",
                   "interval": 1.0,
-                  "property": "head",
+                  "property": "property_1",
                   "buckets": [
                     {{
                       "start": 0,
                       "count": 1
                     }}
                   ]
-                }}
+                }},
+                {{ "aggregate": "max", "property": "property_1", "value": 65.0 }}
               ],
               "group": {{
                 "industry": "industry_1"

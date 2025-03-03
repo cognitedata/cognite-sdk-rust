@@ -493,7 +493,7 @@ pub struct HistogramBucket {
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
-#[serde(rename_all = "camelCase", untagged)]
+#[serde(rename_all = "camelCase", tag = "aggregate")]
 /// Result item in instances aggregate response.
 pub enum AggregateResult {
     /// Result of average aggregate.
