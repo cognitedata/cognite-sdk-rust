@@ -31,8 +31,7 @@ reqwest = { version = "^0.12", features = [
   "rustls-tls-native-roots",
   "stream",
 ], default-features = false } # Default brings in openssl
-#reqwest-middleware = { version = "^0.4" }
-reqwest-middleware = { git = "https://github.com/TrueLayer/reqwest-middleware", rev = "2ab1ad15f5100f404ed7dad4afea2cc14aab097b" }
+reqwest-middleware = { version = "^0.4.1" }
 
 
 anyhow = "^1"
