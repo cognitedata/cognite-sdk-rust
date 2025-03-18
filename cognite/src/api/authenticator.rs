@@ -264,7 +264,7 @@ impl Authenticator {
 
         let response: AuthenticatorResponse = serde_json::from_str(&response).map_err(|e| {
             AuthenticatorError::internal_error(
-                "Failed to deserialize".to_string(),
+                "Failed to deserialize response from OAuth endpoint".to_string(),
                 Some(e.to_string()),
             )
         })?;

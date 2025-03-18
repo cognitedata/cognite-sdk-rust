@@ -1,3 +1,4 @@
+use anyhow::Context;
 use async_trait::async_trait;
 use http::Extensions;
 use reqwest::{Request, Response};
@@ -50,7 +51,8 @@ impl Middleware for AuthenticatorMiddleware {
                 self.authenticator
                     .set_headers(req.headers_mut(), client)
                     .await
-                    .map_err(|e| reqwest_middleware::Error::Middleware(e.into()))?;
+                    .map_err(|e| reqwest_middleware::Error::Middleware(e.into()))
+                    .context("Failed to authenticate request")?;
             }
             // Once we're done, remove the flag
             extensions.remove::<AuthenticatorFlag>();
