@@ -208,7 +208,7 @@ impl IntoParams for ContainerQuery {
         to_query("limit", &self.limit, &mut params);
         to_query("cursor", &self.cursor, &mut params);
         to_query("space", &self.space, &mut params);
-        to_query("include_global", &self.include_global, &mut params);
+        to_query("includeGlobal", &self.include_global, &mut params);
         params
     }
 }
