@@ -126,7 +126,7 @@ pub struct PrimitiveProperty {
 /// Description of an enum value in an enum property.
 pub struct EnumValueDescription {
     /// Name of the enum value.
-    pub name: String,
+    pub name: Option<String>,
     /// Enum value description.
     pub description: Option<String>,
 }

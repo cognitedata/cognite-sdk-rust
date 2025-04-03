@@ -152,7 +152,10 @@ async fn test_retrieve_complex_view() {
     assert_eq!(prop.name, Some("Type".to_string()));
     assert!(prop.immutable);
     let ty = assert_is!(&prop.r#type, ViewCorePropertyType::Enum(v), v);
-    assert_eq!(ty.values.get("string").unwrap().name, "string");
+    assert_eq!(
+        ty.values.get("string").unwrap().name.as_ref().unwrap(),
+        "string"
+    );
 
     // Check that a reverse direct relation looks good.'
     let prop = assert_is!(
