@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use derivative::Derivative;
 use serde::{Deserialize, Serialize};
 use serde_with::skip_serializing_none;
@@ -35,6 +37,16 @@ pub enum SourceReference {
     View(ViewReference),
     /// A container.
     Container(ItemId),
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug)]
+#[serde(rename_all = "camelCase", tag = "type")]
+/// A reference to a property in a source view or container.
+pub struct SourcePropertyReference {
+    /// ID of the view or container.
+    pub source: SourceReference,
+    /// Identifier of the property in the source.
+    pub identifier: String,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
@@ -106,6 +118,28 @@ pub struct PrimitiveProperty {
     #[derivative(Default(value = "false"))]
     /// Whether this is a list or not.
     pub list: Option<bool>,
+}
+
+#[skip_serializing_none]
+#[derive(Serialize, Deserialize, Default, Clone, Debug)]
+#[serde(rename_all = "camelCase")]
+/// Description of an enum value in an enum property.
+pub struct EnumValueDescription {
+    /// Name of the enum value.
+    pub name: String,
+    /// Enum value description.
+    pub description: Option<String>,
+}
+
+#[skip_serializing_none]
+#[derive(Serialize, Deserialize, Default, Clone, Debug)]
+#[serde(rename_all = "camelCase")]
+/// Description of an enum property.
+pub struct EnumProperty {
+    /// The value to use when the enum value is unknown.
+    pub unknown_value: Option<String>,
+    /// Map from enum value identifier to description.
+    pub values: HashMap<String, EnumValueDescription>,
 }
 
 #[skip_serializing_none]

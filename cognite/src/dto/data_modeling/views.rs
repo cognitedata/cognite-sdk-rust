@@ -13,8 +13,9 @@ use crate::{
 };
 
 use super::{
+    common::{EnumProperty, SourcePropertyReference},
     instances::InstanceId,
-    query::{QueryDirection, ViewPropertyReference},
+    query::QueryDirection,
 };
 
 #[derive(Serialize, Deserialize, Clone, Debug, Default)]
@@ -229,7 +230,9 @@ pub struct ReverseDirectRelationConnection {
     /// Which view this connection references.
     pub source: TaggedViewReference,
     /// Which property this connection uses.
-    pub through: ViewPropertyReference,
+    pub through: SourcePropertyReference,
+    /// Whether this relation targets a list of direct relations.
+    pub targets_list: bool,
 }
 
 #[skip_serializing_none]
@@ -313,6 +316,9 @@ pub struct ViewCorePropertyDefinition {
     pub container: TaggedContainerReference,
     /// Unique identifier within the referenced container.
     pub container_property_identifier: String,
+    #[serde(default)]
+    /// Whether this property is immutable.
+    pub immutable: bool,
 }
 
 #[derive(Serialize, Deserialize, Derivative, Clone, Debug)]
@@ -345,6 +351,8 @@ pub enum ViewCorePropertyType {
     Sequence(CDFExternalIdReference),
     /// Direct relation to a node.
     Direct(ViewDirectNodeRelation),
+    /// Enum property.
+    Enum(EnumProperty),
 }
 
 #[skip_serializing_none]
