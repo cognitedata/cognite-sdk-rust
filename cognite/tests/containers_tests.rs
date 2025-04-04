@@ -4,7 +4,7 @@ use std::collections::HashMap;
 
 #[cfg(test)]
 use cognite::models::*;
-use cognite::*;
+use cognite::{models::containers::ContainerQuery, *};
 
 use containers::{
     ContainerCreate, ContainerIndex, ContainerPropertyDefinition, ContainerPropertyType,
@@ -80,4 +80,21 @@ async fn create_retrieve_delete_container() {
         .unwrap();
 
     assert!(container_deleted.items.len() == 1);
+}
+
+#[tokio::test]
+async fn test_list_containers() {
+    let client = get_client();
+    let containers = client
+        .models
+        .containers
+        .list(Some(ContainerQuery {
+            limit: Some(15),
+            include_global: Some(true),
+            ..Default::default()
+        }))
+        .await
+        .unwrap();
+    // There are more than 15 system containers, which are included due to include_global.
+    assert_eq!(15, containers.items.len());
 }
