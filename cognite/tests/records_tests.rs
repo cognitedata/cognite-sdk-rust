@@ -1,14 +1,20 @@
 #![cfg(feature = "integration_tests")]
 
 mod common;
+use std::collections::HashMap;
 use std::sync::LazyLock;
 
-use cognite::models::records::StreamWrite;
-use cognite::{Create, List};
+use cognite::models::records::{
+    LastUpdatedTimeFilter, PropertiesPerContainer, RecordCursor, RecordData, RecordWrite,
+    RecordsPropertySort, RecordsRetrieveRequest, RecordsSyncRequest, StreamWrite,
+};
+use cognite::models::{SortDirection, TaggedContainerReference};
+use cognite::{filter, Create, List, RawValue};
 use common::*;
 
 use serde_json::json;
 use tokio::sync::Mutex;
+use uuid::Uuid;
 use wiremock::matchers::{body_json, header, method, path};
 use wiremock::{Mock, MockServer, ResponseTemplate};
 
@@ -139,4 +145,97 @@ async fn test_retrieve_stream() {
         .await
         .unwrap();
     assert_eq!(stream.external_id, stream_external_id);
+}
+
+#[tokio::test]
+async fn test_ingest_records() {
+    let client = get_client();
+    let stream_external_id = "rust-sdk-test-stream";
+    ensure_stream(&client, stream_external_id).await.unwrap();
+    let space = std::env::var("CORE_DM_TEST_SPACE").unwrap();
+
+    let records = vec![RecordWrite {
+        space: space.clone(),
+        external_id: Uuid::new_v4().to_string(),
+        sources: vec![RecordData {
+            source: TaggedContainerReference::new("cdf_cdm", "CogniteDescribable"),
+            properties: json!({
+                "name": "test",
+                "description": "test test",
+                "tags": ["tag1", "tag2"],
+            }),
+        }],
+    }];
+
+    client
+        .models
+        .records
+        .ingest(stream_external_id, records)
+        .await
+        .unwrap();
+}
+
+#[tokio::test]
+async fn test_get_records() {
+    // This just checks that the requests are accepted. Records is eventually consistent,
+    // so verifying the response is annoying, and there's no consistent way to
+    // produce records at a specific time, so we can't generate them in a way
+    // that works for other projects either.
+    // This verifies that the request is correctly formed and accepted.
+    let client = get_client();
+    let stream_external_id = "rust-sdk-test-stream";
+    ensure_stream(&client, stream_external_id).await.unwrap();
+
+    client
+        .models
+        .records
+        .retrieve::<HashMap<String, RawValue>>(
+            stream_external_id,
+            &RecordsRetrieveRequest {
+                last_updated_time: LastUpdatedTimeFilter {
+                    gte: Some(0.into()),
+                    lte: Some(10000.into()),
+                    ..Default::default()
+                },
+                filter: Some(filter::equals(
+                    ["cdf_cdm", "CogniteDescribable", "name"],
+                    "test",
+                )),
+                sources: Some(vec![PropertiesPerContainer {
+                    source: TaggedContainerReference::new("cdf_cdm", "CogniteDescribable"),
+                    properties: vec!["name".to_string(), "description".to_string()],
+                }]),
+                limit: Some(5),
+                sort: Some(vec![RecordsPropertySort::new(
+                    ["cdf_cdm", "CogniteDescribable", "name"],
+                    SortDirection::Ascending,
+                )]),
+            },
+        )
+        .await
+        .unwrap();
+
+    // Test sync too, this should produce a cursor.
+    let res = client
+        .models
+        .records
+        .sync::<HashMap<String, RawValue>>(
+            stream_external_id,
+            &RecordsSyncRequest {
+                filter: Some(filter::equals(
+                    ["cdf_cdm", "CogniteDescribable", "name"],
+                    "test",
+                )),
+                sources: Some(vec![PropertiesPerContainer {
+                    source: TaggedContainerReference::new("cdf_cdm", "CogniteDescribable"),
+                    properties: vec!["name".to_string(), "description".to_string()],
+                }]),
+                limit: Some(5),
+                cursor: RecordCursor::InitializeCursor("1h-ago".to_owned()),
+            },
+        )
+        .await
+        .unwrap();
+
+    assert!(!res.extra_fields.next_cursor.is_empty());
 }

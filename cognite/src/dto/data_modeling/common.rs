@@ -79,6 +79,16 @@ pub enum TaggedContainerReference {
     Container(ItemId),
 }
 
+impl TaggedContainerReference {
+    /// Create a new tagged container reference.
+    pub fn new(space: impl Into<String>, external_id: impl Into<String>) -> Self {
+        Self::Container(ItemId {
+            space: space.into(),
+            external_id: external_id.into(),
+        })
+    }
+}
+
 impl From<ItemId> for TaggedContainerReference {
     fn from(value: ItemId) -> Self {
         Self::Container(value)
