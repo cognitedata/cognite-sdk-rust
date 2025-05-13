@@ -134,7 +134,12 @@ pub mod models {
 
     /// Records are event-like items contained in a stream, but modelled using data modelling.
     pub mod records {
+        pub use crate::dto::data_modeling::records::*;
         pub use crate::dto::data_modeling::streams::*;
+        /// Aggregates on records.
+        pub mod aggregates {
+            pub use crate::dto::data_modeling::records::aggregates::*;
+        }
     }
 }
 
