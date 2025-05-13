@@ -8,7 +8,7 @@ use cognite::models::records::{
     LastUpdatedTimeFilter, PropertiesPerContainer, RecordCursor, RecordData, RecordWrite,
     RecordsPropertySort, RecordsRetrieveRequest, RecordsSyncRequest, StreamWrite,
 };
-use cognite::models::{SortDirection, TaggedContainerReference};
+use cognite::models::{SortDirection, StreamWrite, TaggedContainerReference};
 use cognite::{filter, Create, List, RawValue};
 use common::*;
 
@@ -238,4 +238,260 @@ async fn test_get_records() {
         .unwrap();
 
     assert!(!res.extra_fields.next_cursor.is_empty());
+}
+
+#[test]
+fn test_records_aggregate_request_ser() {
+    // Tests for serializing and deserializing aggregate requests.
+    use cognite::models::records::aggregates::*;
+    use cognite::models::records::LastUpdatedTimeFilter;
+
+    let v = serde_json::to_value(RecordsAggregateRequest {
+        last_updated_time: LastUpdatedTimeFilter {
+            gte: Some("1d-ago".into()),
+            lt: Some(5000000i64.into()),
+            ..Default::default()
+        },
+        filter: None,
+        aggregates: [
+            ("my_average", RecordsAggregate::average(["my", "property"])),
+            (
+                "my_unique_values",
+                RecordsAggregate::unique_values(["my", "property"], Some(15), None),
+            ),
+            (
+                "my_number_histogram",
+                RecordsAggregate::number_histogram(
+                    ["my", "property"],
+                    15.0,
+                    Some(Bounds {
+                        min: Some(10.0),
+                        max: Some(20.0),
+                    }),
+                    None,
+                ),
+            ),
+            (
+                "my_time_histogram",
+                RecordsAggregate::time_histogram(
+                    ["my", "property"],
+                    TimeHistogramInterval::CalendarInterval(CalendarInterval::Month),
+                    None,
+                    None,
+                ),
+            ),
+            (
+                "my_time_histogram_2",
+                RecordsAggregate::time_histogram(
+                    ["my", "property"],
+                    TimeHistogramInterval::FixedInterval("400h".to_owned()),
+                    None,
+                    None,
+                ),
+            ),
+            (
+                "my_moving_function",
+                RecordsAggregate::moving_function("test>path", 5, MovingFunction::Sum),
+            ),
+            (
+                "my_filters",
+                RecordsAggregate::filters(vec![filter::equals(["my", "property"], 5)], None),
+            ),
+        ]
+        .into_iter()
+        .map(|(a, b)| (a.to_string(), b))
+        .collect(),
+    })
+    .unwrap();
+    assert_eq!(
+        v,
+        json!({
+            "lastUpdatedTime": {
+                "gte": "1d-ago",
+                "lt": 5000000
+            },
+            "aggregates": {
+                "my_average": {
+                    "avg": {
+                        "property": ["my", "property"]
+                    }
+                },
+                "my_unique_values": {
+                    "uniqueValues": {
+                        "property": ["my", "property"],
+                        "size": 15
+                    }
+                },
+                "my_number_histogram": {
+                    "numberHistogram": {
+                        "property": ["my", "property"],
+                        "interval": 15.0,
+                        "hardBounds": {
+                            "min": 10.0,
+                            "max": 20.0
+                        }
+                    }
+                },
+                "my_time_histogram": {
+                    "timeHistogram": {
+                        "calendarInterval": "1M",
+                        "property": ["my", "property"],
+                    }
+                },
+                "my_time_histogram_2": {
+                    "timeHistogram": {
+                        "fixedInterval": "400h",
+                        "property": ["my", "property"],
+                    }
+                },
+                "my_moving_function":{
+                    "movingFunction": {
+                        "window": 5,
+                        "function": "MovingFunctions.sum",
+                        "bucketsPath": "test>path"
+                    }
+                },
+                "my_filters": {
+                    "filters": {
+                        "filters": [
+                            {
+                                "equals": {
+                                    "property": ["my", "property"],
+                                    "value": 5
+                                }
+                            }
+                        ]
+                    }
+                }
+            }
+        })
+    );
+}
+
+macro_rules! assert_is {
+    ($value:expr, $v:ident, $p:pat) => {
+        match $value {
+            $p => $v,
+            _ => panic!("Expected {}, got {:?}", stringify!($p), $value),
+        }
+    };
+}
+
+#[test]
+fn test_records_aggregate_response_de() {
+    use cognite::models::records::aggregates::*;
+    let json = json!({
+        "aggregates": {
+            "my_average": {
+                "avg": 15.0,
+            },
+            "my_count": {
+                "count": 10,
+            },
+            "my_sum": {
+                "sum": 100.0,
+            },
+            "my_min": {
+                "min": 5.0,
+            },
+            "my_max": {
+                "max": 20.0,
+            },
+            "my_unique_values": {
+                "buckets": [{
+                    "value": 5,
+                    "count": 3,
+                }, {
+                    "value": "hello",
+                    "count": 2,
+                }, {
+                    "value": true,
+                    "count": 1,
+                }]
+            },
+            "my_number_histogram": {
+                "buckets": [{
+                    "count": 10,
+                    "intervalStart": 0.0,
+                }, {
+                    "count": 5,
+                    "intervalStart": 10.0,
+                }]
+            },
+            "my_time_histogram": {
+                "buckets": [{
+                    "count": 10,
+                    "intervalStart": "2023-01-01T00:00:00Z",
+                }, {
+                    "count": 5,
+                    "intervalStart": "2023-02-01T00:00:00Z",
+                }]
+            },
+        }
+    });
+
+    let deser = serde_json::from_value::<RecordsAggregateResult>(json).unwrap();
+    assert_eq!(deser.aggregates.len(), 8);
+    let v = assert_is!(
+        deser.aggregates.get("my_average").unwrap(),
+        v,
+        AggregateResult::Avg(v)
+    );
+    assert_eq!(*v, 15.0);
+    let v = assert_is!(
+        deser.aggregates.get("my_count").unwrap(),
+        v,
+        AggregateResult::Count(v)
+    );
+    assert_eq!(*v, 10);
+    let v = assert_is!(
+        deser.aggregates.get("my_sum").unwrap(),
+        v,
+        AggregateResult::Sum(v)
+    );
+    assert_eq!(*v, 100.0);
+    let v = assert_is!(
+        deser.aggregates.get("my_min").unwrap(),
+        v,
+        AggregateResult::Min(v)
+    );
+    assert_eq!(*v, 5.0);
+    let v = assert_is!(
+        deser.aggregates.get("my_max").unwrap(),
+        v,
+        AggregateResult::Max(v)
+    );
+    assert_eq!(*v, 20.0);
+    let v = assert_is!(
+        deser.aggregates.get("my_unique_values").unwrap(),
+        v,
+        AggregateResult::Buckets(AggregateBuckets::UniqueValues(v))
+    );
+    assert_eq!(v.len(), 3);
+    assert_eq!(v[0].value, 5.into());
+    assert_eq!(v[0].count, 3);
+    assert_eq!(v[1].value, "hello".into());
+    assert_eq!(v[1].count, 2);
+    assert_eq!(v[2].value, true.into());
+    assert_eq!(v[2].count, 1);
+    let v = assert_is!(
+        deser.aggregates.get("my_number_histogram").unwrap(),
+        v,
+        AggregateResult::Buckets(AggregateBuckets::NumberHistogram(v))
+    );
+    assert_eq!(v.len(), 2);
+    assert_eq!(v[0].count, 10);
+    assert_eq!(v[0].interval_start, 0.0);
+    assert_eq!(v[1].count, 5);
+    assert_eq!(v[1].interval_start, 10.0);
+    let v = assert_is!(
+        deser.aggregates.get("my_time_histogram").unwrap(),
+        v,
+        AggregateResult::Buckets(AggregateBuckets::TimeHistogram(v))
+    );
+    assert_eq!(v.len(), 2);
+    assert_eq!(v[0].count, 10);
+    assert_eq!(v[0].interval_start, "2023-01-01T00:00:00Z");
+    assert_eq!(v[1].count, 5);
+    assert_eq!(v[1].interval_start, "2023-02-01T00:00:00Z");
 }
