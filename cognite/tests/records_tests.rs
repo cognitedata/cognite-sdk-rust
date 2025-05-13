@@ -8,7 +8,7 @@ use cognite::models::records::{
     LastUpdatedTimeFilter, PropertiesPerContainer, RecordCursor, RecordData, RecordWrite,
     RecordsPropertySort, RecordsRetrieveRequest, RecordsSyncRequest, StreamWrite,
 };
-use cognite::models::{SortDirection, StreamWrite, TaggedContainerReference};
+use cognite::models::{SortDirection, TaggedContainerReference};
 use cognite::{filter, Create, List, RawValue};
 use common::*;
 
