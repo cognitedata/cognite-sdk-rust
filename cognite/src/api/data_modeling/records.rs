@@ -50,7 +50,7 @@ impl RecordsResource {
             .await
     }
 
-    /// Subscrbe to changes for records from the stream, matching a supplied filter.
+    /// Subscribe to changes for records from the stream, matching a supplied filter.
     ///
     /// # Arguments
     ///
