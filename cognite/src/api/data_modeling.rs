@@ -2,12 +2,14 @@ pub(crate) mod containers;
 pub(crate) mod data_models;
 pub(crate) mod instances;
 // pub(crate) mod resource;
+pub(crate) mod records;
 pub(crate) mod spaces;
 pub(crate) mod streams;
 pub(crate) mod views;
 
 use std::sync::Arc;
 
+use records::RecordsResource;
 use streams::StreamsResource;
 
 use crate::api::data_modeling::{instances::Instances, views::ViewsResource};
@@ -31,6 +33,8 @@ pub struct Models {
     pub containers: ContainersResource,
     /// Data modeling streams.
     pub streams: StreamsResource,
+    /// Data modeling stream records.
+    pub records: RecordsResource,
 }
 
 impl Models {
@@ -42,6 +46,7 @@ impl Models {
             data_models: DataModelsResource::new(api_client.clone()),
             containers: ContainersResource::new(api_client.clone()),
             streams: StreamsResource::new(Arc::new(api_client.clone_with_api_version("beta"))),
+            records: RecordsResource::new(Arc::new(api_client.clone_with_api_version("beta"))),
         }
     }
 }
