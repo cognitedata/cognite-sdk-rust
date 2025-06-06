@@ -211,6 +211,12 @@ impl<T: ResponseHandler> RequestBuilder<'_, T> {
                 "x-cdp-app",
                 HeaderValue::from_str(self.client.app_name()).expect("Invalid app name"),
             );
+        if let Some(cdf_version) = self.client.api_version() {
+            self.inner = self.inner.header(
+                "cdf-version",
+                HeaderValue::from_str(cdf_version).expect("Invalid CDF version"),
+            );
+        }
 
         match self.inner.send().await {
             Ok(response) => {

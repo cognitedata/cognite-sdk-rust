@@ -134,6 +134,16 @@ pub mod models {
         pub use crate::dto::filter::filter_methods::*;
         pub use crate::dto::filter::*;
     }
+
+    /// Records are event-like items contained in a stream, but modelled using data modelling.
+    pub mod records {
+        pub use crate::dto::data_modeling::records::*;
+        pub use crate::dto::data_modeling::streams::*;
+        /// Aggregates on records.
+        pub mod aggregates {
+            pub use crate::dto::data_modeling::records::aggregates::*;
+        }
+    }
 }
 
 /// Groups are used to give principals the capabilities to access CDF resources. One principal

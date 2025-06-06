@@ -18,6 +18,7 @@ pub struct ApiClient {
     api_base_url: String,
     app_name: String,
     client: ClientWithMiddleware,
+    api_version: Option<String>,
 }
 
 impl ApiClient {
@@ -33,6 +34,24 @@ impl ApiClient {
             api_base_url: String::from(api_base_url),
             app_name: String::from(app_name),
             client,
+            api_version: None,
+        }
+    }
+
+    /// Create a new api client with a custom API version.
+    /// This will set the `cdf-version` header to the given value.
+    ///
+    /// # Arguments
+    ///
+    /// * `api_version` - API version to use.
+    pub fn clone_with_api_version(&self, api_version: &str) -> ApiClient {
+        // We do clone the base URL here, but note that the client is internally
+        // cloneable, so we do still share it cross resources, which is important.
+        ApiClient {
+            api_base_url: self.api_base_url.clone(),
+            app_name: self.app_name.clone(),
+            client: self.client.clone(),
+            api_version: Some(api_version.to_string()),
         }
     }
 
@@ -340,5 +359,12 @@ impl ApiClient {
     /// Get the configured API base URL.
     pub fn api_base_url(&self) -> &str {
         &self.api_base_url
+    }
+
+    /// Get the CDF API version this client will use.
+    /// Any requests made with the request builder will append a header
+    /// cdf-version with this value, if it is set.
+    pub fn api_version(&self) -> Option<&str> {
+        self.api_version.as_deref()
     }
 }
