@@ -108,3 +108,16 @@ async fn stream_responses_list() {
         assert_eq!(el.name, "test");
     }
 }
+
+#[test]
+fn test_resource_usage_send() {
+    fn assert_send<T: Send>(t: T) -> T {
+        t
+    }
+
+    let client = get_client();
+
+    // Assert that futures from `Resource` are still send.
+    let _ = assert_send(client.assets.list_all(AssetQuery::default()));
+    let _ = assert_send(client.time_series.list(None));
+}
