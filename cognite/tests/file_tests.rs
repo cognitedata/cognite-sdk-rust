@@ -2,7 +2,7 @@
 
 use bytes::Bytes;
 use cognite::models::instances::{
-    CogniteExtractorFile, FileObject, InstanceId, NodeOrEdgeSpecification, SlimNodeOrEdge,
+    CogniteExtractorFile, ExtractorFileObject, InstanceId, NodeOrEdgeSpecification, SlimNodeOrEdge,
 };
 use cognite::models::ItemId;
 use cognite::prelude::*;
