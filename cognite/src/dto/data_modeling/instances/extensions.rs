@@ -10,8 +10,8 @@ use super::{EdgeOrNodeData, InstanceId, NodeOrEdgeCreate, NodeWrite};
 
 mod common;
 pub use common::*;
-mod files;
-pub use files::*;
+mod extractors;
+pub use extractors::*;
 mod timeseries;
 pub use timeseries::*;
 mod units;
