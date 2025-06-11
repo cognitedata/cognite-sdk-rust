@@ -13,12 +13,6 @@ use super::{
 /// A special data models instance type.
 pub type CogniteExtractorFile = CogniteExtendable<ExtractorFileObject>;
 
-impl WithView for CogniteExtractorFile {
-    const SPACE: &'static str = "cdf_extraction_extensions";
-    const EXTERNAL_ID: &'static str = "CogniteExtractorFile";
-    const VERSION: &'static str = "v1";
-}
-
 #[skip_serializing_none]
 #[derive(Serialize, Deserialize, Clone, Debug, Default)]
 #[serde(rename_all = "camelCase")]
@@ -55,6 +49,12 @@ impl ExtractorFileObject {
             ..Default::default()
         }
     }
+}
+
+impl WithView for ExtractorFileObject {
+    const SPACE: &'static str = "cdf_extraction_extensions";
+    const EXTERNAL_ID: &'static str = "CogniteExtractorFile";
+    const VERSION: &'static str = "v1";
 }
 
 impl From<CogniteExtractorFile> for NodeOrEdgeCreate<ExtractorFileObject> {

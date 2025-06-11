@@ -86,6 +86,15 @@ where
     }
 }
 
+impl<TProperties> WithView for CogniteExtendable<TProperties>
+where
+    TProperties: Serialize + DeserializeOwned + WithView + Send + Sync,
+{
+    const SPACE: &'static str = TProperties::SPACE;
+    const EXTERNAL_ID: &'static str = TProperties::EXTERNAL_ID;
+    const VERSION: &'static str = TProperties::VERSION;
+}
+
 impl<TProperties> WithInstance<TProperties> for CogniteExtendable<TProperties>
 where
     TProperties: Serialize + DeserializeOwned + Send + Sync,
