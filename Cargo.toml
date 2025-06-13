@@ -1,6 +1,8 @@
 [workspace]
-members = [
-    "cognite",
-    "cognite-codegen"
-]
+members = ["cognite", "cognite-codegen"]
 resolver = "2"
+
+[workspace.lints.rust]
+
+[workspace.lints.clippy]
+large_enum_variant = "allow"
