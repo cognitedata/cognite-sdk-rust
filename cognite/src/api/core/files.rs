@@ -19,6 +19,7 @@ impl WithBasePath for Files {
 impl FilterWithRequest<PartitionedFilter<FileFilter>, FileMetadata> for Files {}
 impl SearchItems<'_, FileFilter, FileSearch, FileMetadata> for Files {}
 impl RetrieveWithIgnoreUnknownIds<Identity, FileMetadata> for Files {}
+impl RetrieveWithIgnoreUnknownIds<IdentityOrInstance, FileMetadata> for Files {}
 impl Delete<Identity> for Files {}
 impl Update<Patch<PatchFile>, FileMetadata> for Files {}
 
