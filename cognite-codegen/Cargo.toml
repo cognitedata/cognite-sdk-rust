@@ -7,4 +7,4 @@ edition = "2021"
 workspace = true
 
 [dependencies]
-prost-build = "^0.13"
+prost-build = "^0.14"
