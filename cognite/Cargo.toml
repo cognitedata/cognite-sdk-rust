@@ -9,6 +9,9 @@ name = "cognite"
 publish = false
 version = "0.5.0"
 
+[lints]
+workspace = true
+
 [features]
 default = []
 integration_tests = []
