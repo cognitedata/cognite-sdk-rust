@@ -6,12 +6,6 @@ use super::{common::CogniteDescribable, CogniteExtendable, WithView};
 /// Represents a single unit of measurement.
 pub type CogniteUnit = CogniteExtendable<Unit>;
 
-impl WithView for CogniteUnit {
-    const SPACE: &'static str = "cdf_cdm";
-    const EXTERNAL_ID: &'static str = "CogniteUnit";
-    const VERSION: &'static str = "v1";
-}
-
 #[skip_serializing_none]
 #[derive(Serialize, Deserialize, Clone, Debug, Default)]
 #[serde(rename_all = "camelCase")]
@@ -28,4 +22,10 @@ pub struct Unit {
     pub source: Option<String>,
     /// Reference to the source of the unit definition.
     pub source_reference: Option<String>,
+}
+
+impl WithView for Unit {
+    const SPACE: &'static str = "cdf_cdm";
+    const EXTERNAL_ID: &'static str = "CogniteUnit";
+    const VERSION: &'static str = "v1";
 }

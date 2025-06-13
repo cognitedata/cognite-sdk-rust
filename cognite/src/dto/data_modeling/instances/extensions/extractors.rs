@@ -11,19 +11,13 @@ use super::{
 };
 
 /// A special data models instance type.
-pub type CogniteExtractorFile = CogniteExtendable<FileObject>;
-
-impl WithView for CogniteExtractorFile {
-    const SPACE: &'static str = "cdf_extraction_extensions";
-    const EXTERNAL_ID: &'static str = "CogniteExtractorFile";
-    const VERSION: &'static str = "v1";
-}
+pub type CogniteExtractorFile = CogniteExtendable<ExtractorFileObject>;
 
 #[skip_serializing_none]
 #[derive(Serialize, Deserialize, Clone, Debug, Default)]
 #[serde(rename_all = "camelCase")]
 /// The properties of the file object.
-pub struct FileObject {
+pub struct ExtractorFileObject {
     /// Name of the instance.
     #[serde(flatten)]
     pub description: CogniteDescribable,
@@ -48,17 +42,23 @@ pub struct FileObject {
     pub extracted_data: Option<HashMap<String, String>>,
 }
 
-impl FileObject {
+impl ExtractorFileObject {
     /// Create a new file object.
-    pub fn new() -> FileObject {
+    pub fn new() -> ExtractorFileObject {
         Self {
             ..Default::default()
         }
     }
 }
 
-impl From<CogniteExtractorFile> for NodeOrEdgeCreate<FileObject> {
-    fn from(value: CogniteExtractorFile) -> NodeOrEdgeCreate<FileObject> {
+impl WithView for ExtractorFileObject {
+    const SPACE: &'static str = "cdf_extraction_extensions";
+    const EXTERNAL_ID: &'static str = "CogniteExtractorFile";
+    const VERSION: &'static str = "v1";
+}
+
+impl From<CogniteExtractorFile> for NodeOrEdgeCreate<ExtractorFileObject> {
+    fn from(value: CogniteExtractorFile) -> NodeOrEdgeCreate<ExtractorFileObject> {
         value.instance()
     }
 }

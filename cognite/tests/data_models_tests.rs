@@ -10,8 +10,8 @@ use cognite::*;
 
 use common::*;
 use instances::{
-    CogniteExtractorFile, CogniteTimeseries, FileObject, NodeOrEdgeSpecification, SlimNodeOrEdge,
-    Timeseries,
+    CogniteExtractorFile, CogniteTimeseries, ExtractorFileObject, NodeOrEdgeSpecification,
+    SlimNodeOrEdge, Timeseries,
 };
 use uuid::Uuid;
 
@@ -64,7 +64,7 @@ async fn create_and_delete_file_instance() {
     let col = CogniteExtractorFile::new(
         space.to_string(),
         external_id.to_string(),
-        FileObject::new(),
+        ExtractorFileObject::new(),
     );
     let res = client
         .models
