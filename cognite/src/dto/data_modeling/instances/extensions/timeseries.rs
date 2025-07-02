@@ -22,12 +22,6 @@ pub enum TimeSeriesType {
     Numeric,
 }
 
-impl WithView for CogniteTimeseries {
-    const SPACE: &'static str = "cdf_cdm";
-    const EXTERNAL_ID: &'static str = "CogniteTimeSeries";
-    const VERSION: &'static str = "v1";
-}
-
 #[skip_serializing_none]
 #[derive(Serialize, Deserialize, Clone, Debug, Default)]
 #[serde(rename_all = "camelCase")]
@@ -61,6 +55,12 @@ impl Timeseries {
             ..Default::default()
         }
     }
+}
+
+impl WithView for Timeseries {
+    const SPACE: &'static str = "cdf_cdm";
+    const EXTERNAL_ID: &'static str = "CogniteTimeSeries";
+    const VERSION: &'static str = "v1";
 }
 
 impl From<CogniteTimeseries> for NodeOrEdgeCreate<Timeseries> {
