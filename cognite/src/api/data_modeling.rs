@@ -19,6 +19,7 @@ use self::containers::ContainersResource;
 use self::data_models::DataModelsResource;
 use self::spaces::SpacesResource;
 
+#[derive(Clone)]
 /// API resource for data modeling.
 pub struct Models {
     /// Data model instances (nodes and edges)
