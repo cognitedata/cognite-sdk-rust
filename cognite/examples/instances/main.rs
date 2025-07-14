@@ -9,7 +9,7 @@ use uuid::Uuid;
 
 #[tokio::main]
 async fn main() {
-    let client = CogniteClient::new_oidc("testing_instances", None).unwrap();
+    let client = CogniteClient::new_oidc("testing_instances", None, None).unwrap();
     let external_id = Uuid::new_v4().to_string();
     let space = std::env::var("CORE_DM_TEST_SPACE").unwrap();
     let col = CogniteExtractorFile::new(space.to_string(), external_id, ExtractorFileObject::new());

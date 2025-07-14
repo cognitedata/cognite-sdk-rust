@@ -2,6 +2,7 @@ use crate::IntoParams;
 use anyhow::anyhow;
 use bytes::Bytes;
 use futures::{TryStream, TryStreamExt};
+use http::HeaderMap;
 use prost::Message;
 use reqwest::header::{HeaderValue, CONTENT_LENGTH, CONTENT_TYPE};
 use reqwest::{Body, Response};
@@ -100,6 +101,7 @@ impl ApiClient {
     ) -> Result<impl TryStream<Ok = bytes::Bytes, Error = reqwest::Error>> {
         let r = RequestBuilder::<()>::get(self, url)
             .accept_raw()
+            .with_inner(|rb| rb.with_extension(HeaderMap::new()))
             .send()
             .await?;
         Ok(r.bytes_stream())

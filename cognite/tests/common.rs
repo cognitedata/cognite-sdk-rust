@@ -14,6 +14,7 @@ pub fn get_client() -> CogniteClient {
             max_retries: 5,
             ..Default::default()
         }),
+        None,
     )
     .unwrap()
 }

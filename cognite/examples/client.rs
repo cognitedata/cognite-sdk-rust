@@ -16,6 +16,7 @@ async fn main() {
             max_retries: 5,
             ..Default::default()
         }),
+        None,
     )
     .unwrap();
     // List all assets

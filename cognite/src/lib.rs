@@ -4,6 +4,7 @@ mod cognite_client;
 
 mod api;
 mod auth;
+mod custom_headers;
 mod dto;
 mod error;
 mod retry;
@@ -28,7 +29,7 @@ pub mod assets {
 }
 
 /// A time series consists of a sequence of data points connected to a single asset.
-/// For example, a water pump asset can have a temperature time series taht records a data point in
+/// For example, a water pump asset can have a temperature time series that records a data point in
 /// units of °C every second.
 pub mod time_series {
     pub use super::api::core::time_series::*;
@@ -174,6 +175,7 @@ pub mod filter {
 /// Middleware used by the cognite HTTP client.
 pub mod middleware {
     pub use crate::auth::AuthenticatorMiddleware;
+    pub use crate::custom_headers::CustomHeadersMiddleware;
     pub use crate::retry::CustomRetryMiddleware;
 }
 

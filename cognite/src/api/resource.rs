@@ -859,7 +859,7 @@ where
     ///
     /// The order of the returned values is not guaranteed to be in any way consistent.
     ///
-    /// # Arguemnts
+    /// # Arguments
     ///
     /// * `filter` - Filter which items to retrieve.
     /// * `num_partitions` - Number of partitions.

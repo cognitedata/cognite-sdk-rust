@@ -430,6 +430,7 @@ impl Files {
         let items = vec![id];
         let links = self.download_link(&items).await?;
         let link = links.first().unwrap();
+        println!("Downloading file with ID: {}", link.download_url);
         self.download(&link.download_url).await
     }
 }
