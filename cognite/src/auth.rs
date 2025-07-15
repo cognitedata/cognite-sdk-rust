@@ -17,6 +17,10 @@ pub struct AuthenticatorMiddleware {
 #[derive(Clone)]
 struct AuthenticatorFlag;
 
+#[derive(Clone)]
+/// This indicates whether or not the API call should skip authentication.
+pub struct SkipAuthentication;
+
 impl AuthenticatorMiddleware {
     /// Create a new authenticator middleware from an authenticator.
     ///
@@ -38,7 +42,9 @@ impl Middleware for AuthenticatorMiddleware {
     ) -> Result<Response> {
         // Since we are reusing the client, we want to avoid infinitely calling the authenticator recursively,
         // so we add a flag indicating that we have already called the authenticator in this chain.
-        if extensions.get::<AuthenticatorFlag>().is_none() {
+        if extensions.get::<AuthenticatorFlag>().is_none()
+            || extensions.get::<SkipAuthentication>().is_some()
+        {
             // Add the flag before we call the authenticator, this prevents the authenticator from
             // attempting to add headers to its own request, which would deadlock.
             extensions.insert(AuthenticatorFlag);

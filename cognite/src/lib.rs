@@ -4,7 +4,6 @@ mod cognite_client;
 
 mod api;
 mod auth;
-mod custom_headers;
 mod dto;
 mod error;
 mod retry;
@@ -175,7 +174,6 @@ pub mod filter {
 /// Middleware used by the cognite HTTP client.
 pub mod middleware {
     pub use crate::auth::AuthenticatorMiddleware;
-    pub use crate::custom_headers::CustomHeadersMiddleware;
     pub use crate::retry::CustomRetryMiddleware;
 }
 
