@@ -43,7 +43,7 @@ impl Middleware for AuthenticatorMiddleware {
         // Since we are reusing the client, we want to avoid infinitely calling the authenticator recursively,
         // so we add a flag indicating that we have already called the authenticator in this chain.
         if extensions.get::<AuthenticatorFlag>().is_none()
-            || extensions.get::<SkipAuthentication>().is_some()
+            && extensions.get::<SkipAuthentication>().is_none()
         {
             // Add the flag before we call the authenticator, this prevents the authenticator from
             // attempting to add headers to its own request, which would deadlock.
