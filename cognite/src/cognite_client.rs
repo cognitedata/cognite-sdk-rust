@@ -10,7 +10,6 @@ use crate::api::data_modeling::Models;
 use crate::api::iam::groups::GroupsResource;
 use crate::api::iam::sessions::SessionsResource;
 use crate::auth::AuthenticatorMiddleware;
-use crate::middleware::CustomHeadersMiddleware;
 use crate::retry::CustomRetryMiddleware;
 use crate::AuthHeaderManager;
 use crate::{
@@ -130,11 +129,7 @@ impl CogniteClient {
     /// * `COGNITE_RESOURCE`
     /// * `COGNITE_AUDIENCE`
     /// * `COGNITE_SCOPES`
-    pub fn new_oidc(
-        app_name: &str,
-        config: Option<ClientConfig>,
-        middleware: Option<Vec<Arc<dyn Middleware>>>,
-    ) -> Result<Self> {
+    pub fn new_oidc(app_name: &str, config: Option<ClientConfig>) -> Result<Self> {
         let api_base_url = env_or!(COGNITE_BASE_URL, "https://api.cognitedata.com/".to_string());
         let project_name = env_or_error!(COGNITE_PROJECT_NAME);
         let auth_config = AuthenticatorConfig {
@@ -147,14 +142,7 @@ impl CogniteClient {
             default_expires_in: None,
         };
 
-        CogniteClient::new_from_oidc(
-            &api_base_url,
-            auth_config,
-            &project_name,
-            app_name,
-            config,
-            middleware,
-        )
+        CogniteClient::new_from_oidc(&api_base_url, auth_config, &project_name, app_name, config)
     }
 
     /// Create a new cognite client, using a user-provided authentication manager.
@@ -206,9 +194,7 @@ impl CogniteClient {
                 config.initial_delay_ms.unwrap_or(125),
             ));
         }
-        builder = builder
-            .with(AuthenticatorMiddleware::new(authenticator)?)
-            .with(CustomHeadersMiddleware);
+        builder = builder.with(AuthenticatorMiddleware::new(authenticator)?);
         if let Some(mw) = middleware {
             for ware in mw {
                 builder = builder.with_arc(ware);
@@ -269,12 +255,11 @@ impl CogniteClient {
         project_name: &str,
         app_name: &str,
         config: Option<ClientConfig>,
-        middleware: Option<Vec<Arc<dyn Middleware>>>,
     ) -> Result<Self> {
         let authenticator = Authenticator::new(auth_config);
         let api_base_path = format!("{}/api/{}/projects/{}", api_base_url, "v1", project_name);
         let auth = AuthHeaderManager::OIDCToken(authenticator);
-        let client = Self::get_client(config.unwrap_or_default(), auth, None, middleware)?;
+        let client = Self::get_client(config.unwrap_or_default(), auth, None, None)?;
         let api_client = ApiClient::new(&api_base_path, app_name, client.clone());
 
         Self::new_internal(api_client)
