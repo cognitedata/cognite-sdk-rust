@@ -28,7 +28,7 @@ pub mod assets {
 }
 
 /// A time series consists of a sequence of data points connected to a single asset.
-/// For example, a water pump asset can have a temperature time series taht records a data point in
+/// For example, a water pump asset can have a temperature time series that records a data point in
 /// units of °C every second.
 pub mod time_series {
     pub use super::api::core::time_series::*;

@@ -1,4 +1,4 @@
-use crate::IntoParams;
+use crate::{IntoParams, SkipAuthentication};
 use anyhow::anyhow;
 use bytes::Bytes;
 use futures::{TryStream, TryStreamExt};
@@ -100,6 +100,7 @@ impl ApiClient {
     ) -> Result<impl TryStream<Ok = bytes::Bytes, Error = reqwest::Error>> {
         let r = RequestBuilder::<()>::get(self, url)
             .accept_raw()
+            .with_inner(|rb| rb.with_extension(SkipAuthentication))
             .send()
             .await?;
         Ok(r.bytes_stream())
