@@ -1,4 +1,4 @@
-use crate::{IntoParams, SkipAuthentication};
+use crate::IntoParams;
 use anyhow::anyhow;
 use bytes::Bytes;
 use futures::{TryStream, TryStreamExt};
@@ -99,8 +99,8 @@ impl ApiClient {
         url: &str,
     ) -> Result<impl TryStream<Ok = bytes::Bytes, Error = reqwest::Error>> {
         let r = RequestBuilder::<()>::get(self, url)
+            .omit_auth_headers()
             .accept_raw()
-            .with_inner(|rb| rb.with_extension(SkipAuthentication))
             .send()
             .await?;
         Ok(r.bytes_stream())
@@ -213,6 +213,7 @@ impl ApiClient {
         let bytes: Bytes = data.into();
         let mut b = RequestBuilder::<()>::put(self, url)
             .body(bytes)
+            .omit_auth_headers()
             .accept_nothing();
         if !mime_type.is_empty() {
             b = b
@@ -255,7 +256,9 @@ impl ApiClient {
         S::Error: Into<Box<dyn std::error::Error + Send + Sync + 'static>>,
         bytes::Bytes: From<S::Ok>,
     {
-        let mut b = RequestBuilder::<()>::put(self, url).accept_nothing();
+        let mut b = RequestBuilder::<()>::put(self, url)
+            .omit_auth_headers()
+            .accept_nothing();
         if !mime_type.is_empty() {
             b = b
                 .header(CONTENT_TYPE, HeaderValue::from_str(mime_type)?)
