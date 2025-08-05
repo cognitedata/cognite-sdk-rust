@@ -252,7 +252,7 @@ impl ApiClient {
         known_size: Option<u64>,
     ) -> Result<()>
     where
-        S: futures::TryStream + Send + Sync + 'static,
+        S: futures::TryStream + Send + 'static,
         S::Error: Into<Box<dyn std::error::Error + Send + Sync + 'static>>,
         bytes::Bytes: From<S::Ok>,
     {
