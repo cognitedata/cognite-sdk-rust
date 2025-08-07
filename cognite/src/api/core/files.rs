@@ -52,7 +52,7 @@ impl<'a> MultipartUploader<'a> {
     /// * `size` - Size of stream to upload.
     pub async fn upload_part_stream<S>(&self, part_no: usize, stream: S, size: u64) -> Result<()>
     where
-        S: futures::TryStream + Send + Sync + 'static,
+        S: futures::TryStream + Send + 'static,
         S::Error: Into<Box<dyn std::error::Error + Send + Sync>>,
         bytes::Bytes: From<S::Ok>,
     {
@@ -135,7 +135,7 @@ impl Files {
         stream_chunked: bool,
     ) -> Result<()>
     where
-        S: futures::TryStream + Send + Sync + 'static,
+        S: futures::TryStream + Send + 'static,
         S::Error: Into<Box<dyn std::error::Error + Send + Sync>>,
         bytes::Bytes: From<S::Ok>,
     {
@@ -178,7 +178,7 @@ impl Files {
         size: u64,
     ) -> Result<()>
     where
-        S: futures::TryStream + Send + Sync + 'static,
+        S: futures::TryStream + Send + 'static,
         S::Error: Into<Box<dyn std::error::Error + Send + Sync>>,
         bytes::Bytes: From<S::Ok>,
     {
