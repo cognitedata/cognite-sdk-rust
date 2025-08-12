@@ -99,6 +99,7 @@ impl ApiClient {
         url: &str,
     ) -> Result<impl TryStream<Ok = bytes::Bytes, Error = reqwest::Error>> {
         let r = RequestBuilder::<()>::get(self, url)
+            .omit_auth_headers()
             .accept_raw()
             .send()
             .await?;
@@ -212,6 +213,7 @@ impl ApiClient {
         let bytes: Bytes = data.into();
         let mut b = RequestBuilder::<()>::put(self, url)
             .body(bytes)
+            .omit_auth_headers()
             .accept_nothing();
         if !mime_type.is_empty() {
             b = b
@@ -250,11 +252,13 @@ impl ApiClient {
         known_size: Option<u64>,
     ) -> Result<()>
     where
-        S: futures::TryStream + Send + Sync + 'static,
+        S: futures::TryStream + Send + 'static,
         S::Error: Into<Box<dyn std::error::Error + Send + Sync + 'static>>,
         bytes::Bytes: From<S::Ok>,
     {
-        let mut b = RequestBuilder::<()>::put(self, url).accept_nothing();
+        let mut b = RequestBuilder::<()>::put(self, url)
+            .omit_auth_headers()
+            .accept_nothing();
         if !mime_type.is_empty() {
             b = b
                 .header(CONTENT_TYPE, HeaderValue::from_str(mime_type)?)

@@ -6,6 +6,7 @@ use serde::Serialize;
 
 use crate::ApiClient;
 use crate::Error;
+use crate::SkipAuthentication;
 use reqwest::{IntoUrl, Response};
 
 use crate::Result;
@@ -124,6 +125,14 @@ impl<'a, T> RequestBuilder<'a, T> {
             const { HeaderValue::from_static("application/protobuf") },
         );
         self.body(body.encode_to_vec())
+    }
+
+    /// Omit authentication headers in the request.
+    ///
+    /// This should be set before calling untrusted URLs.
+    pub fn omit_auth_headers(mut self) -> Self {
+        self.inner = self.inner.with_extension(SkipAuthentication);
+        self
     }
 
     /// Modify the inner request builder.

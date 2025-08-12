@@ -50,7 +50,7 @@ pub enum AuthHeaderManager {
 }
 
 impl AuthHeaderManager {
-    /// Set necesary headers in `headers`. This will sometimes request tokens from
+    /// Set necessary headers in `headers`. This will sometimes request tokens from
     /// the identity provider.
     ///
     /// # Arguments

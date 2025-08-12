@@ -37,6 +37,15 @@ impl<T> Resource<T> {
     }
 }
 
+impl<T> Clone for Resource<T> {
+    fn clone(&self) -> Self {
+        Self {
+            api_client: self.api_client.clone(),
+            marker: PhantomData,
+        }
+    }
+}
+
 impl<T> WithApiClient for Resource<T> {
     fn get_client(&self) -> &ApiClient {
         &self.api_client
@@ -868,7 +877,7 @@ where
     ///
     /// The order of the returned values is not guaranteed to be in any way consistent.
     ///
-    /// # Arguemnts
+    /// # Arguments
     ///
     /// * `filter` - Filter which items to retrieve.
     /// * `num_partitions` - Number of partitions.

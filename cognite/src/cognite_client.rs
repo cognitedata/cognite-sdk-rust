@@ -64,6 +64,7 @@ pub struct ClientConfig {
     pub initial_delay_ms: Option<u64>,
 }
 
+#[derive(Clone)]
 /// Client object for the CDF API.
 pub struct CogniteClient {
     /// Reference to an API client, which can let you make
