@@ -337,7 +337,7 @@ impl Files {
     fn create_multipart_upload(
         &self,
         res: FileUploadResult<MultiUploadUrls>,
-    ) -> Result<(MultipartUploader, FileMetadata)> {
+    ) -> Result<(MultipartUploader<'_>, FileMetadata)> {
         Ok((
             MultipartUploader::new(
                 self,
