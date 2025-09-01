@@ -110,6 +110,19 @@ async fn stream_responses_list() {
     }
 }
 
+#[test]
+fn test_resource_usage_send() {
+    fn assert_send<T: Send>(t: T) -> T {
+        t
+    }
+
+    let client = get_client();
+
+    // Assert that futures from `Resource` are still send.
+    let _ = assert_send(client.assets.list_all(AssetQuery::default()));
+    let _ = assert_send(client.time_series.list(None));
+}
+
 #[tokio::test]
 async fn test_no_auth_header_for_untrusted_urls() {
     let mock_server = MockServer::start().await;
