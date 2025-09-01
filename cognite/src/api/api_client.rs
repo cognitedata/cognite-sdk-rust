@@ -61,7 +61,7 @@ impl ApiClient {
     ///
     /// * `path` - Request path, without leading slash.
     pub async fn get<T: DeserializeOwned>(&self, path: &str) -> Result<T> {
-        RequestBuilder::<()>::get(self, format!("{}/{}", self.api_base_url, path))
+        RequestBuilder::get(self, format!("{}/{}", self.api_base_url, path))
             .accept_json()
             .send()
             .await
@@ -79,8 +79,8 @@ impl ApiClient {
         path: &str,
         params: Option<R>,
     ) -> Result<T> {
-        let mut b = RequestBuilder::<()>::get(self, format!("{}/{}", self.api_base_url, path))
-            .accept_json();
+        let mut b =
+            RequestBuilder::get(self, format!("{}/{}", self.api_base_url, path)).accept_json();
 
         if let Some(params) = params {
             b = b.query(&params.into_params());
@@ -98,7 +98,7 @@ impl ApiClient {
         &self,
         url: &str,
     ) -> Result<impl TryStream<Ok = bytes::Bytes, Error = reqwest::Error>> {
-        let r = RequestBuilder::<()>::get(self, url)
+        let r = RequestBuilder::get(self, url)
             .omit_auth_headers()
             .accept_raw()
             .send()
@@ -118,7 +118,7 @@ impl ApiClient {
         D: DeserializeOwned,
         S: Serialize,
     {
-        RequestBuilder::<()>::post(self, format!("{}/{}", self.api_base_url, path))
+        RequestBuilder::post(self, format!("{}/{}", self.api_base_url, path))
             .json(object)?
             .accept_json()
             .send()
@@ -127,22 +127,22 @@ impl ApiClient {
 
     /// Create a request builder for a `GET` request to `path`.
     pub fn get_request(&self, path: &str) -> RequestBuilder<'_, ()> {
-        RequestBuilder::<()>::get(self, format!("{}/{}", self.api_base_url, path))
+        RequestBuilder::get(self, format!("{}/{}", self.api_base_url, path))
     }
 
     /// Create a request builder for a `POST` request to `path`.
     pub fn post_request(&self, path: &str) -> RequestBuilder<'_, ()> {
-        RequestBuilder::<()>::post(self, format!("{}/{}", self.api_base_url, path))
+        RequestBuilder::post(self, format!("{}/{}", self.api_base_url, path))
     }
 
     /// Create a request builder for a `PUT` request to `path`.
     pub fn put_request(&self, path: &str) -> RequestBuilder<'_, ()> {
-        RequestBuilder::<()>::put(self, format!("{}/{}", self.api_base_url, path))
+        RequestBuilder::put(self, format!("{}/{}", self.api_base_url, path))
     }
 
     /// Create a request builder for a `Delete` request to `path`.
     pub fn delete_request(&self, path: &str) -> RequestBuilder<'_, ()> {
-        RequestBuilder::<()>::delete(self, format!("{}/{}", self.api_base_url, path))
+        RequestBuilder::delete(self, format!("{}/{}", self.api_base_url, path))
     }
 
     /// Perform a post request to the given path, with query parameters given by `params`.
@@ -211,7 +211,7 @@ impl ApiClient {
     /// * `data` - Data to upload.
     pub async fn put_blob(&self, url: &str, mime_type: &str, data: impl Into<Bytes>) -> Result<()> {
         let bytes: Bytes = data.into();
-        let mut b = RequestBuilder::<()>::put(self, url)
+        let mut b = RequestBuilder::put(self, url)
             .body(bytes)
             .omit_auth_headers()
             .accept_nothing();
@@ -256,7 +256,7 @@ impl ApiClient {
         S::Error: Into<Box<dyn std::error::Error + Send + Sync + 'static>>,
         bytes::Bytes: From<S::Ok>,
     {
-        let mut b = RequestBuilder::<()>::put(self, url)
+        let mut b = RequestBuilder::put(self, url)
             .omit_auth_headers()
             .accept_nothing();
         if !mime_type.is_empty() {
