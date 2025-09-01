@@ -23,7 +23,7 @@ pub struct RequestBuilder<'a, T = ()> {
     output: T,
 }
 
-impl<'a, T> RequestBuilder<'a, T> {
+impl<'a> RequestBuilder<'a, ()> {
     /// Create a POST request to `url`.
     ///
     /// # Arguments
@@ -79,7 +79,9 @@ impl<'a, T> RequestBuilder<'a, T> {
             output: (),
         }
     }
+}
 
+impl<'a, T> RequestBuilder<'a, T> {
     /// Add a header to the request.
     ///
     /// # Arguments

@@ -7,7 +7,7 @@ authors = [
 edition = "2021"
 name = "cognite"
 publish = false
-version = "0.5.2"
+version = "0.5.3"
 
 [lints]
 workspace = true
