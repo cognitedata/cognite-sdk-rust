@@ -6,7 +6,7 @@ use serde_with::skip_serializing_none;
 use crate::{to_query, IntoParams, SetCursor};
 
 #[derive(Serialize, Deserialize, Clone, Copy, Debug)]
-#[serde(rename_all = "snake_case")]
+#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 /// Session status.
 pub enum SessionStatus {
     /// Session is ready to be activated.
@@ -24,11 +24,11 @@ pub enum SessionStatus {
 impl Display for SessionStatus {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Self::Ready => write!(f, "ready"),
-            Self::Active => write!(f, "active"),
-            Self::Cancelled => write!(f, "cancelled"),
-            Self::Revoked => write!(f, "revoked"),
-            Self::AccessLost => write!(f, "access_lost"),
+            Self::Ready => write!(f, "READY"),
+            Self::Active => write!(f, "ACTIVE"),
+            Self::Cancelled => write!(f, "CANCELLED"),
+            Self::Revoked => write!(f, "REVOKED"),
+            Self::AccessLost => write!(f, "ACCESS_LOST"),
         }
     }
 }
