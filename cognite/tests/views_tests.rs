@@ -166,5 +166,15 @@ async fn test_retrieve_complex_view() {
         c
     );
     assert_eq!(prop.name, Some("Activities".to_string()));
-    assert!(prop.targets_list);
+    assert!(prop.targets_list.unwrap_or_default());
+
+    // Check that a list direct relation looks good.
+    let prop = assert_is!(
+        view.properties.get("assets"),
+        Some(ViewDefinitionProperties::ViewCorePropertyDefinition(v)),
+        v
+    );
+    assert_eq!(prop.name, Some("Assets".to_string()));
+    let ty = assert_is!(&prop.r#type, ViewCorePropertyType::Direct(v), v);
+    assert!(ty.list);
 }
