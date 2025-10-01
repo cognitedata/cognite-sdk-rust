@@ -383,7 +383,7 @@ pub struct InstancesFilterResponse<TProperties> {
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
-#[serde(rename_all = "camelCase")]
+#[serde(rename_all = "camelCase", rename_all_fields = "camelCase")]
 /// Requested aggregate on instances.
 pub enum InstancesAggregate {
     /// Average of values of specified property.
@@ -451,7 +451,7 @@ pub struct AggregateInstancesRequest {
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
-#[serde(rename_all = "camelCase", untagged)]
+#[serde(untagged)]
 /// Value of an aggregate group.
 pub enum AggregateGroupValue {
     /// String value.
@@ -493,7 +493,7 @@ pub struct HistogramBucket {
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
-#[serde(rename_all = "camelCase")]
+#[serde(rename_all = "camelCase", rename_all_fields = "camelCase")]
 /// Result item in instances aggregate response.
 pub enum AggregateResult {
     /// Result of average aggregate.

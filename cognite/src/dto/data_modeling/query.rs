@@ -119,7 +119,7 @@ pub struct QueryEdgeTableExpression {
 
 #[skip_serializing_none]
 #[derive(Serialize, Deserialize, Clone, Debug)]
-#[serde(rename_all = "camelCase", untagged)]
+#[serde(untagged, rename_all_fields = "camelCase")]
 /// Composite query performing operations on other result sets.
 pub enum QuerySetOperationTableExpression {
     /// Return the union of the specified result sets. May return duplicate results.
@@ -154,7 +154,7 @@ pub enum QuerySetOperationTableExpression {
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
-#[serde(rename_all = "camelCase", untagged)]
+#[serde(untagged)]
 /// Element of a query set operation. Either another query set, or a reference
 /// to a different query.
 pub enum QuerySetOrString {
@@ -165,7 +165,7 @@ pub enum QuerySetOrString {
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
-#[serde(rename_all = "camelCase", untagged)]
+#[serde(untagged)]
 /// Expression for querying instances.
 pub enum QueryTableExpression {
     /// Query nodes.

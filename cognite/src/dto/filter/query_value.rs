@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
-#[serde(rename_all = "camelCase", untagged)]
+#[serde(untagged)]
 /// Raw filter value.
 pub enum RawValue {
     /// String value.
@@ -37,7 +37,7 @@ pub struct ReferencedPropertyValue {
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
-#[serde(rename_all = "camelCase", untagged)]
+#[serde(untagged)]
 /// Value used in complex queries.
 pub enum QueryValue {
     /// Parameterized value.

@@ -43,7 +43,7 @@ pub struct SyntheticDataError {
 
 #[skip_serializing_none]
 #[derive(Serialize, Deserialize, Debug, Clone)]
-#[serde(rename_all = "camelCase", untagged)]
+#[serde(untagged)]
 /// Synthetic data point or error.
 pub enum SyntheticDataPoint {
     /// A synthetic value.

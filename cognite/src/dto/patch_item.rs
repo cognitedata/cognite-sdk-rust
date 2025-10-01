@@ -57,7 +57,7 @@ pub trait IntoPatch<TPatch> {
 
 #[skip_serializing_none]
 #[derive(Serialize, Deserialize, Debug, Clone)]
-#[serde(rename_all = "camelCase", untagged)]
+#[serde(untagged, rename_all_fields = "camelCase")]
 /// Update the value of an item, or set it to null.
 pub enum UpdateSetNull<T> {
     /// Set a new value.
@@ -65,7 +65,6 @@ pub enum UpdateSetNull<T> {
         /// New value to set.
         set: T,
     },
-    #[serde(rename_all = "camelCase")]
     /// Set the value to null.
     SetNull {
         /// Whether to set the value to null, or leave it unmodified.
@@ -137,7 +136,7 @@ impl<T> IntoPatchItem<UpdateSet<T>> for T {
 
 #[skip_serializing_none]
 #[derive(Serialize, Deserialize, Debug, Clone)]
-#[serde(rename_all = "camelCase", untagged)]
+#[serde(untagged, rename_all_fields = "camelCase")]
 /// Update the value of a list item, adding and removing or setting the values.
 pub enum UpdateList<TAdd, TRemove> {
     /// Add new values and remove old values.
@@ -225,7 +224,7 @@ impl<TAdd, TRemove> IntoPatchItem<UpdateList<TAdd, TRemove>> for Option<Vec<TAdd
 
 #[skip_serializing_none]
 #[derive(Serialize, Deserialize, Debug, Clone)]
-#[serde(rename_all = "camelCase", untagged)]
+#[serde(untagged, rename_all_fields = "camelCase")]
 /// Update a map from `TKey` to `TValue`, adding and removing or setting the values.
 pub enum UpdateMap<TKey, TValue>
 where

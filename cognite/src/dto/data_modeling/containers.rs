@@ -55,7 +55,11 @@ pub struct DirectNodeRelationType {
 
 #[skip_serializing_none]
 #[derive(Serialize, Deserialize, Clone, Debug)]
-#[serde(rename_all = "camelCase", tag = "constraintType")]
+#[serde(
+    rename_all = "camelCase",
+    rename_all_fields = "camelCase",
+    tag = "constraintType"
+)]
 /// Constraint on a container.
 pub enum ContainerConstraint {
     /// In order to have values in this container,
@@ -74,7 +78,11 @@ pub enum ContainerConstraint {
 
 #[skip_serializing_none]
 #[derive(Serialize, Deserialize, Clone, Debug)]
-#[serde(rename_all = "camelCase", tag = "indexType")]
+#[serde(
+    rename_all = "camelCase",
+    rename_all_fields = "camelCase",
+    tag = "indexType",
+)]
 /// Index on a container.
 pub enum ContainerIndex {
     /// BTree index on a set of properties

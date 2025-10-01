@@ -30,7 +30,7 @@ pub struct AggregateProperty {
 
 #[skip_serializing_none]
 #[derive(Serialize, Deserialize, Debug, Clone)]
-#[serde(rename_all = "camelCase", untagged)]
+#[serde(untagged, rename_all_fields = "camelCase")]
 /// Variants of the `count` aggregate on assets.
 pub enum AssetAggregateCount {
     /// Count the number of assets with a given property (non-null),
@@ -113,7 +113,7 @@ pub struct AggregatedProperty {
 
 #[skip_serializing_none]
 #[derive(Serialize, Deserialize, Debug, Clone)]
-#[serde(rename_all = "camelCase", untagged)]
+#[serde(untagged, rename_all_fields = "camelCase")]
 /// Response for an asset aggregation request. The type of result depends
 /// on the requested aggregate.
 pub enum AssetAggregateResponse {
