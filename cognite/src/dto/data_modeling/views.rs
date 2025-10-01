@@ -191,9 +191,12 @@ impl From<ViewCorePropertyDefinition> for CreateViewProperty {
         Self {
             name: value.name,
             description: value.description,
-            container: value.container.clone(),
+            container: value.container,
             container_property_identifier: value.container_property_identifier,
-            source: None,
+            source: match value.r#type {
+                ViewCorePropertyType::Direct(v) => v.source,
+                _ => None,
+            },
         }
     }
 }
@@ -311,7 +314,7 @@ pub enum ConstraintOrIndexState {
 /// State of constraints on a property.
 pub struct ViewConstraintState {
     /// Status of nullability on properties with isNullable set to false.
-    nullability: Option<ConstraintOrIndexState>,
+    pub nullability: Option<ConstraintOrIndexState>,
 }
 
 #[skip_serializing_none]
