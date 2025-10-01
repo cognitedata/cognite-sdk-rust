@@ -81,7 +81,7 @@ pub enum ContainerConstraint {
 #[serde(
     rename_all = "camelCase",
     rename_all_fields = "camelCase",
-    tag = "indexType",
+    tag = "indexType"
 )]
 /// Index on a container.
 pub enum ContainerIndex {
