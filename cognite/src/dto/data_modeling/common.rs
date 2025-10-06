@@ -109,7 +109,7 @@ pub enum UsedFor {
 }
 
 #[skip_serializing_none]
-#[derive(Serialize, Deserialize, Derivative, Clone, Debug)]
+#[derive(Default, Serialize, Deserialize, Derivative, Clone, Debug)]
 #[serde(rename_all = "camelCase")]
 /// Description of a text property.
 pub struct TextProperty {
@@ -118,16 +118,37 @@ pub struct TextProperty {
     pub list: Option<bool>,
     /// Optional text collation.
     pub collation: Option<String>,
+    /// Maximum allowed length of the list.
+    pub max_list_size: Option<i32>,
+    /// Maximum allowed size of each text entry, as utf-8 bytes.
+    pub max_text_size: Option<i32>,
 }
 
 #[skip_serializing_none]
 #[derive(Serialize, Deserialize, Derivative, Clone, Debug)]
+#[serde(rename_all = "camelCase")]
+/// Reference to a unit in the Cognite unit catalog.
+pub struct UnitReference {
+    /// The external ID of the unit in the Cognite unit catalog.
+    pub external_id: String,
+    /// The value of the unit in the source.
+    pub source_unit: Option<String>,
+}
+
+#[skip_serializing_none]
+#[derive(Default, Serialize, Deserialize, Derivative, Clone, Debug)]
 #[serde(rename_all = "camelCase")]
 /// Description of a primitive property
 pub struct PrimitiveProperty {
     #[derivative(Default(value = "false"))]
     /// Whether this is a list or not.
     pub list: Option<bool>,
+    /// The unit of the data stored in this property.
+    /// Can only be assigned to types float32 or float64,
+    /// external ID needs to match with a unit in the Cognite unit catalog.
+    pub unit: Option<UnitReference>,
+    /// Maximum allowed length of the list.
+    pub max_list_size: Option<i32>,
 }
 
 #[skip_serializing_none]
@@ -160,6 +181,8 @@ pub struct CDFExternalIdReference {
     #[derivative(Default(value = "false"))]
     /// Whether this is a list or not.
     pub list: Option<bool>,
+    /// Maximum allowed length of the list.
+    pub max_list_size: Option<i32>,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, Default)]
