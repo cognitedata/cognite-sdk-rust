@@ -6,8 +6,8 @@ use serde_with::skip_serializing_none;
 
 use crate::{
     models::{
-        CDFExternalIdReference, PrimitiveProperty, SourceReference, TaggedContainerReference,
-        TaggedViewReference, TextProperty, UsedFor,
+        CDFExternalIdReference, PrimitiveProperty, TaggedContainerReference, TaggedViewReference,
+        TextProperty, UsedFor,
     },
     to_query, AdvancedFilter, IntoParams, RawValue, SetCursor,
 };
@@ -118,7 +118,7 @@ pub struct ViewCreateDefinition {
     /// Filter for instances included in this view.
     pub filter: Option<AdvancedFilter>,
     /// List of views this view implements.
-    pub implements: Option<Vec<ViewReference>>,
+    pub implements: Option<Vec<TaggedViewReference>>,
     /// Whether this view should be used for nodes, edges, or both.
     pub used_for: Option<UsedFor>,
     /// View version.
@@ -183,7 +183,7 @@ pub struct CreateViewProperty {
     /// The unique identifier for the property (Unique within the referenced container).
     pub container_property_identifier: String,
     /// Indicates what type a referenced direct relation is expected to be.
-    pub source: Option<SourceReference>,
+    pub source: Option<TaggedViewReference>,
 }
 
 impl From<ViewCorePropertyDefinition> for CreateViewProperty {
@@ -191,9 +191,12 @@ impl From<ViewCorePropertyDefinition> for CreateViewProperty {
         Self {
             name: value.name,
             description: value.description,
-            container: value.container.clone(),
+            container: value.container,
             container_property_identifier: value.container_property_identifier,
-            source: None,
+            source: match value.r#type {
+                ViewCorePropertyType::Direct(v) => v.source,
+                _ => None,
+            },
         }
     }
 }
@@ -232,7 +235,7 @@ pub struct ReverseDirectRelationConnection {
     /// Which property this connection uses.
     pub through: SourcePropertyReference,
     /// Whether this relation targets a list of direct relations.
-    pub targets_list: bool,
+    pub targets_list: Option<bool>,
 }
 
 #[skip_serializing_none]
@@ -267,7 +270,7 @@ pub struct ViewDefinition {
     /// Filter for instances in view.
     pub filter: Option<AdvancedFilter>,
     /// List of views this view implements.
-    pub implements: Option<Vec<ViewReference>>,
+    pub implements: Option<Vec<TaggedViewReference>>,
     /// Version of view.
     pub version: String,
     /// Time this view was created, in milliseconds since epoch.
@@ -292,6 +295,26 @@ pub enum ViewDefinitionProperties {
     ViewCorePropertyDefinition(ViewCorePropertyDefinition),
     /// A connection to a view.
     ConnectionDefinition(ConnectionDefinition),
+}
+
+#[derive(Serialize, Deserialize, Derivative, Clone, Debug, Copy)]
+#[serde(rename_all = "camelCase")]
+/// Validity state of a constraint or index.
+pub enum ConstraintOrIndexState {
+    /// The constraint is violated.
+    Failed,
+    /// The constraint is currently satisfied.
+    Current,
+    /// The constraint is pending validation.
+    Pending,
+}
+
+#[derive(Serialize, Deserialize, Derivative, Clone, Debug, Default)]
+#[serde(rename_all = "camelCase")]
+/// State of constraints on a property.
+pub struct ViewConstraintState {
+    /// Status of nullability on properties with isNullable set to false.
+    pub nullability: Option<ConstraintOrIndexState>,
 }
 
 #[skip_serializing_none]
@@ -319,6 +342,9 @@ pub struct ViewCorePropertyDefinition {
     #[serde(default)]
     /// Whether this property is immutable.
     pub immutable: bool,
+    #[serde(default)]
+    /// State of constraints on this property.
+    pub constraint_state: ViewConstraintState,
 }
 
 #[derive(Serialize, Deserialize, Derivative, Clone, Debug)]
@@ -365,4 +391,9 @@ pub struct ViewDirectNodeRelation {
     pub container: Option<TaggedContainerReference>,
     /// Hint showing the view that the direct relation points to.
     pub source: Option<TaggedViewReference>,
+    #[serde(default)]
+    /// Whether this property is a list.
+    pub list: bool,
+    /// Maximum number of items in the list, if this is a list property.
+    pub max_list_size: Option<i32>,
 }

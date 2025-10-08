@@ -41,10 +41,7 @@ async fn create_retrieve_delete_container() {
                 default_value: None,
                 description: None,
                 auto_increment: None,
-                r#type: ContainerPropertyType::Text(TextProperty {
-                    list: None,
-                    collation: None,
-                }),
+                r#type: ContainerPropertyType::Text(TextProperty::default()),
             },
         )]),
     };
