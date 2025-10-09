@@ -18,7 +18,7 @@ pub struct AggregateProperty {
 
 #[skip_serializing_none]
 #[derive(Serialize, Deserialize, Debug, Clone)]
-#[serde(rename_all = "camelCase", untagged)]
+#[serde(untagged, rename_all_fields = "camelCase")]
 /// Variants of the `count` aggregate on events.
 pub enum EventAggregateCount {
     /// Count the number of events with a given property (non-null),
@@ -101,7 +101,7 @@ pub struct AggregatedProperty {
 
 #[skip_serializing_none]
 #[derive(Serialize, Deserialize, Debug, Clone)]
-#[serde(rename_all = "camelCase", untagged)]
+#[serde(untagged, rename_all_fields = "camelCase")]
 /// Response for an event aggregation request. The type of result depends
 /// on the requested aggregate.
 pub enum EventAggregateResponse {

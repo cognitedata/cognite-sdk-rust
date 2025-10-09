@@ -7,8 +7,7 @@ use crate::{
 };
 
 #[derive(Serialize, Deserialize, Debug, Hash, PartialEq, Eq, Clone)]
-#[serde(rename_all = "camelCase")]
-#[serde(untagged)]
+#[serde(untagged, rename_all_fields = "camelCase")]
 /// An Identity represents a CDF resource either by internal ID or external ID.
 pub enum Identity {
     /// Identity by CDF internal ID.
@@ -16,7 +15,6 @@ pub enum Identity {
         /// Numerical internal ID.
         id: i64,
     },
-    #[serde(rename_all = "camelCase")]
     /// Identity by CDF external ID.
     ExternalId {
         /// External ID, unique for the given resource.

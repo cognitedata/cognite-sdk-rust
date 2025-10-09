@@ -82,7 +82,7 @@ pub struct Session {
 }
 
 #[derive(Serialize, Deserialize, Clone)]
-#[serde(untagged, rename_all = "camelCase")]
+#[serde(untagged, rename_all_fields = "camelCase")]
 /// Create a new session.
 pub enum AddSession {
     /// Create a session using client credentials.

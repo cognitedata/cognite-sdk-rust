@@ -9,7 +9,7 @@ mod aggregate;
 pub use aggregate::*;
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
-#[serde(rename_all = "camelCase")]
+#[serde(rename_all = "camelCase", rename_all_fields = "camelCase")]
 #[skip_serializing_none]
 /// Advanced filter. The `filter` module contains useful tools for
 /// building filters.

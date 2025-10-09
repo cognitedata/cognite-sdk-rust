@@ -15,7 +15,6 @@ pub struct ApiErrorWrapper {
 }
 
 #[derive(Serialize, Deserialize, Debug)]
-#[serde(rename_all = "camelCase")]
 #[serde(untagged)]
 /// Value that is either an integer or a string.
 pub enum IntegerStringOrObject {

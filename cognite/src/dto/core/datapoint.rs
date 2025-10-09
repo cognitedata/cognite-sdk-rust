@@ -22,7 +22,6 @@ use crate::IdentityOrInstance;
 
 #[derive(Serialize, Debug, Clone)]
 #[serde(untagged)]
-#[serde(rename_all = "camelCase")]
 /// Enumeration over different types of retrieved data points.
 pub enum DatapointsEnumType {
     /// Datapoints with double precision floating point values.

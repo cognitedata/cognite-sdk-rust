@@ -29,7 +29,7 @@ pub enum RelationshipVertexType {
 }
 
 #[derive(Serialize, Deserialize, Debug)]
-#[serde(rename_all = "camelCase", untagged)]
+#[serde(untagged)]
 /// The vertex of a relationship, with the referenced data.
 pub enum RelationshipVertex {
     /// Asset vertex.

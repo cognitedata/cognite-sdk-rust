@@ -70,7 +70,7 @@ impl SetCursor for ViewQuery {
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
-#[serde(rename_all = "camelCase", untagged)]
+#[serde(untagged)]
 /// Create a view or reference an existing view.
 pub enum ViewCreateOrReference {
     /// Create a new view.
@@ -89,7 +89,7 @@ impl From<ViewDefinitionOrReference> for ViewCreateOrReference {
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
-#[serde(rename_all = "camelCase", untagged)]
+#[serde(untagged)]
 /// A reference to an existing view, or a definition for a newly created view.
 pub enum ViewDefinitionOrReference {
     /// Definition for a newly created view.

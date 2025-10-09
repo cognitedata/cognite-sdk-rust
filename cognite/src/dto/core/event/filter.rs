@@ -152,7 +152,7 @@ impl WithPartition for EventQuery {
 
 #[skip_serializing_none]
 #[derive(Serialize, Deserialize, Debug, Clone)]
-#[serde(rename_all = "camelCase", untagged)]
+#[serde(untagged, rename_all_fields = "camelCase")]
 /// Filter with a range, or by whether the value is null.
 pub enum RangeOrIsNull {
     /// Filter by a range of values.
