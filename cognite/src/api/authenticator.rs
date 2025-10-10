@@ -15,7 +15,8 @@ use thiserror::Error;
 type CustomAuthCallback =
     dyn Fn(&mut HeaderMap, &ClientWithMiddleware) -> Result<(), AuthenticatorError> + Send + Sync;
 
-#[async_trait]
+#[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
+#[cfg_attr(not(target_arch = "wasm32"), async_trait)]
 /// Trait for a custom authenticator. This should set the necessary headers in `headers` before each
 /// request. Note that this may be called from multiple places in parallel.
 pub trait CustomAuthenticator {
