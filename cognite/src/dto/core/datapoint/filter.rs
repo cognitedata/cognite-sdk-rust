@@ -48,7 +48,7 @@ pub enum Aggregate {
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
-#[serde(rename_all = "camelCase", untagged)]
+#[serde(untagged)]
 /// Either a timestamp in milliseconds since epoch, or a timestamp on the form
 /// `N[timeunit]-ago` where timeunit is `w`,`d`,`h`,`m`,`s`. Example: '2d-ago'
 /// gets datapoints that are up to 2 days old. You can also specify time

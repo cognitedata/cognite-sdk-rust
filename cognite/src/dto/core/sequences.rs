@@ -10,17 +10,14 @@ use std::collections::HashMap;
 use super::common::CoreSortItem;
 
 #[derive(Serialize, Deserialize, Debug, Clone, Copy, Default)]
-#[serde(rename_all = "camelCase")]
+#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 /// Type of sequence value.
 pub enum SequenceValueType {
-    #[serde(rename = "DOUBLE")]
     #[default]
     /// Double precision floating point.
     Double,
-    #[serde(rename = "STRING")]
     /// String.
     String,
-    #[serde(rename = "LONG")]
     /// 64-bit integer.
     Long,
 }
@@ -307,7 +304,6 @@ pub struct SequenceSearch {
 }
 
 #[derive(Serialize, Deserialize, Debug)]
-#[serde(rename_all = "camelCase")]
 #[serde(untagged)]
 /// Value of a sequence row.
 pub enum SequenceRowValue {

@@ -343,7 +343,6 @@ pub struct RecordsAggregateRequest {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
-#[serde(rename_all = "camelCase")]
 #[serde(untagged)]
 /// The value of a multivalued aggregate.
 pub enum AggregateValue {
