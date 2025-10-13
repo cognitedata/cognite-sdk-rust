@@ -290,24 +290,31 @@ impl<'a> DatapointsStream<'a> {
                 let mut res = Vec::new();
 
                 for item in batch.items {
+                    let timeseries = state
+                        .known_timeseries
+                        .get(&item.id)
+                        .ok_or_else(|| {
+                            crate::Error::Other(format!(
+                                "Internal logic error: timeseries with id {} not found in known_timeseries",
+                                item.id
+                            ))
+                        })?
+                        .clone();
                     match item.datapoint_type {
                         None => continue,
                         Some(ListDatapointType::AggregateDatapoints(dps)) => {
-                            let timeseries = state.known_timeseries.get(&item.id).unwrap().clone();
                             res.extend(dps.datapoints.into_iter().map(move |dp| DataPointRef {
                                 timeseries: timeseries.clone(),
                                 datapoint: EitherDataPoint::Aggregate(dp.into()),
                             }));
                         }
                         Some(ListDatapointType::StringDatapoints(dps)) => {
-                            let timeseries = state.known_timeseries.get(&item.id).unwrap().clone();
                             res.extend(dps.datapoints.into_iter().map(move |dp| DataPointRef {
                                 timeseries: timeseries.clone(),
                                 datapoint: EitherDataPoint::String(dp.into()),
                             }));
                         }
                         Some(ListDatapointType::NumericDatapoints(dps)) => {
-                            let timeseries = state.known_timeseries.get(&item.id).unwrap().clone();
                             res.extend(dps.datapoints.into_iter().map(move |dp| DataPointRef {
                                 timeseries: timeseries.clone(),
                                 datapoint: EitherDataPoint::Numeric(dp.into()),
