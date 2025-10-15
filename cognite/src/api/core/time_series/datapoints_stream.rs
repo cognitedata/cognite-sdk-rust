@@ -13,7 +13,7 @@ use crate::{
         DatapointString, DatapointsFilter, DatapointsQuery, InstanceId, ListDatapointType,
         TimeSeriesResource,
     },
-    IdentityOrInstance,
+    Identity, IdentityOrInstance,
 };
 
 /// A datapoint of either type.
@@ -219,6 +219,19 @@ impl<'a> DatapointsStream<'a> {
         );
     }
 
+    fn equals_identity(id: &IdentityOrInstance, response_item: &DataPointListItem) -> bool {
+        match id {
+            IdentityOrInstance::Identity(Identity::Id { id }) => response_item.id == *id,
+            IdentityOrInstance::Identity(Identity::ExternalId { external_id }) => {
+                response_item.external_id == *external_id
+            }
+            IdentityOrInstance::InstanceId { instance_id } => response_item
+                .instance_id
+                .as_ref()
+                .is_some_and(|i| i == instance_id),
+        }
+    }
+
     async fn stream_batches_inner(
         &mut self,
         maintain_internal_state: bool,
@@ -247,14 +260,31 @@ impl<'a> DatapointsStream<'a> {
             // No more requests in flight, we're done.
             return Ok(None);
         };
-
         let mut fetch_result = result?;
+        let mut query_iter = fetch_result.query_items.into_iter();
+
         // Update queries from the result, then re-queue them.
-        for (mut query, response_item) in fetch_result
-            .query_items
-            .drain(..)
-            .zip(fetch_result.response.items.iter_mut())
-        {
+        for response_item in &mut fetch_result.response.items {
+            // Datapoints are returned in order, so we check if the next query has an ID matching the
+            // response item. If not, we keep going until we find it.
+            let Some(mut query) = query_iter.next() else {
+                return Err(crate::Error::Other(
+                    "Internal logic error: more response items than query items".to_string(),
+                ));
+            };
+
+            while !Self::equals_identity(&query.id, response_item) {
+                // This query had no datapoints in the response, so we don't need to do anything
+                // special with it. Just move on to the next one.
+                let Some(next_query) = query_iter.next() else {
+                    return Err(crate::Error::Other(
+                        "Internal logic error: response item does not match any query item"
+                            .to_string(),
+                    ));
+                };
+                query = next_query;
+            }
+
             // If we're maintaining internal state, record information about
             // the timeseries we've seen.
             if maintain_internal_state {
