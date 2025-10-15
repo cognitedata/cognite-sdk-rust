@@ -357,26 +357,24 @@ async fn create_retrieve_double_datapoints_with_status() {
     delete_test_ts(&client, ts.id).await;
 }
 
-#[tokio::test]
-async fn stream_datapoints() {
+async fn stream_test_timeseries(client: &CogniteClient, idx: i32) -> (TimeSeries, TimeSeries) {
     use std::time::{SystemTime, UNIX_EPOCH};
 
     let start = SystemTime::now();
     let since_the_epoch = start.duration_since(UNIX_EPOCH).unwrap();
+
     // Put the start sometime in the past...
     let start = since_the_epoch.as_millis() as i64 - 1_000_000;
 
-    let client = get_client();
-
     let ts = vec![
         AddTimeSeries {
-            external_id: Some(format!("{}-ts-stream-1", PREFIX.as_str())),
+            external_id: Some(format!("{}-ts-stream-{idx}-1", PREFIX.as_str())),
             is_string: false,
             name: Some(format!("Test ts stream 1")),
             ..Default::default()
         },
         AddTimeSeries {
-            external_id: Some(format!("{}-ts-stream-2", PREFIX.as_str())),
+            external_id: Some(format!("{}-ts-stream-{idx}-2", PREFIX.as_str())),
             is_string: true,
             name: Some(format!("Test ts stream 2")),
             ..Default::default()
@@ -419,6 +417,15 @@ async fn stream_datapoints() {
         ])
         .await
         .unwrap();
+
+    (ts1.clone(), ts2.clone())
+}
+
+#[tokio::test]
+async fn stream_datapoints() {
+    let client = get_client();
+
+    let (ts1, ts2) = stream_test_timeseries(&client, 1).await;
 
     // Stream them back
     let streamed = client
@@ -480,66 +487,9 @@ async fn stream_datapoints() {
 
 #[tokio::test]
 async fn stream_datapoints_ignore_missing() {
-    use std::time::{SystemTime, UNIX_EPOCH};
-
-    let start = SystemTime::now();
-    let since_the_epoch = start.duration_since(UNIX_EPOCH).unwrap();
-    // Put the start sometime in the past...
-    let start = since_the_epoch.as_millis() as i64 - 1_000_000;
-
     let client = get_client();
 
-    let ts = vec![
-        AddTimeSeries {
-            external_id: Some(format!("{}-ts-stream-3", PREFIX.as_str())),
-            is_string: false,
-            name: Some(format!("Test ts stream 3")),
-            ..Default::default()
-        },
-        AddTimeSeries {
-            external_id: Some(format!("{}-ts-stream-4", PREFIX.as_str())),
-            is_string: true,
-            name: Some(format!("Test ts stream 4")),
-            ..Default::default()
-        },
-    ];
-
-    let timeseries = client.time_series.create(&ts).await.unwrap();
-    let ts1 = &timeseries[0];
-    let ts2 = &timeseries[1];
-
-    let client = get_client();
-    // Create 50 dps in each timeseries
-    client
-        .time_series
-        .insert_datapoints(vec![
-            AddDatapoints {
-                id: ts1.id.into(),
-                datapoints: DatapointsEnumType::NumericDatapoints(
-                    (0..50)
-                        .map(|i| DatapointDouble {
-                            timestamp: start + i * 1000,
-                            value: Some(i as f64),
-                            status: None,
-                        })
-                        .collect(),
-                ),
-            },
-            AddDatapoints {
-                id: ts2.id.into(),
-                datapoints: DatapointsEnumType::StringDatapoints(
-                    (0..50)
-                        .map(|i| DatapointString {
-                            timestamp: start + i * 1000,
-                            value: Some(format!("{i}-dp")),
-                            status: None,
-                        })
-                        .collect(),
-                ),
-            },
-        ])
-        .await
-        .unwrap();
+    let (ts1, ts2) = stream_test_timeseries(&client, 2).await;
 
     // Stream them back
     let streamed = client
