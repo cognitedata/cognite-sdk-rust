@@ -124,3 +124,67 @@ async fn create_and_delete_missing() {
         .await
         .unwrap();
 }
+
+#[tokio::test]
+async fn timeseries_latest_datapoint() {
+    let id = format!("{}-latest-ts1", PREFIX.as_str());
+    let time_serie = TimeSeries {
+        name: Some("name".to_string()),
+        external_id: Some(id.clone()),
+        is_string: false,
+        ..Default::default()
+    };
+    let client = get_client();
+    client
+        .time_series
+        .create_from(&vec![time_serie])
+        .await
+        .unwrap();
+    client
+        .time_series
+        .insert_datapoints(vec![AddDatapoints {
+            id: id.clone().into(),
+            datapoints: DatapointsEnumType::NumericDatapoints(vec![
+                DatapointDouble {
+                    timestamp: 1000000,
+                    value: Some(0.5),
+                    status: None,
+                },
+                DatapointDouble {
+                    timestamp: 2000000,
+                    value: Some(1.5),
+                    status: None,
+                },
+            ]),
+        }])
+        .await
+        .unwrap();
+
+    let latest = client
+        .time_series
+        .retrieve_latest_datapoints(
+            &[LatestDatapointsQuery {
+                id: id.clone().into(),
+                ..Default::default()
+            }],
+            false,
+        )
+        .await
+        .unwrap();
+    assert_eq!(latest.len(), 1);
+    assert_eq!(
+        latest[0]
+            .datapoint
+            .as_ref()
+            .unwrap()
+            .numeric()
+            .unwrap()
+            .value,
+        Some(1.5)
+    );
+    client
+        .time_series
+        .delete(&[id.clone().into()], true)
+        .await
+        .unwrap();
+}
