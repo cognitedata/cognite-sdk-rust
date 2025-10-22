@@ -66,13 +66,7 @@ async fn create_upload_delete_file() {
         .await
         .unwrap();
 
-    client
-        .files
-        .delete(&[Identity::Id {
-            id: res.metadata.id,
-        }])
-        .await
-        .unwrap();
+    client.files.delete(res.metadata.id, true).await.unwrap();
 }
 
 #[tokio::test]
@@ -101,13 +95,7 @@ async fn create_upload_delete_actual_file() {
         .await
         .unwrap();
 
-    client
-        .files
-        .delete(&[Identity::Id {
-            id: res.metadata.id,
-        }])
-        .await
-        .unwrap();
+    client.files.delete(res.metadata.id, true).await.unwrap();
 }
 
 #[tokio::test]
@@ -132,11 +120,7 @@ async fn create_update_delete_file() {
 
     assert_eq!(Some("New source".to_string()), upd_res.source);
 
-    client
-        .files
-        .delete(&[Identity::ExternalId { external_id: id }])
-        .await
-        .unwrap();
+    client.files.delete(&id, true).await.unwrap();
 }
 
 #[tokio::test]
@@ -200,11 +184,7 @@ async fn create_multipart_file() {
     assert_eq!(1_200_000 * 5 + 5, data.len());
     assert!(data.ends_with("fghij".as_bytes()));
 
-    client
-        .files
-        .delete(&[Identity::ExternalId { external_id: id }])
-        .await
-        .unwrap();
+    client.files.delete(&id, true).await.unwrap();
 }
 
 #[tokio::test]

@@ -106,12 +106,7 @@ async fn create_and_delete_missing() {
 
     client
         .time_series
-        .delete(
-            &[Identity::ExternalId {
-                external_id: external_id_classic,
-            }],
-            false,
-        )
+        .delete(&external_id_classic, false)
         .await
         .unwrap();
     let _ = client
