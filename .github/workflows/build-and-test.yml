@@ -26,8 +26,11 @@ jobs:
             git status --porcelain
             exit 1
           fi
+      - name: Install cargo-llvm-cov
+        uses: taiki-e/install-action@cargo-llvm-cov
+
       - name: Test
-        run: cargo test --features=integration_tests
+        run: cargo llvm-cov --workspace --exclude cognite-codegen --features=integration_tests --output-path codecov.json --locked
         env:
           COGNITE_PROJECT: opcua-interface-test
           COGNITE_BASE_URL: https://greenfield.cognitedata.com
@@ -36,3 +39,10 @@ jobs:
           COGNITE_CLIENT_ID: ${{ secrets.CLIENT_ID }}
           COGNITE_CLIENT_SECRET: ${{ secrets.CLIENT_SECRET }}
           CORE_DM_TEST_SPACE: ${{ secrets.CORE_DM_TEST_SPACE }}
+
+      - name: Upload lcov to codecov.io
+        uses: codecov/codecov-action@v5
+        with:
+          files: codecov.json
+          token: ${{ secrets.CODECOV_TOKEN }}
+          slug: cognitedata/cognite-sdk-rust
