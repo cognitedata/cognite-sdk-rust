@@ -30,7 +30,7 @@ jobs:
         uses: taiki-e/install-action@cargo-llvm-cov
 
       - name: Test
-        run: cargo llvm-cov --workspace --exclude cognite-codegen --features=integration_tests --output-path codecov.json --locked
+        run: cargo llvm-cov --workspace --exclude cognite-codegen --features=integration_tests --codecov --output-path codecov.json --locked
         env:
           COGNITE_PROJECT: opcua-interface-test
           COGNITE_BASE_URL: https://greenfield.cognitedata.com
@@ -40,7 +40,7 @@ jobs:
           COGNITE_CLIENT_SECRET: ${{ secrets.CLIENT_SECRET }}
           CORE_DM_TEST_SPACE: ${{ secrets.CORE_DM_TEST_SPACE }}
 
-      - name: Upload lcov to codecov.io
+      - name: Upload coverage to codecov.io
         uses: codecov/codecov-action@v5
         with:
           files: codecov.json
