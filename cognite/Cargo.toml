@@ -6,7 +6,7 @@ authors = [
 ]
 edition = "2021"
 name = "cognite"
-publish = false
+publish = true
 version = "0.5.3"
 
 [lints]
