@@ -1,7 +1,7 @@
 #![cfg(feature = "integration_tests")]
 
 mod common;
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::sync::LazyLock;
 
 use cognite::models::records::{
@@ -166,10 +166,19 @@ async fn ensure_stream(
     }
 }
 
+static ENSURED_CONTAINERS: LazyLock<Mutex<HashSet<String>>> =
+    LazyLock::new(|| tokio::sync::Mutex::new(HashSet::new()));
+
 async fn ensure_test_container(
     client: &cognite::CogniteClient,
     external_id: &str,
 ) -> cognite::Result<()> {
+    let mut lock = ENSURED_CONTAINERS.lock().await;
+    if lock.insert(external_id.to_owned()) {
+        return Ok(());
+    }
+    // Keep holding the lock, so we don't run this concurrently.
+
     match client
         .models
         .containers
