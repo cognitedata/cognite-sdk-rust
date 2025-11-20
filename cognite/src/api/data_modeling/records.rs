@@ -3,8 +3,11 @@ use std::collections::HashMap;
 use serde::{de::DeserializeOwned, Serialize};
 
 use crate::{
-    models::records::{
-        CursorAndHasNext, Record, RecordWrite, RecordsRetrieveRequest, RecordsSyncRequest,
+    models::{
+        records::{
+            CursorAndHasNext, Record, RecordWrite, RecordsRetrieveRequest, RecordsSyncRequest,
+        },
+        ItemId,
     },
     Items, ItemsVec, RawValue, Resource, Result,
 };
@@ -23,11 +26,33 @@ impl RecordsResource {
     pub async fn ingest<T: Serialize>(
         &self,
         stream_id: &str,
-        records: Vec<RecordWrite<T>>,
+        records: &[RecordWrite<T>],
     ) -> Result<()> {
         self.api_client
             .post::<serde_json::Value, _>(
                 &format!("streams/{stream_id}/records"),
+                &Items::new(records),
+            )
+            .await?;
+        Ok(())
+    }
+
+    /// Upsert records into a stream.
+    ///
+    /// Note: The maximum total request size is 10 MB.
+    ///
+    /// # Arguments
+    ///
+    /// * `stream_id` - ID of the stream to ingest records into.
+    /// * `records` - Records to ingest.
+    pub async fn upsert<T: Serialize>(
+        &self,
+        stream_id: &str,
+        records: &[RecordWrite<T>],
+    ) -> Result<()> {
+        self.api_client
+            .post::<serde_json::Value, _>(
+                &format!("streams/{stream_id}/records/upsert"),
                 &Items::new(records),
             )
             .await?;
@@ -64,5 +89,21 @@ impl RecordsResource {
         self.api_client
             .post(&format!("streams/{stream_id}/records/sync"), request)
             .await
+    }
+
+    /// Delete records from a stream.
+    ///
+    /// # Arguments
+    ///
+    /// * `stream_id` - ID of the stream to delete records from.
+    /// * `items` - IDs of the records to delete.
+    pub async fn delete(&self, stream_id: &str, items: &[ItemId]) -> Result<()> {
+        self.api_client
+            .post_request(&format!("streams/{stream_id}/records/delete"))
+            .json(&Items::new(items))?
+            .accept_nothing()
+            .send()
+            .await?;
+        Ok(())
     }
 }
