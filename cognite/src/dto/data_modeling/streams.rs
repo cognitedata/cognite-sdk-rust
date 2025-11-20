@@ -46,7 +46,7 @@ impl From<Stream> for StreamWrite {
 }
 
 #[derive(Debug, Default, Clone, Serialize, Deserialize)]
-/// Type of stream.
+/// Type of stream. See the [API documentation](https://api-docs.cognite.com/20230101/tag/Streams#section/Available-stream-templates) for details.
 pub enum StreamType {
     #[default]
     /// The stream is immutable. Immutable streams allow ingestion
