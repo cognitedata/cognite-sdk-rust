@@ -6,10 +6,13 @@ use std::sync::LazyLock;
 
 use cognite::models::records::{
     LastUpdatedTimeFilter, PropertiesPerContainer, RecordCursor, RecordData, RecordWrite,
-    RecordsPropertySort, RecordsRetrieveRequest, RecordsSyncRequest, StreamWrite,
+    RecordsPropertySort, RecordsRetrieveRequest, RecordsSyncRequest, StreamSettingsWrite,
+    StreamTemplate, StreamWrite,
 };
-use cognite::models::{SortDirection, TaggedContainerReference};
-use cognite::{filter, Create, List, RawValue};
+use cognite::models::{
+    PrimitiveProperty, SortDirection, TaggedContainerReference, TextProperty, UsedFor,
+};
+use cognite::{filter, Create, List, RawValue, Retrieve};
 use common::*;
 
 use serde_json::json;
@@ -34,6 +37,11 @@ async fn create_and_delete_stream_instance() {
             "items": [
                 {
                     "externalId": external_id,
+                    "settings": {
+                        "template": {
+                            "name": "BasicLiveData"
+                        }
+                    }
                 }
             ]
         })))
@@ -42,6 +50,8 @@ async fn create_and_delete_stream_instance() {
             "items": [{
                 "externalId": external_id,
                 "createdTime": 123456789,
+                "createdFromTemplate": "BasicLiveData",
+                "type": "Mutable",
             }]
         })))
         .mount(&mock_server)
@@ -57,6 +67,8 @@ async fn create_and_delete_stream_instance() {
         .respond_with(ResponseTemplate::new(200).set_body_json(json!({
             "externalId": external_id,
             "createdTime": 123456789,
+            "createdFromTemplate": "BasicLiveData",
+                "type": "Mutable",
         })))
         .mount(&mock_server)
         .await;
@@ -68,17 +80,15 @@ async fn create_and_delete_stream_instance() {
             "items": [{
                 "externalId": external_id,
                 "createdTime": 123456789,
+                "createdFromTemplate": "BasicLiveData",
+                "type": "Mutable",
             }]
         })))
         .mount(&mock_server)
         .await;
     // Register mock for deleting a stream
-    Mock::given(method("DELETE"))
-        .and(path(get_path(
-            "",
-            project,
-            &format!("streams/{}", external_id),
-        )))
+    Mock::given(method("POST"))
+        .and(path(get_path("", project, "streams/delete")))
         .respond_with(ResponseTemplate::new(200).set_body_json(json!({})))
         .mount(&mock_server)
         .await;
@@ -90,6 +100,11 @@ async fn create_and_delete_stream_instance() {
         .streams
         .create(&[StreamWrite {
             external_id: external_id.to_owned(),
+            settings: StreamSettingsWrite {
+                template: StreamTemplate {
+                    name: "BasicLiveData".to_owned(),
+                },
+            },
         }])
         .await
         .unwrap();
@@ -98,24 +113,33 @@ async fn create_and_delete_stream_instance() {
     let stream = &stream[0];
     assert_eq!(stream.external_id, external_id);
 
-    let stream_retrieve = client.models.streams.retrieve(&external_id).await.unwrap();
+    let stream_retrieve = client
+        .models
+        .streams
+        .retrieve(&external_id, false)
+        .await
+        .unwrap();
     assert_eq!(stream_retrieve.external_id, external_id);
 
     let stream_list = client.models.streams.list(None).await.unwrap();
     assert_eq!(stream_list.items.len(), 1);
     assert_eq!(stream_list.items[0].external_id, external_id);
 
-    client.models.streams.delete(&external_id).await.unwrap();
+    client.models.streams.delete(&[&external_id]).await.unwrap();
 }
 
 static STREAM_ENSURE_LOCK: LazyLock<Mutex<bool>> = LazyLock::new(|| tokio::sync::Mutex::new(false));
 
-async fn ensure_stream(client: &cognite::CogniteClient, external_id: &str) -> cognite::Result<()> {
+async fn ensure_stream(
+    client: &cognite::CogniteClient,
+    external_id: &str,
+    mutable: bool,
+) -> cognite::Result<()> {
     let ensured = STREAM_ENSURE_LOCK.lock().await;
     if *ensured {
         return Ok(());
     }
-    match client.models.streams.retrieve(external_id).await {
+    match client.models.streams.retrieve(external_id, false).await {
         Ok(_) => return Ok(()),
         Err(cognite::Error::NotFound(_)) => {
             client
@@ -123,6 +147,15 @@ async fn ensure_stream(client: &cognite::CogniteClient, external_id: &str) -> co
                 .streams
                 .create(&[StreamWrite {
                     external_id: external_id.to_owned(),
+                    settings: StreamSettingsWrite {
+                        template: StreamTemplate {
+                            name: if mutable {
+                                "BasicLiveData".to_owned()
+                            } else {
+                                "ImmutableTestStream".to_owned()
+                            },
+                        },
+                    },
                 }])
                 .await?;
             return Ok(());
@@ -133,36 +166,121 @@ async fn ensure_stream(client: &cognite::CogniteClient, external_id: &str) -> co
     }
 }
 
+async fn ensure_test_container(
+    client: &cognite::CogniteClient,
+    external_id: &str,
+) -> cognite::Result<()> {
+    match client
+        .models
+        .containers
+        .retrieve(&[cognite::models::ItemId {
+            space: std::env::var("CORE_DM_TEST_SPACE").unwrap(),
+            external_id: external_id.to_owned(),
+        }])
+        .await
+    {
+        Ok(r) if !r.is_empty() => Ok(()),
+        _ => {
+            client
+                .models
+                .containers
+                .create(&[cognite::models::containers::ContainerCreate {
+                    space: std::env::var("CORE_DM_TEST_SPACE").unwrap(),
+                    external_id: external_id.to_owned(),
+                    name: Some("Test Container".to_owned()),
+                    description: None,
+                    properties: [
+                        (
+                            "name".to_string(),
+                            cognite::models::containers::ContainerPropertyDefinition {
+                                name: Some("Name".to_owned()),
+                                nullable: Some(true),
+                                r#type: cognite::models::containers::ContainerPropertyType::Text(
+                                    TextProperty::default(),
+                                ),
+                                auto_increment: None,
+                                default_value: None,
+                                description: None,
+                            },
+                        ),
+                        (
+                            "message".to_string(),
+                            cognite::models::containers::ContainerPropertyDefinition {
+                                name: Some("Message".to_owned()),
+                                nullable: Some(true),
+                                r#type: cognite::models::containers::ContainerPropertyType::Text(
+                                    TextProperty::default(),
+                                ),
+                                auto_increment: None,
+                                default_value: None,
+                                description: None,
+                            },
+                        ),
+                        (
+                            "key".to_string(),
+                            cognite::models::containers::ContainerPropertyDefinition {
+                                name: Some("Key".to_owned()),
+                                nullable: Some(false),
+                                r#type: cognite::models::containers::ContainerPropertyType::Int64(
+                                    PrimitiveProperty::default(),
+                                ),
+                                auto_increment: None,
+                                default_value: None,
+                                description: None,
+                            },
+                        ),
+                    ]
+                    .into(),
+                    used_for: Some(UsedFor::Record),
+                    constraints: HashMap::new(),
+                    indexes: HashMap::new(),
+                }])
+                .await?;
+            Ok(())
+        }
+    }
+}
+
 #[tokio::test]
 async fn test_retrieve_stream() {
     let client = get_client();
-    let stream_external_id = "rust-sdk-test-stream";
-    ensure_stream(&client, stream_external_id).await.unwrap();
+    let stream_external_id = "rust-sdk-test-stream-immutable";
+    ensure_stream(&client, stream_external_id, false)
+        .await
+        .unwrap();
     let stream = client
         .models
         .streams
-        .retrieve(stream_external_id)
+        .retrieve(stream_external_id, false)
         .await
         .unwrap();
     assert_eq!(stream.external_id, stream_external_id);
 }
 
+fn record_ext_id() -> String {
+    format!("rust-sdk-test-record-{}", Uuid::new_v4()).replace("-", "_")
+}
+
 #[tokio::test]
 async fn test_ingest_records() {
     let client = get_client();
-    let stream_external_id = "rust-sdk-test-stream";
-    ensure_stream(&client, stream_external_id).await.unwrap();
+    let stream_external_id = "rust-sdk-test-stream-immutable";
+    ensure_stream(&client, stream_external_id, false)
+        .await
+        .unwrap();
+    let container_id = "rust_sdk_records_test_container";
+    ensure_test_container(&client, container_id).await.unwrap();
     let space = std::env::var("CORE_DM_TEST_SPACE").unwrap();
 
     let records = vec![RecordWrite {
         space: space.clone(),
-        external_id: Uuid::new_v4().to_string(),
+        external_id: record_ext_id(),
         sources: vec![RecordData {
-            source: TaggedContainerReference::new("cdf_cdm", "CogniteDescribable"),
+            source: TaggedContainerReference::new(space, container_id),
             properties: json!({
                 "name": "test",
-                "description": "test test",
-                "tags": ["tag1", "tag2"],
+                "message": "test test",
+                "key": 123,
             }),
         }],
     }];
@@ -170,7 +288,54 @@ async fn test_ingest_records() {
     client
         .models
         .records
-        .ingest(stream_external_id, records)
+        .ingest(stream_external_id, &records)
+        .await
+        .unwrap();
+}
+
+#[tokio::test]
+async fn test_upsert_delete_records() {
+    let client = get_client();
+    let stream_external_id = "rust-sdk-test-stream-mutable";
+    ensure_stream(&client, stream_external_id, true)
+        .await
+        .unwrap();
+    let container_id = "rust_sdk_records_test_container";
+    ensure_test_container(&client, container_id).await.unwrap();
+    let space = std::env::var("CORE_DM_TEST_SPACE").unwrap();
+
+    let record_id = record_ext_id();
+    let records = vec![RecordWrite {
+        space: space.clone(),
+        external_id: record_id.clone(),
+        sources: vec![RecordData {
+            source: TaggedContainerReference::new(&space, container_id),
+            properties: json!({
+                "name": "test",
+                "message": "test test",
+                "key": 123,
+            }),
+        }],
+    }];
+
+    client
+        .models
+        .records
+        .upsert(stream_external_id, &records)
+        .await
+        .unwrap();
+
+    // Delete the record
+    client
+        .models
+        .records
+        .delete(
+            stream_external_id,
+            &[cognite::models::ItemId {
+                space: space.clone(),
+                external_id: record_id,
+            }],
+        )
         .await
         .unwrap();
 }
@@ -183,8 +348,13 @@ async fn test_get_records() {
     // that works for other projects either.
     // This verifies that the request is correctly formed and accepted.
     let client = get_client();
-    let stream_external_id = "rust-sdk-test-stream";
-    ensure_stream(&client, stream_external_id).await.unwrap();
+    let stream_external_id = "rust-sdk-test-stream-immutable";
+    ensure_stream(&client, stream_external_id, false)
+        .await
+        .unwrap();
+    let container_id = "rust_sdk_records_test_container";
+    ensure_test_container(&client, container_id).await.unwrap();
+    let space = std::env::var("CORE_DM_TEST_SPACE").unwrap();
 
     client
         .models
@@ -197,17 +367,14 @@ async fn test_get_records() {
                     lte: Some(10000.into()),
                     ..Default::default()
                 },
-                filter: Some(filter::equals(
-                    ["cdf_cdm", "CogniteDescribable", "name"],
-                    "test",
-                )),
+                filter: Some(filter::equals([&space, container_id, "name"], "test")),
                 sources: Some(vec![PropertiesPerContainer {
-                    source: TaggedContainerReference::new("cdf_cdm", "CogniteDescribable"),
-                    properties: vec!["name".to_string(), "description".to_string()],
+                    source: TaggedContainerReference::new(&space, container_id),
+                    properties: vec!["name".to_string(), "message".to_string()],
                 }]),
                 limit: Some(5),
                 sort: Some(vec![RecordsPropertySort::new(
-                    ["cdf_cdm", "CogniteDescribable", "name"],
+                    [&space, container_id, "name"],
                     SortDirection::Ascending,
                 )]),
             },
@@ -222,13 +389,10 @@ async fn test_get_records() {
         .sync::<HashMap<String, RawValue>>(
             stream_external_id,
             &RecordsSyncRequest {
-                filter: Some(filter::equals(
-                    ["cdf_cdm", "CogniteDescribable", "name"],
-                    "test",
-                )),
+                filter: Some(filter::equals([&space, container_id, "name"], "test")),
                 sources: Some(vec![PropertiesPerContainer {
-                    source: TaggedContainerReference::new("cdf_cdm", "CogniteDescribable"),
-                    properties: vec!["name".to_string(), "description".to_string()],
+                    source: TaggedContainerReference::new(&space, container_id),
+                    properties: vec!["name".to_string(), "message".to_string()],
                 }]),
                 limit: Some(5),
                 cursor: RecordCursor::InitializeCursor("1h-ago".to_owned()),
