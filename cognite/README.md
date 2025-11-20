@@ -10,8 +10,6 @@ Rust SDK to ensure excellent user experience for developers and data scientists 
 
 Install rust. See [instructions here][rustup].
 
-To build the SDK, you will also need a version of protobuf-compiler, on debian-based systems that can be installed using `sudo apt-get install protobuf-compiler`.
-
 Set environment variables:
 
 ```bash
