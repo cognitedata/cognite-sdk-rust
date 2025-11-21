@@ -4,7 +4,7 @@ mod common;
 
 #[cfg(test)]
 use cognite::assets::*;
-use cognite::*;
+use cognite::{utils::lease::ResourceLease, *};
 pub use common::*;
 
 #[tokio::test]
@@ -12,21 +12,14 @@ async fn create_and_delete_asset() {
     let asset_id = format!("{}-asset1", PREFIX.as_str());
     let client = get_client();
     let new_asset: Asset = Asset::new("asset1", "description", Some(asset_id), None, None, None);
+    let mut lease = ResourceLease::new_println(client.assets.clone());
     let assets = client.assets.create_from(&vec![new_asset]).await.unwrap();
+    lease.add_resources(assets.clone());
     assert_eq!(assets.len(), 1);
     let asset = assets.first().unwrap();
     assert_eq!(asset.name, "asset1");
 
-    let asset_ids: Vec<Identity> = assets.iter().map(|a| Identity::from(a.id)).collect();
-    client
-        .assets
-        .delete(&DeleteAssetsRequest {
-            items: asset_ids,
-            ignore_unknown_ids: true,
-            recursive: true,
-        })
-        .await
-        .unwrap();
+    lease.clean().await.unwrap();
 }
 
 #[tokio::test]
@@ -52,6 +45,8 @@ async fn create_update_and_delete_asset() {
         .await
         .unwrap();
 
+    let mut lease = ResourceLease::new_println(client.assets.clone());
+    lease.add_resources(assets.clone());
     assert_eq!(assets.len(), 2);
     for asset in assets.iter_mut() {
         asset.description = Some(String::from("changed"));
@@ -62,16 +57,7 @@ async fn create_update_and_delete_asset() {
         assert_eq!(asset.description, Some(String::from("changed")));
     }
 
-    let asset_ids: Vec<Identity> = assets.iter().map(|a| Identity::from(a.id)).collect();
-    client
-        .assets
-        .delete(&DeleteAssetsRequest {
-            items: asset_ids,
-            ignore_unknown_ids: true,
-            recursive: true,
-        })
-        .await
-        .unwrap();
+    lease.clean().await.unwrap();
 }
 
 #[tokio::test]
@@ -99,7 +85,8 @@ async fn create_update_ignore_missing() {
     let client = get_client();
 
     let mod_assets = vec![new_asset, new_asset_2];
-    client.assets.create_from(&mod_assets[..1]).await.unwrap();
+    let mut lease = ResourceLease::new_println(client.assets.clone());
+    lease.add_resources(client.assets.create_from(&mod_assets[..1]).await.unwrap());
 
     client
         .assets
@@ -107,23 +94,7 @@ async fn create_update_ignore_missing() {
         .await
         .unwrap();
 
-    let ids = vec![
-        Identity::ExternalId {
-            external_id: asset_id,
-        },
-        Identity::ExternalId {
-            external_id: asset_id_2,
-        },
-    ];
-    client
-        .assets
-        .delete(&DeleteAssetsRequest {
-            items: ids,
-            ignore_unknown_ids: true,
-            recursive: true,
-        })
-        .await
-        .unwrap();
+    lease.clean().await.unwrap();
 }
 
 #[tokio::test]
@@ -133,6 +104,7 @@ async fn upsert_assets() {
 
     let client = get_client();
 
+    let mut lease = ResourceLease::new_println(client.assets.clone());
     let res = client
         .assets
         .upsert(
@@ -141,6 +113,7 @@ async fn upsert_assets() {
         )
         .await
         .unwrap();
+    lease.add_resources(res.clone());
     assert_eq!(res[0].description.as_ref().unwrap(), "desc");
 
     new_asset.description = Some("desc 2".to_owned());
@@ -153,15 +126,9 @@ async fn upsert_assets() {
         )
         .await
         .unwrap();
+    lease.add_resources(res.clone());
+
     assert_eq!(res[0].description.as_ref().unwrap(), "desc 2");
 
-    client
-        .assets
-        .delete(&DeleteAssetsRequest {
-            items: vec![Identity::external_id(asset_id)],
-            ignore_unknown_ids: true,
-            recursive: true,
-        })
-        .await
-        .unwrap();
+    lease.clean().await.unwrap();
 }

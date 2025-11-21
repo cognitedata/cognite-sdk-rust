@@ -1,6 +1,9 @@
+use std::collections::HashSet;
+
 use crate::api::resource::*;
 use crate::dto::core::asset::*;
 use crate::error::Result;
+use crate::utils::lease::CleanResource;
 use crate::{Identity, ItemsVec, Patch};
 
 /// Assets represent objects or groups of objects from the physical world.
@@ -60,5 +63,20 @@ impl AssetsResource {
         let resp: ItemsVec<AssetAggregateResponse> =
             self.api_client.post("assets/aggregate", &aggregate).await?;
         Ok(resp.items)
+    }
+}
+
+impl CleanResource<Asset> for AssetsResource {
+    async fn clean_resource(&self, resources: Vec<Asset>) -> std::result::Result<(), crate::Error> {
+        let ids = resources
+            .iter()
+            .map(|a| Identity::from(a.id))
+            .collect::<HashSet<Identity>>();
+        self.delete(&DeleteAssetsRequest {
+            items: ids.into_iter().collect(),
+            ignore_unknown_ids: true,
+            recursive: true,
+        })
+        .await
     }
 }

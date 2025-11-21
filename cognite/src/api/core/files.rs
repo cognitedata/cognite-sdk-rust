@@ -1,3 +1,5 @@
+use std::collections::HashSet;
+
 use bytes::Bytes;
 use futures::TryStream;
 use tokio_util::codec::{BytesCodec, FramedRead};
@@ -6,6 +8,7 @@ use crate::api::resource::*;
 use crate::dto::core::files::*;
 use crate::dto::items::Items;
 use crate::error::Result;
+use crate::utils::lease::CleanResource;
 use crate::{Error, IdentityOrInstance, PartitionedFilter};
 use crate::{Identity, ItemsVec, Patch};
 
@@ -20,7 +23,7 @@ impl FilterWithRequest<PartitionedFilter<FileFilter>, FileMetadata> for Files {}
 impl SearchItems<'_, FileFilter, FileSearch, FileMetadata> for Files {}
 impl RetrieveWithIgnoreUnknownIds<Identity, FileMetadata> for Files {}
 impl RetrieveWithIgnoreUnknownIds<IdentityOrInstance, FileMetadata> for Files {}
-impl Delete<Identity> for Files {}
+impl DeleteWithIgnoreUnknownIds<Identity> for Files {}
 impl Update<Patch<PatchFile>, FileMetadata> for Files {}
 
 /// Utility for uploading files in multiple parts.
@@ -431,5 +434,19 @@ impl Files {
         let links = self.download_link(&items).await?;
         let link = links.first().unwrap();
         self.download(&link.download_url).await
+    }
+}
+
+impl CleanResource<FileMetadata> for Files {
+    async fn clean_resource(
+        &self,
+        resources: Vec<FileMetadata>,
+    ) -> std::result::Result<(), crate::Error> {
+        let ids = resources
+            .iter()
+            .map(|a| Identity::from(a.id))
+            .collect::<HashSet<Identity>>();
+        self.delete(&ids.into_iter().collect::<Vec<_>>(), true)
+            .await
     }
 }
