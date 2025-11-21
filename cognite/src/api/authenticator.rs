@@ -291,21 +291,24 @@ impl Authenticator {
     }
 
     /// Get a token. This will only fetch a new token if it is about
-    /// to expire (will expire in the next 60 seconds).
+    /// to expire (will expire in the next 60 seconds). This also
+    /// returns when the next token will be requested. This is the time
+    /// when the authenticator will refresh the token, so the actual
+    /// expiry time minus 60 seconds.
     ///
     /// # Arguments
     ///
     /// * `client` - Reqwest client to use for requests to the IdP.
-    pub async fn get_token(
+    pub async fn get_token_with_expiry(
         &self,
         client: &ClientWithMiddleware,
-    ) -> Result<String, AuthenticatorError> {
+    ) -> Result<(String, Instant), AuthenticatorError> {
         let now = Instant::now();
         {
             let state = &*self.state.read().await;
             if let Some(last) = &state.last_token {
                 if state.current_token_expiry > now {
-                    return Ok(last.clone());
+                    return Ok((last.clone(), state.current_token_expiry));
                 }
             }
         }
@@ -317,7 +320,7 @@ impl Authenticator {
         // fetching the token.
         if let Some(last) = &write.last_token {
             if write.current_token_expiry > now {
-                return Ok(last.clone());
+                return Ok((last.clone(), write.current_token_expiry));
             }
         }
 
@@ -325,9 +328,22 @@ impl Authenticator {
             Ok(response) => {
                 write.current_token_expiry = response.expiry;
                 write.last_token = Some(response.token.clone());
-                Ok(response.token)
+                Ok((response.token, response.expiry))
             }
             Err(e) => Err(e),
         }
+    }
+
+    /// Get a token. This will only fetch a new token if it is about
+    /// to expire (will expire in the next 60 seconds).
+    ///
+    /// # Arguments
+    ///
+    /// * `client` - Reqwest client to use for requests to the IdP.
+    pub async fn get_token(
+        &self,
+        client: &ClientWithMiddleware,
+    ) -> Result<String, AuthenticatorError> {
+        Ok(self.get_token_with_expiry(client).await?.0)
     }
 }
