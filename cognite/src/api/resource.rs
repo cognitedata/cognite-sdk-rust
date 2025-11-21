@@ -429,15 +429,17 @@ where
     ///   cause the request to fail.
     fn delete(
         &self,
-        deletes: &[TIdt],
+        deletes: impl Into<TIdt> + Send,
         ignore_unknown_ids: bool,
     ) -> impl Future<Output = Result<()>> + Send
     where
         Self: Sync,
     {
         async move {
-            let req =
-                Items::new_with_extra_fields(deletes, IgnoreUnknownIds { ignore_unknown_ids });
+            let req = Items::new_with_extra_fields(
+                deletes.into(),
+                IgnoreUnknownIds { ignore_unknown_ids },
+            );
             self.get_client()
                 .post::<::serde_json::Value, _>(&format!("{}/delete", Self::BASE_PATH), &req)
                 .await?;
@@ -643,11 +645,12 @@ where
     ///   cause the request to fail.
     fn retrieve(
         &self,
-        ids: &[TIdt],
+        ids: impl Into<TIdt> + Send,
         ignore_unknown_ids: bool,
     ) -> impl Future<Output = Result<Vec<TResponse>>> + Send {
         async move {
-            let items = Items::new_with_extra_fields(ids, IgnoreUnknownIds { ignore_unknown_ids });
+            let items =
+                Items::new_with_extra_fields(ids.into(), IgnoreUnknownIds { ignore_unknown_ids });
             let response: ItemsVec<TResponse> = self
                 .get_client()
                 .post(&format!("{}/byids", Self::BASE_PATH), &items)

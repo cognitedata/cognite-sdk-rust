@@ -1,10 +1,12 @@
+use serde::Serialize;
+
 use crate::api::resource::*;
 use crate::dto::{
     data_organization::relationships::*,
     items::{Cursor, ItemsVec},
 };
 use crate::error::Result;
-use crate::{CogniteExternalId, Patch};
+use crate::{CogniteExternalId, IdentityList, Patch};
 
 /// API resource for relationships.
 pub type RelationshipsResource = Resource<Relationship>;
@@ -15,7 +17,12 @@ impl WithBasePath for RelationshipsResource {
 
 impl Create<AddRelationship, Relationship> for RelationshipsResource {}
 impl Update<Patch<PatchRelationship>, Relationship> for RelationshipsResource {}
-impl DeleteWithIgnoreUnknownIds<CogniteExternalId> for RelationshipsResource {}
+impl<R> DeleteWithIgnoreUnknownIds<IdentityList<R>> for RelationshipsResource
+where
+    IdentityList<R>: Serialize,
+    R: Send + Sync,
+{
+}
 impl FilterWithRequest<FilterRelationshipsQuery, Relationship> for RelationshipsResource {}
 impl RetrieveWithRequest<RetrieveRelationshipsRequest, Relationship> for RelationshipsResource {}
 

@@ -18,15 +18,7 @@ async fn create_and_delete_asset() {
     assert_eq!(asset.name, "asset1");
 
     let asset_ids: Vec<Identity> = assets.iter().map(|a| Identity::from(a.id)).collect();
-    client
-        .assets
-        .delete(&DeleteAssetsRequest {
-            items: asset_ids,
-            ignore_unknown_ids: true,
-            recursive: true,
-        })
-        .await
-        .unwrap();
+    client.assets.delete(&asset_ids, true, true).await.unwrap();
 }
 
 #[tokio::test]
@@ -62,16 +54,8 @@ async fn create_update_and_delete_asset() {
         assert_eq!(asset.description, Some(String::from("changed")));
     }
 
-    let asset_ids: Vec<Identity> = assets.iter().map(|a| Identity::from(a.id)).collect();
-    client
-        .assets
-        .delete(&DeleteAssetsRequest {
-            items: asset_ids,
-            ignore_unknown_ids: true,
-            recursive: true,
-        })
-        .await
-        .unwrap();
+    let asset_ids: Vec<i64> = assets.iter().map(|a| a.id).collect();
+    client.assets.delete(&asset_ids, true, true).await.unwrap();
 }
 
 #[tokio::test]
@@ -107,21 +91,9 @@ async fn create_update_ignore_missing() {
         .await
         .unwrap();
 
-    let ids = vec![
-        Identity::ExternalId {
-            external_id: asset_id,
-        },
-        Identity::ExternalId {
-            external_id: asset_id_2,
-        },
-    ];
     client
         .assets
-        .delete(&DeleteAssetsRequest {
-            items: ids,
-            ignore_unknown_ids: true,
-            recursive: true,
-        })
+        .delete(&[asset_id, asset_id_2], true, true)
         .await
         .unwrap();
 }
@@ -155,13 +127,5 @@ async fn upsert_assets() {
         .unwrap();
     assert_eq!(res[0].description.as_ref().unwrap(), "desc 2");
 
-    client
-        .assets
-        .delete(&DeleteAssetsRequest {
-            items: vec![Identity::external_id(asset_id)],
-            ignore_unknown_ids: true,
-            recursive: true,
-        })
-        .await
-        .unwrap();
+    client.assets.delete(&asset_id, true, true).await.unwrap();
 }

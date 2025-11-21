@@ -34,7 +34,7 @@ async fn create_update_and_delete_events() {
 
     client.events.update_from(&events).await.unwrap();
 
-    let event_ids: Vec<Identity> = events.iter().map(|e| Identity::Id { id: e.id }).collect();
+    let event_ids: Vec<i64> = events.iter().map(|e| e.id).collect();
     client.events.delete(&event_ids, false).await.unwrap();
 }
 
@@ -83,5 +83,5 @@ async fn upsert_events() {
     let evt = events.into_iter().next().unwrap();
     assert_eq!(Some("description".to_owned()), evt.description);
 
-    client.events.delete(&[id.into()], false).await.unwrap();
+    client.events.delete(&id, false).await.unwrap();
 }

@@ -1,10 +1,12 @@
+use serde::Serialize;
+
 use crate::api::resource::*;
 use crate::dto::{
     data_organization::datasets::*,
     items::{Cursor, ItemsVec},
 };
 use crate::error::Result;
-use crate::{Filter, Identity, Patch};
+use crate::{Filter, IdentityList, Patch};
 
 /// API resource for data sets.
 pub type DataSetsResource = Resource<DataSet>;
@@ -14,7 +16,12 @@ impl WithBasePath for DataSetsResource {
 }
 
 impl Create<AddDataSet, DataSet> for DataSetsResource {}
-impl RetrieveWithIgnoreUnknownIds<Identity, DataSet> for DataSetsResource {}
+impl<R> RetrieveWithIgnoreUnknownIds<IdentityList<R>, DataSet> for DataSetsResource
+where
+    IdentityList<R>: Serialize,
+    R: Send + Sync,
+{
+}
 impl Update<Patch<PatchDataSet>, DataSet> for DataSetsResource {}
 impl FilterItems<DataSetFilter, DataSet> for DataSetsResource {}
 

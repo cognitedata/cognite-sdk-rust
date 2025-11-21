@@ -1,7 +1,9 @@
+use serde::Serialize;
+
 use crate::api::resource::*;
 use crate::dto::core::event::*;
 use crate::error::Result;
-use crate::{Identity, ItemsVec, Patch};
+use crate::{IdentityList, ItemsVec, Patch};
 
 /// Event objects store complex information about multiple assets over a time period.
 /// Typical types of events might include Alarms, Process Data, and Logs.
@@ -18,9 +20,19 @@ impl WithBasePath for EventsResource {
 }
 
 impl Create<AddEvent, Event> for EventsResource {}
-impl DeleteWithIgnoreUnknownIds<Identity> for EventsResource {}
+impl<R> DeleteWithIgnoreUnknownIds<IdentityList<R>> for EventsResource
+where
+    IdentityList<R>: Serialize,
+    R: Send + Sync,
+{
+}
 impl Update<Patch<PatchEvent>, Event> for EventsResource {}
-impl RetrieveWithIgnoreUnknownIds<Identity, Event> for EventsResource {}
+impl<R> RetrieveWithIgnoreUnknownIds<IdentityList<R>, Event> for EventsResource
+where
+    IdentityList<R>: Serialize,
+    R: Send + Sync,
+{
+}
 impl SearchItems<'_, EventFilter, EventSearch, Event> for EventsResource {}
 impl FilterWithRequest<EventFilterQuery, Event> for EventsResource {}
 
