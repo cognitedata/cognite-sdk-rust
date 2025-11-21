@@ -66,6 +66,7 @@ where
     type Fut = Fut;
 }
 
+#[allow(dead_code)]
 pub struct Backoff {
     jitter: f64,
     next_backoff: f64,

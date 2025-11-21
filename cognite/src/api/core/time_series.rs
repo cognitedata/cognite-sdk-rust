@@ -1,8 +1,12 @@
+mod datapoints_stream;
+
 use std::collections::HashSet;
 use std::iter::FromIterator;
 
 use futures::FutureExt;
+use futures::Stream;
 
+use crate::api::core::time_series::datapoints_stream::DatapointsStream;
 use crate::api::data_modeling::instances::Instances;
 use crate::api::resource::*;
 use crate::dto::core::datapoint::*;
@@ -16,6 +20,8 @@ use crate::IgnoreUnknownIds;
 use crate::Items;
 use crate::ItemsVec;
 use crate::Patch;
+
+pub use datapoints_stream::{DataPointRef, DatapointsStreamOptions, EitherDataPoint};
 
 /// A time series consists of a sequence of data points connected to a single asset.
 /// For example, a water pump asset can have a temperature time series taht records a data point in
@@ -232,7 +238,7 @@ impl TimeSeriesResource {
     /// * `datapoints_filter` - Filter describing which datapoints to retrieve.
     pub async fn retrieve_datapoints(
         &self,
-        datapoints_filter: DatapointsFilter,
+        datapoints_filter: &DatapointsFilter,
     ) -> Result<Vec<DatapointsResponse>> {
         let datapoints_response = self.retrieve_datapoints_proto(datapoints_filter).await?;
         Ok(DatapointsListResponse::from(datapoints_response).items)
@@ -245,7 +251,7 @@ impl TimeSeriesResource {
     /// * `datapoints_filter` - Filter describing which datapoints to retrieve.
     pub async fn retrieve_datapoints_proto(
         &self,
-        datapoints_filter: DatapointsFilter,
+        datapoints_filter: &DatapointsFilter,
     ) -> Result<DataPointListResponse> {
         let datapoints_response: DataPointListResponse = self
             .api_client
@@ -304,5 +310,50 @@ impl TimeSeriesResource {
             .post("timeseries/synthetic/query", &Items::new(query))
             .await?;
         Ok(res.items)
+    }
+
+    /// Stream datapoints for a list of timeseries. The datapoints are returned in ascending order,
+    /// but we do not guarantee anything on the order between timeseries.
+    ///
+    /// We batch for you, so the `items` array in `DatapointsFilter` can contain more than 100 entries,
+    /// but `batch_size` should not be set larger than 100.
+    ///
+    /// `parallelism` controls how many requests we have in-flight at any given time.
+    /// Avoid setting this too high, as it may lead to rate limiting, which will reduce the actual
+    /// throughput.
+    ///
+    /// # Arguments
+    ///
+    /// * `filter` - Filter describing common filter properties and a list of timeseries to retrieve data from.
+    /// * `options` - Options for controlling the stream.
+    pub fn stream_datapoints(
+        &self,
+        filter: DatapointsFilter,
+        options: DatapointsStreamOptions,
+    ) -> impl Stream<Item = Result<DataPointRef>> + '_ {
+        DatapointsStream::new(self, filter, options).stream_datapoints()
+    }
+
+    /// Stream datapoints for a list of timeseries. This returns raw batches of datapoints
+    /// as they arrive from CDF. Use [stream_datapoints](Self::stream_datapoints) if you want to
+    /// work with individual datapoints.
+    ///
+    /// We batch for you, so the `items` array in `DatapointsFilter` can contain more than 100 entries,
+    /// but `batch_size` should not be set larger than 100.
+    ///
+    /// `parallelism` controls how many requests we have in-flight at any given time.
+    /// Avoid setting this too high, as it may lead to rate limiting, which will reduce the actual
+    /// throughput.
+    ///
+    /// # Arguments
+    ///
+    /// * `filter` - Filter describing common filter properties and a list of timeseries to retrieve data from.
+    /// * `options` - Options for controlling the stream.
+    pub fn stream_datapoint_batches(
+        &self,
+        filter: DatapointsFilter,
+        options: DatapointsStreamOptions,
+    ) -> impl Stream<Item = Result<DataPointListResponse>> + '_ {
+        DatapointsStream::new(self, filter, options).stream_batches()
     }
 }

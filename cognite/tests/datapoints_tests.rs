@@ -6,6 +6,7 @@ use cognite::*;
 
 mod common;
 pub use common::*;
+use futures::TryStreamExt;
 
 async fn create_test_ts(client: &CogniteClient, is_string: bool, idx: i32) -> TimeSeries {
     let ts = AddTimeSeries {
@@ -66,7 +67,7 @@ async fn create_retrieve_delete_double_datapoints() {
     // Retrieve 90 of them
     let dps = client
         .time_series
-        .retrieve_datapoints(DatapointsFilter {
+        .retrieve_datapoints(&DatapointsFilter {
             items: vec![DatapointsQuery {
                 id: ts.id.into(),
                 ..Default::default()
@@ -97,7 +98,7 @@ async fn create_retrieve_delete_double_datapoints() {
     // Retrieve the same range and expect us to get 45 less
     let dps = client
         .time_series
-        .retrieve_datapoints(DatapointsFilter {
+        .retrieve_datapoints(&DatapointsFilter {
             items: vec![DatapointsQuery {
                 id: ts.id.into(),
                 ..Default::default()
@@ -150,7 +151,7 @@ async fn create_retrieve_delete_string_datapoints() {
     // Retrieve 90 of them
     let dps = client
         .time_series
-        .retrieve_datapoints(DatapointsFilter {
+        .retrieve_datapoints(&DatapointsFilter {
             items: vec![DatapointsQuery {
                 id: ts.id.into(),
                 ..Default::default()
@@ -181,7 +182,7 @@ async fn create_retrieve_delete_string_datapoints() {
     // Retrieve the same range and expect us to get 45 less
     let dps = client
         .time_series
-        .retrieve_datapoints(DatapointsFilter {
+        .retrieve_datapoints(&DatapointsFilter {
             items: vec![DatapointsQuery {
                 id: ts.id.into(),
                 ..Default::default()
@@ -298,7 +299,7 @@ async fn create_retrieve_double_datapoints_with_status() {
 
     let dps = client
         .time_series
-        .retrieve_datapoints(DatapointsFilter {
+        .retrieve_datapoints(&DatapointsFilter {
             items: vec![DatapointsQuery {
                 id: ts.id.into(),
                 include_status: Some(true),
@@ -354,4 +355,205 @@ async fn create_retrieve_double_datapoints_with_status() {
     assert!(dpl.value.unwrap().is_infinite());
 
     delete_test_ts(&client, ts.id).await;
+}
+
+async fn stream_test_timeseries(client: &CogniteClient, idx: i32) -> (TimeSeries, TimeSeries) {
+    use std::time::{SystemTime, UNIX_EPOCH};
+
+    let start = SystemTime::now();
+    let since_the_epoch = start.duration_since(UNIX_EPOCH).unwrap();
+
+    // Put the start sometime in the past...
+    let start = since_the_epoch.as_millis() as i64 - 1_000_000;
+
+    let ts = vec![
+        AddTimeSeries {
+            external_id: Some(format!("{}-ts-stream-{idx}-1", PREFIX.as_str())),
+            is_string: false,
+            name: Some(format!("Test ts stream 1")),
+            ..Default::default()
+        },
+        AddTimeSeries {
+            external_id: Some(format!("{}-ts-stream-{idx}-2", PREFIX.as_str())),
+            is_string: true,
+            name: Some(format!("Test ts stream 2")),
+            ..Default::default()
+        },
+    ];
+
+    let timeseries = client.time_series.create(&ts).await.unwrap();
+    let ts1 = &timeseries[0];
+    let ts2 = &timeseries[1];
+
+    let client = get_client();
+    // Create 50 dps in each timeseries
+    client
+        .time_series
+        .insert_datapoints(vec![
+            AddDatapoints {
+                id: ts1.id.into(),
+                datapoints: DatapointsEnumType::NumericDatapoints(
+                    (0..50)
+                        .map(|i| DatapointDouble {
+                            timestamp: start + i * 1000,
+                            value: Some(i as f64),
+                            status: None,
+                        })
+                        .collect(),
+                ),
+            },
+            AddDatapoints {
+                id: ts2.id.into(),
+                datapoints: DatapointsEnumType::StringDatapoints(
+                    (0..50)
+                        .map(|i| DatapointString {
+                            timestamp: start + i * 1000,
+                            value: Some(format!("{i}-dp")),
+                            status: None,
+                        })
+                        .collect(),
+                ),
+            },
+        ])
+        .await
+        .unwrap();
+
+    (ts1.clone(), ts2.clone())
+}
+
+#[tokio::test]
+async fn stream_datapoints() {
+    let client = get_client();
+
+    let (ts1, ts2) = stream_test_timeseries(&client, 1).await;
+
+    // Stream them back
+    let streamed = client
+        .time_series
+        .stream_datapoints(
+            DatapointsFilter {
+                items: vec![
+                    DatapointsQuery {
+                        id: ts1.id.into(),
+                        limit: Some(30),
+                        ..Default::default()
+                    },
+                    DatapointsQuery {
+                        id: ts2.external_id.clone().unwrap().into(),
+                        limit: Some(30),
+                        ..Default::default()
+                    },
+                ],
+                ..Default::default()
+            },
+            DatapointsStreamOptions {
+                batch_size: 100,
+                parallelism: 2,
+            },
+        )
+        .try_collect::<Vec<_>>()
+        .await
+        .unwrap();
+
+    assert_eq!(100, streamed.len());
+    let mut count_ts1 = 0;
+    let mut count_ts2 = 0;
+    for dp in &streamed {
+        if dp.id() == ts1.id {
+            let v = dp.as_numeric().unwrap().value.unwrap() as i32;
+            assert_eq!(v, count_ts1);
+            count_ts1 += 1;
+        } else if dp.id() == ts2.id {
+            let v = dp.as_string().unwrap().value.as_ref().unwrap();
+            assert_eq!(v, &format!("{}-dp", count_ts2));
+            count_ts2 += 1;
+        } else {
+            panic!("Unexpected timeseries id {}", dp.id());
+        }
+    }
+    assert_eq!(50, count_ts1);
+    assert_eq!(50, count_ts2);
+
+    // Cleanup
+    client
+        .time_series
+        .delete(
+            &[Identity::Id { id: ts1.id }, Identity::Id { id: ts2.id }],
+            true,
+        )
+        .await
+        .unwrap();
+}
+
+#[tokio::test]
+async fn stream_datapoints_ignore_missing() {
+    let client = get_client();
+
+    let (ts1, ts2) = stream_test_timeseries(&client, 2).await;
+
+    // Stream them back
+    let streamed = client
+        .time_series
+        .stream_datapoints(
+            DatapointsFilter {
+                ignore_unknown_ids: Some(true),
+                items: vec![
+                    DatapointsQuery {
+                        id: ts1.id.into(),
+                        limit: Some(30),
+                        ..Default::default()
+                    },
+                    DatapointsQuery {
+                        id: Identity::ExternalId {
+                            external_id: "non-existing-ts".to_string(),
+                        }
+                        .into(),
+                        limit: Some(30),
+                        ..Default::default()
+                    },
+                    DatapointsQuery {
+                        id: ts2.external_id.clone().unwrap().into(),
+                        limit: Some(30),
+                        ..Default::default()
+                    },
+                ],
+                ..Default::default()
+            },
+            DatapointsStreamOptions {
+                batch_size: 100,
+                parallelism: 2,
+            },
+        )
+        .try_collect::<Vec<_>>()
+        .await
+        .unwrap();
+
+    assert_eq!(100, streamed.len());
+    let mut count_ts1 = 0;
+    let mut count_ts2 = 0;
+    for dp in &streamed {
+        if dp.id() == ts1.id {
+            let v = dp.as_numeric().unwrap().value.unwrap() as i32;
+            assert_eq!(v, count_ts1);
+            count_ts1 += 1;
+        } else if dp.id() == ts2.id {
+            let v = dp.as_string().unwrap().value.as_ref().unwrap();
+            assert_eq!(v, &format!("{}-dp", count_ts2));
+            count_ts2 += 1;
+        } else {
+            panic!("Unexpected timeseries id {}", dp.id());
+        }
+    }
+    assert_eq!(50, count_ts1);
+    assert_eq!(50, count_ts2);
+
+    // Cleanup
+    client
+        .time_series
+        .delete(
+            &[Identity::Id { id: ts1.id }, Identity::Id { id: ts2.id }],
+            true,
+        )
+        .await
+        .unwrap();
 }
