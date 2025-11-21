@@ -48,6 +48,7 @@ tokio-util = { version = "^0.7", default-features = false, features = [
   "codec",
   "io",
 ] }
+pin-project = "1.1.10"
 
 [target.'cfg(not(target_arch = "wasm32"))'.dev-dependencies]
 tokio = { version = "1.37.0", features = ["macros", "rt-multi-thread"] }
