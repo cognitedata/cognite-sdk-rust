@@ -1,6 +1,6 @@
 use crate::{
-    models::records::{ListStreamParams, Stream, StreamWrite},
-    Create, List, Resource, WithBasePath,
+    models::records::{ListStreamParams, RetrieveStreamParams, Stream, StreamWrite},
+    CogniteExternalId, Create, Items, List, Resource, WithBasePath,
 };
 
 pub type StreamsResource = Resource<Stream>;
@@ -18,9 +18,18 @@ impl StreamsResource {
     /// # Arguments
     ///
     /// * `stream_id` - ID of the stream to retrieve.
-    pub async fn retrieve(&self, stream_id: &str) -> crate::error::Result<Stream> {
+    pub async fn retrieve(
+        &self,
+        stream_id: &str,
+        include_statistics: bool,
+    ) -> crate::error::Result<Stream> {
         self.api_client
-            .get(&format!("{}/{}", Self::BASE_PATH, stream_id))
+            .get_with_params(
+                &format!("{}/{}", Self::BASE_PATH, stream_id),
+                Some(RetrieveStreamParams {
+                    include_statistics: Some(include_statistics),
+                }),
+            )
             .await
     }
 
@@ -28,10 +37,20 @@ impl StreamsResource {
     ///
     /// # Arguments
     ///
-    /// * `stream_id` - ID of the stream to delete.
-    pub async fn delete(&self, stream_id: &str) -> crate::error::Result<()> {
+    /// * `stream_ids` - IDs of the streams to delete.
+    pub async fn delete(&self, stream_ids: &[&str]) -> crate::error::Result<()> {
         self.api_client
-            .delete::<serde_json::Value>(&format!("{}/{}", Self::BASE_PATH, stream_id))
+            .post::<serde_json::Value, _>(
+                &format!("{}/delete", Self::BASE_PATH),
+                &Items::new(
+                    stream_ids
+                        .iter()
+                        .map(|id| CogniteExternalId {
+                            external_id: id.to_string(),
+                        })
+                        .collect::<Vec<_>>(),
+                ),
+            )
             .await?;
         Ok(())
     }

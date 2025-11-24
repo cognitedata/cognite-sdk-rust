@@ -6,6 +6,7 @@ use cognite::models::instances::{
 };
 use cognite::models::ItemId;
 use cognite::prelude::*;
+use cognite::utils::lease::ResourceLease;
 use cognite::{files::*, Identity};
 use futures::TryStreamExt;
 #[cfg(test)]
@@ -55,6 +56,8 @@ async fn create_upload_delete_file() {
     let client = get_client();
 
     let res = client.files.upload(true, &new_file).await.unwrap();
+    let mut lease = ResourceLease::new_println(client.files.clone());
+    lease.add_resources([res.metadata.clone()]);
 
     let chunks: Vec<Result<_, ::std::io::Error>> = vec![Ok("test "), Ok("file "), Ok("contents")];
 
@@ -66,7 +69,7 @@ async fn create_upload_delete_file() {
         .await
         .unwrap();
 
-    client.files.delete(res.metadata.id, true).await.unwrap();
+    lease.clean().await.unwrap();
 }
 
 #[tokio::test]
@@ -82,6 +85,8 @@ async fn create_upload_delete_actual_file() {
     let client = get_client();
 
     let res = client.files.upload(true, &new_file).await.unwrap();
+    let mut lease = ResourceLease::new_println(client.files.clone());
+    lease.add_resources([res.metadata.clone()]);
 
     let size = tokio::fs::metadata("tests/dummyfile.txt")
         .await
@@ -95,7 +100,7 @@ async fn create_upload_delete_actual_file() {
         .await
         .unwrap();
 
-    client.files.delete(res.metadata.id, true).await.unwrap();
+    lease.clean().await.unwrap();
 }
 
 #[tokio::test]
@@ -111,6 +116,8 @@ async fn create_update_delete_file() {
     let client = get_client();
 
     let mut res = client.files.upload(true, &new_file).await.unwrap();
+    let mut lease = ResourceLease::new_println(client.files.clone());
+    lease.add_resources([res.metadata.clone()]);
 
     res.metadata.source = Some("New source".to_string());
 
@@ -120,7 +127,7 @@ async fn create_update_delete_file() {
 
     assert_eq!(Some("New source".to_string()), upd_res.source);
 
-    client.files.delete(&id, true).await.unwrap();
+    lease.clean().await.unwrap();
 }
 
 #[tokio::test]
@@ -143,7 +150,7 @@ async fn download_test_file() {
     let data: Vec<u8> = data.into_iter().flatten().collect();
     let contents = String::from_utf8(data).unwrap();
 
-    assert_eq!("test file contents", contents.as_str())
+    assert_eq!("test file contents", contents.as_str());
 }
 
 #[tokio::test]
@@ -160,11 +167,13 @@ async fn create_multipart_file() {
 
     let content_1 = "abcde".repeat(1_200_000);
     let content_2 = "fghij";
-    let (session, _) = client
+    let (session, filemeta) = client
         .files
         .multipart_upload(true, 2, &new_file)
         .await
         .unwrap();
+    let mut lease = ResourceLease::new_println(client.files.clone());
+    lease.add_resources([filemeta]);
     session.upload_part_blob(0, content_1).await.unwrap();
     session.upload_part_blob(1, content_2).await.unwrap();
 
@@ -184,7 +193,7 @@ async fn create_multipart_file() {
     assert_eq!(1_200_000 * 5 + 5, data.len());
     assert!(data.ends_with("fghij".as_bytes()));
 
-    client.files.delete(&id, true).await.unwrap();
+    lease.clean().await.unwrap();
 }
 
 #[tokio::test]

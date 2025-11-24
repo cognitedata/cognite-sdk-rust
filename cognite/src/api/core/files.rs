@@ -1,3 +1,5 @@
+use std::collections::HashSet;
+
 use bytes::Bytes;
 use futures::TryStream;
 use serde::Serialize;
@@ -7,6 +9,7 @@ use crate::api::resource::*;
 use crate::dto::core::files::*;
 use crate::dto::items::Items;
 use crate::error::Result;
+use crate::utils::lease::CleanResource;
 use crate::{Error, IdentityList, IdentityOrInstance, IdentityOrInstanceList, PartitionedFilter};
 use crate::{Identity, ItemsVec, Patch};
 
@@ -441,5 +444,19 @@ impl Files {
         let links = self.download_link(&items).await?;
         let link = links.first().unwrap();
         self.download(&link.download_url).await
+    }
+}
+
+impl CleanResource<FileMetadata> for Files {
+    async fn clean_resource(
+        &self,
+        resources: Vec<FileMetadata>,
+    ) -> std::result::Result<(), crate::Error> {
+        let ids = resources
+            .iter()
+            .map(|a| Identity::from(a.id))
+            .collect::<HashSet<Identity>>();
+        self.delete(&ids.into_iter().collect::<Vec<_>>(), true)
+            .await
     }
 }
