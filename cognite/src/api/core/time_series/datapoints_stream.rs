@@ -127,7 +127,6 @@ impl<R: TryStream> Stream for FlatIterStream<R>
 where
     R: TryStream,
     R::Ok: IntoIterator,
-    <R::Ok as IntoIterator>::Item: Unpin,
 {
     type Item = Result<<R::Ok as IntoIterator>::Item, R::Error>;
     fn poll_next(
