@@ -104,6 +104,8 @@ pub enum UsedFor {
     Node,
     /// Used for edges.
     Edge,
+    /// Used for records.
+    Record,
     /// Used for both nodes and edges.
     All,
 }
