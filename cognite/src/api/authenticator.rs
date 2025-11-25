@@ -35,6 +35,7 @@ pub trait CustomAuthenticator {
 }
 
 /// Enumeration of the possible authentication methods available.
+#[derive(Clone)]
 pub enum AuthHeaderManager {
     /// Authenticator that makes OIDC requests to obtain tokens.
     OIDCToken(Arc<Authenticator>),
@@ -43,9 +44,9 @@ pub enum AuthHeaderManager {
     /// An internal auth ticket.
     AuthTicket(String),
     /// A synchronous authentication method.
-    Custom(Box<CustomAuthCallback>),
+    Custom(Arc<CustomAuthCallback>),
     /// An async authentication method.
-    CustomAsync(Box<dyn CustomAuthenticator + Send + Sync>),
+    CustomAsync(Arc<dyn CustomAuthenticator + Send + Sync>),
 }
 
 impl AuthHeaderManager {
