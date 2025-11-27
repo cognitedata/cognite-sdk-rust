@@ -3,6 +3,7 @@
 #[cfg(test)]
 mod common;
 
+use cognite::utils::lease::ResourceLease;
 pub use common::*;
 
 use cognite::events::*;
@@ -26,7 +27,9 @@ async fn create_update_and_delete_events() {
         source: Some("source".to_string()),
         ..Default::default()
     };
+    let mut lease = ResourceLease::new_println(client.events.clone());
     let mut events = client.events.create_from(&vec![new_event]).await.unwrap();
+    lease.add_resources(events.clone());
 
     for event in events.iter_mut() {
         event.description = Some(String::from("changed"));
@@ -34,8 +37,7 @@ async fn create_update_and_delete_events() {
 
     client.events.update_from(&events).await.unwrap();
 
-    let event_ids: Vec<Identity> = events.iter().map(|e| Identity::Id { id: e.id }).collect();
-    client.events.delete(&event_ids, false).await.unwrap();
+    lease.clean().await.unwrap();
 }
 
 #[tokio::test]
@@ -49,6 +51,7 @@ async fn upsert_events() {
     // Call the upsert method twice
 
     let client = get_client();
+    let mut lease = ResourceLease::new_println(client.events.clone());
 
     let mut new_event = AddEvent {
         start_time: Some(since_the_epoch.as_millis() as i64),
@@ -66,6 +69,7 @@ async fn upsert_events() {
         .await
         .unwrap();
     assert_eq!(1, events.len());
+    lease.add_resources(events.clone());
 
     new_event.description = Some("description".to_owned());
 
@@ -77,11 +81,12 @@ async fn upsert_events() {
         )
         .await
         .unwrap();
+    lease.add_resources(events.clone());
 
     assert_eq!(1, events.len());
 
     let evt = events.into_iter().next().unwrap();
     assert_eq!(Some("description".to_owned()), evt.description);
 
-    client.events.delete(&[id.into()], false).await.unwrap();
+    lease.clean().await.unwrap();
 }
