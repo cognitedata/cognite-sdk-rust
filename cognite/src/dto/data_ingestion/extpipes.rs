@@ -196,7 +196,7 @@ impl From<ExtPipe> for Patch<PatchExtPipe> {
     }
 }
 
-#[derive(Serialize, Deserialize, Clone)]
+#[derive(Serialize, Deserialize, Clone, Default)]
 #[serde(rename_all = "camelCase")]
 /// Status of an extraction pipeline run.
 pub enum ExtPipeRunStatus {
@@ -205,13 +205,8 @@ pub enum ExtPipeRunStatus {
     /// Failure, the run failed.
     Failure,
     /// Seen, the run is a heartbeat.
+    #[default]
     Seen,
-}
-
-impl Default for ExtPipeRunStatus {
-    fn default() -> Self {
-        Self::Seen
-    }
 }
 
 #[skip_serializing_none]

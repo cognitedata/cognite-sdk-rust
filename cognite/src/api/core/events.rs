@@ -1,6 +1,9 @@
+use std::collections::HashSet;
+
 use crate::api::resource::*;
 use crate::dto::core::event::*;
 use crate::error::Result;
+use crate::utils::lease::CleanResource;
 use crate::{Identity, ItemsVec, Patch};
 
 /// Event objects store complex information about multiple assets over a time period.
@@ -40,5 +43,16 @@ impl EventsResource {
         let resp: ItemsVec<EventAggregateResponse> =
             self.api_client.post("events/aggregate", &aggregate).await?;
         Ok(resp.items)
+    }
+}
+
+impl CleanResource<Event> for EventsResource {
+    async fn clean_resource(&self, resources: Vec<Event>) -> std::result::Result<(), crate::Error> {
+        let ids = resources
+            .iter()
+            .map(|a| Identity::from(a.id))
+            .collect::<HashSet<Identity>>();
+        self.delete(&ids.into_iter().collect::<Vec<_>>(), true)
+            .await
     }
 }

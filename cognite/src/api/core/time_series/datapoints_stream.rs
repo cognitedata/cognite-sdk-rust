@@ -36,7 +36,9 @@ struct TimeSeriesRef {
     unit: Option<String>,
     unit_external_id: Option<String>,
 }
-/// A reference to a datapoint, including information about the timeseries it belongs to.
+
+/// A datapoint containing a reference to its timeseries metadata.
+/// Used in streaming responses to avoid cloning timeseries info for every datapoint.
 pub struct DataPointRef {
     // This is an Arc to avoid cloning the timeseries information for every datapoint,
     // which can be a considerable amount of data for larger requests.
@@ -360,6 +362,7 @@ impl<'a> DatapointsStream<'a> {
 }
 
 #[pin_project]
+/// Simple stream adapter that flattens a stream of iterables into a stream of items.
 struct FlatIterStream<R>
 where
     R: TryStream,
@@ -387,7 +390,6 @@ impl<R: TryStream> Stream for FlatIterStream<R>
 where
     R: TryStream,
     R::Ok: IntoIterator,
-    <R::Ok as IntoIterator>::Item: Unpin,
 {
     type Item = Result<<R::Ok as IntoIterator>::Item, R::Error>;
 
@@ -396,7 +398,6 @@ where
         cx: &mut std::task::Context<'_>,
     ) -> std::task::Poll<Option<Self::Item>> {
         let mut this = self.project();
-
         loop {
             if let Some(current) = this.current.as_mut() {
                 if let Some(item) = current.next() {
@@ -405,7 +406,6 @@ where
                     *this.current = None;
                 }
             }
-
             match this.inner.as_mut().try_poll_next(cx)? {
                 std::task::Poll::Ready(Some(next_iter)) => {
                     *this.current = Some(next_iter.into_iter());

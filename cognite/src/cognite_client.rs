@@ -258,7 +258,7 @@ impl CogniteClient {
     ) -> Result<Self> {
         let authenticator = Authenticator::new(auth_config);
         let api_base_path = format!("{}/api/{}/projects/{}", api_base_url, "v1", project_name);
-        let auth = AuthHeaderManager::OIDCToken(authenticator);
+        let auth = AuthHeaderManager::OIDCToken(Arc::new(authenticator));
         let client = Self::get_client(config.unwrap_or_default(), auth, None, None)?;
         let api_client = ApiClient::new(&api_base_path, app_name, client.clone());
 
@@ -300,7 +300,9 @@ impl Builder {
     ///
     /// * `auth` - Client credentials.
     pub fn set_oidc_credentials(&mut self, auth: AuthenticatorConfig) -> &mut Self {
-        self.auth = Some(AuthHeaderManager::OIDCToken(Authenticator::new(auth)));
+        self.auth = Some(AuthHeaderManager::OIDCToken(Arc::new(Authenticator::new(
+            auth,
+        ))));
         self
     }
 
