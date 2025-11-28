@@ -416,3 +416,57 @@ where
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::{
+        api::core::time_series::datapoints_stream::FlatIterStream, time_series::StatusCode,
+    };
+    #[test]
+    fn test_datapoint_ref() {
+        use super::*;
+        let ts_ref = Arc::new(TimeSeriesRef {
+            id: 42,
+            external_id: Some("ts1".to_string()),
+            instance_id: None,
+            original_id: IdentityOrInstance::from("ts1"),
+            is_string: false,
+            is_step: false,
+            unit: Some("°C".to_string()),
+            unit_external_id: None,
+        });
+        let dp = DataPointRef {
+            timeseries: ts_ref.clone(),
+            datapoint: EitherDataPoint::Numeric(DatapointDouble {
+                timestamp: 1625079600000,
+                value: Some(23.5),
+                status: Some(StatusCode::Good),
+            }),
+        };
+        assert_eq!(dp.id(), 42);
+        assert_eq!(dp.external_id(), Some("ts1"));
+        assert!(!dp.is_string());
+        assert_eq!(dp.unit(), Some("°C"));
+        if let EitherDataPoint::Numeric(n) = dp.datapoint() {
+            assert_eq!(n.value, Some(23.5));
+        } else {
+            panic!("Expected numeric datapoint");
+        }
+    }
+    #[test]
+    fn test_flat_iter_stream() {
+        use futures::stream;
+        use futures::StreamExt;
+        let s = stream::iter(vec![
+            Ok::<_, crate::Error>(vec![1, 2, 3]),
+            Ok(vec![4, 5]),
+            Ok(vec![6]),
+        ]);
+        let mut flat_stream = FlatIterStream::new(s);
+        let mut results = Vec::new();
+        while let Some(item) = futures::executor::block_on(flat_stream.next()) {
+            results.push(item.unwrap());
+        }
+        assert_eq!(results, vec![1, 2, 3, 4, 5, 6]);
+    }
+}
