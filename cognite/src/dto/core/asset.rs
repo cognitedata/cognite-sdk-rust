@@ -5,11 +5,11 @@ pub use self::aggregate::*;
 pub use self::filter::*;
 
 use crate::dto::identity::Identity;
+use crate::Items;
 use crate::UpsertOptions;
 use crate::{CogniteExternalId, CogniteId, EqIdentity, IntoPatch, IntoPatchItem, UpdateList};
 use crate::{Patch, UpdateMap, UpdateSet, UpdateSetNull};
 use serde::{Deserialize, Serialize};
-use serde_json::json;
 use serde_with::skip_serializing_none;
 use std::collections::HashMap;
 
@@ -260,43 +260,28 @@ impl From<Asset> for Patch<PatchAsset> {
     }
 }
 
-#[skip_serializing_none]
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Default)]
 #[serde(rename_all = "camelCase")]
-pub(crate) struct RetrieveAssetsRequest {
-    pub items: ::serde_json::Value,
+/// Extra data for retrieve assets request.
+pub struct RetrieveAssetsRequestData {
+    /// If `true`, ignore any IDs that do not exist in CDF.
     pub ignore_unknown_ids: bool,
+    /// List of aggregated properties to include in response.
     pub aggregated_properties: Option<Vec<AssetAggregatedProperty>>,
 }
 
-impl<T: Serialize> From<&Vec<T>> for RetrieveAssetsRequest {
-    fn from(items: &Vec<T>) -> RetrieveAssetsRequest {
-        RetrieveAssetsRequest {
-            items: json!(items),
-            ignore_unknown_ids: true,
-            aggregated_properties: None,
-        }
-    }
-}
+/// Request for retrieving assets.
+pub type RetrieveAssetsRequest<T> = Items<T, RetrieveAssetsRequestData>;
 
-impl<T: Serialize> From<&[T]> for RetrieveAssetsRequest {
-    fn from(items: &[T]) -> RetrieveAssetsRequest {
-        RetrieveAssetsRequest {
-            items: json!(items),
-            ignore_unknown_ids: true,
-            aggregated_properties: None,
-        }
-    }
-}
-
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Default)]
 #[serde(rename_all = "camelCase")]
-/// Request for deleting a list of assets.
-pub struct DeleteAssetsRequest {
-    /// Internal or external IDs of assets to delete.
-    pub items: Vec<Identity>,
+/// Extra data for delete assets request.
+pub struct DeleteAssetsRequestData {
     /// If `true`, ignore any IDs that do not exist in CDF.
     pub ignore_unknown_ids: bool,
     /// If `true`, recursively delete any children of the deleted assets.
     pub recursive: bool,
 }
+
+/// Request for deleting assets.
+pub type DeleteAssetsRequest<R> = Items<R, DeleteAssetsRequestData>;

@@ -7,8 +7,8 @@ use reqwest::{
 };
 use reqwest_middleware::ClientWithMiddleware;
 use serde::{Deserialize, Serialize};
-use std::fmt::Display;
 use std::time::{Duration, Instant};
+use std::{fmt::Display, sync::Arc};
 use thiserror::Error;
 
 /// Type of closure for a synchronous auth callback.
@@ -35,17 +35,18 @@ pub trait CustomAuthenticator {
 }
 
 /// Enumeration of the possible authentication methods available.
+#[derive(Clone)]
 pub enum AuthHeaderManager {
     /// Authenticator that makes OIDC requests to obtain tokens.
-    OIDCToken(Authenticator),
+    OIDCToken(Arc<Authenticator>),
     /// A fixed OIDC token
     FixedToken(String),
     /// An internal auth ticket.
     AuthTicket(String),
     /// A synchronous authentication method.
-    Custom(Box<CustomAuthCallback>),
+    Custom(Arc<CustomAuthCallback>),
     /// An async authentication method.
-    CustomAsync(Box<dyn CustomAuthenticator + Send + Sync>),
+    CustomAsync(Arc<dyn CustomAuthenticator + Send + Sync>),
 }
 
 impl AuthHeaderManager {
