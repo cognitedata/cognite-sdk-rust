@@ -1,7 +1,9 @@
+use serde::Serialize;
+
 use crate::api::resource::*;
 use crate::dto::core::sequences::*;
 use crate::error::Result;
-use crate::{Identity, Items, LimitCursorPartitionQuery, Patch};
+use crate::{IdentityList, Items, LimitCursorPartitionQuery, Patch};
 
 /// A sequence stores a table with up to 400 columns indexed by row number. There can be at most
 /// 400 numeric columns and 200 string columns. Each of the columns has a pre-defined type:
@@ -16,8 +18,18 @@ impl List<LimitCursorPartitionQuery, Sequence> for SequencesResource {}
 impl Create<AddSequence, Sequence> for SequencesResource {}
 impl SearchItems<'_, SequenceFilter, SequenceSearch, Sequence> for SequencesResource {}
 impl Update<Patch<PatchSequence>, Sequence> for SequencesResource {}
-impl DeleteWithIgnoreUnknownIds<Identity> for SequencesResource {}
-impl RetrieveWithIgnoreUnknownIds<Identity, Sequence> for SequencesResource {}
+impl<R> DeleteWithIgnoreUnknownIds<IdentityList<R>> for SequencesResource
+where
+    IdentityList<R>: Serialize,
+    R: Send + Sync,
+{
+}
+impl<R> RetrieveWithIgnoreUnknownIds<IdentityList<R>, Sequence> for SequencesResource
+where
+    IdentityList<R>: Serialize,
+    R: Send + Sync,
+{
+}
 impl FilterWithRequest<SequenceFilterRequest, Sequence> for SequencesResource {}
 
 impl SequencesResource {
