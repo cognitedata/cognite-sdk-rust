@@ -1,3 +1,5 @@
+mod datapoints_stream;
+
 use std::collections::HashSet;
 use std::iter::FromIterator;
 
@@ -18,6 +20,8 @@ use crate::IgnoreUnknownIds;
 use crate::Items;
 use crate::ItemsVec;
 use crate::Patch;
+
+pub use datapoints_stream::{DataPointRef, EitherDataPoint};
 
 /// A time series consists of a sequence of data points connected to a single asset.
 /// For example, a water pump asset can have a temperature time series taht records a data point in
