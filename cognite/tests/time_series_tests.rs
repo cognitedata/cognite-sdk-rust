@@ -41,6 +41,13 @@ async fn create_and_delete_time_series() {
         .iter()
         .map(|ts| Identity::Id { id: ts.id })
         .collect();
+
+    let retrieved = client.time_series.retrieve(&id_list, true).await.unwrap();
+    assert_eq!(retrieved.len(), id_list.len());
+    for ts in retrieved.iter() {
+        assert_eq!(ts.description.as_deref(), Some("changed"));
+    }
+
     client.time_series.delete(&id_list, true).await.unwrap();
 }
 
