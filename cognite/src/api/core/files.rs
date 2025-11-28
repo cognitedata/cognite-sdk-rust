@@ -2,6 +2,7 @@ use std::collections::HashSet;
 
 use bytes::Bytes;
 use futures::TryStream;
+use serde::Serialize;
 use tokio_util::codec::{BytesCodec, FramedRead};
 
 use crate::api::resource::*;
@@ -9,7 +10,7 @@ use crate::dto::core::files::*;
 use crate::dto::items::Items;
 use crate::error::Result;
 use crate::utils::lease::CleanResource;
-use crate::{Error, IdentityOrInstance, PartitionedFilter};
+use crate::{Error, IdentityList, IdentityOrInstance, IdentityOrInstanceList, PartitionedFilter};
 use crate::{Identity, ItemsVec, Patch};
 
 /// Files store documents, binary blobs, and other file data and relate it to assets.
@@ -21,9 +22,18 @@ impl WithBasePath for Files {
 
 impl FilterWithRequest<PartitionedFilter<FileFilter>, FileMetadata> for Files {}
 impl SearchItems<'_, FileFilter, FileSearch, FileMetadata> for Files {}
-impl RetrieveWithIgnoreUnknownIds<Identity, FileMetadata> for Files {}
-impl RetrieveWithIgnoreUnknownIds<IdentityOrInstance, FileMetadata> for Files {}
-impl DeleteWithIgnoreUnknownIds<Identity> for Files {}
+impl<R> RetrieveWithIgnoreUnknownIds<IdentityOrInstanceList<R>, FileMetadata> for Files
+where
+    IdentityOrInstanceList<R>: Serialize,
+    R: Send + Sync,
+{
+}
+impl<R> DeleteWithIgnoreUnknownIds<IdentityList<R>> for Files
+where
+    IdentityList<R>: Serialize,
+    R: Send + Sync,
+{
+}
 impl Update<Patch<PatchFile>, FileMetadata> for Files {}
 
 /// Utility for uploading files in multiple parts.

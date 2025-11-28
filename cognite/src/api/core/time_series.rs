@@ -5,6 +5,7 @@ use std::iter::FromIterator;
 
 use futures::FutureExt;
 use futures::Stream;
+use serde::Serialize;
 
 use crate::api::core::time_series::datapoints_stream::DatapointsStream;
 use crate::api::data_modeling::instances::Instances;
@@ -14,8 +15,9 @@ use crate::dto::core::time_series::*;
 use crate::error::Result;
 use crate::get_missing_from_result;
 use crate::utils::execute_with_parallelism;
-use crate::Identity;
+use crate::IdentityList;
 use crate::IdentityOrInstance;
+use crate::IdentityOrInstanceList;
 use crate::IgnoreUnknownIds;
 use crate::Items;
 use crate::ItemsVec;
@@ -37,11 +39,19 @@ impl Create<AddTimeSeries, TimeSeries> for TimeSeriesResource {}
 impl FilterItems<TimeSeriesFilter, TimeSeries> for TimeSeriesResource {}
 impl FilterWithRequest<TimeSeriesFilterRequest, TimeSeries> for TimeSeriesResource {}
 impl SearchItems<'_, TimeSeriesFilter, TimeSeriesSearch, TimeSeries> for TimeSeriesResource {}
-impl RetrieveWithIgnoreUnknownIds<Identity, TimeSeries> for TimeSeriesResource {}
-impl RetrieveWithIgnoreUnknownIds<IdentityOrInstance, TimeSeries> for TimeSeriesResource {}
+impl<R> RetrieveWithIgnoreUnknownIds<IdentityOrInstanceList<R>, TimeSeries> for TimeSeriesResource
+where
+    IdentityOrInstanceList<R>: Serialize,
+    R: Send + Sync,
+{
+}
 impl Update<Patch<PatchTimeSeries>, TimeSeries> for TimeSeriesResource {}
-impl DeleteWithIgnoreUnknownIds<Identity> for TimeSeriesResource {}
-
+impl<R> DeleteWithIgnoreUnknownIds<IdentityList<R>> for TimeSeriesResource
+where
+    IdentityList<R>: Serialize,
+    R: Send + Sync,
+{
+}
 impl TimeSeriesResource {
     /// Insert datapoints for a set of timeseries. Any existing datapoints with the
     /// same timestamp will be overwritten.
