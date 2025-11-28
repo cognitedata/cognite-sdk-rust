@@ -344,6 +344,12 @@ where
     }
 }
 
+impl<R> From<R> for IdentityOrInstanceList<R> {
+    fn from(value: R) -> Self {
+        IdentityOrInstanceList(value)
+    }
+}
+
 macro_rules! identity_list_ser_directly {
     ($r:ident, $t:ty) => {
         impl Serialize for $r<$t> {
