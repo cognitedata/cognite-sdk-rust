@@ -194,8 +194,11 @@ struct AuthenticatorState {
     current_token_expiry: Instant,
 }
 
-struct AuthenticatorResult {
+/// Result from getting a token, including expiry time.
+pub struct AuthenticatorResult {
+    /// The token string.
     token: String,
+    /// The time when the token will expire.
     expiry: Instant,
 }
 
@@ -205,6 +208,23 @@ pub struct Authenticator {
     state: RwLock<AuthenticatorState>,
     token_url: String,
     default_expires_in: Option<Duration>,
+}
+
+impl AuthenticatorResult {
+    /// Get the token string.
+    pub fn token(&self) -> &str {
+        &self.token
+    }
+
+    /// Consume self and get the token string.
+    pub fn into_token(self) -> String {
+        self.token
+    }
+
+    /// Get the expiry time.
+    pub fn expiry(&self) -> Instant {
+        self.expiry
+    }
 }
 
 impl Authenticator {
@@ -302,13 +322,16 @@ impl Authenticator {
     pub async fn get_token_with_expiry(
         &self,
         client: &ClientWithMiddleware,
-    ) -> Result<(String, Instant), AuthenticatorError> {
+    ) -> Result<AuthenticatorResult, AuthenticatorError> {
         let now = Instant::now();
         {
             let state = &*self.state.read().await;
             if let Some(last) = &state.last_token {
                 if state.current_token_expiry > now {
-                    return Ok((last.clone(), state.current_token_expiry));
+                    return Ok(AuthenticatorResult {
+                        token: last.clone(),
+                        expiry: state.current_token_expiry,
+                    });
                 }
             }
         }
@@ -320,7 +343,10 @@ impl Authenticator {
         // fetching the token.
         if let Some(last) = &write.last_token {
             if write.current_token_expiry > now {
-                return Ok((last.clone(), write.current_token_expiry));
+                return Ok(AuthenticatorResult {
+                    token: last.clone(),
+                    expiry: write.current_token_expiry,
+                });
             }
         }
 
@@ -328,7 +354,7 @@ impl Authenticator {
             Ok(response) => {
                 write.current_token_expiry = response.expiry;
                 write.last_token = Some(response.token.clone());
-                Ok((response.token, response.expiry))
+                Ok(response)
             }
             Err(e) => Err(e),
         }
@@ -344,6 +370,6 @@ impl Authenticator {
         &self,
         client: &ClientWithMiddleware,
     ) -> Result<String, AuthenticatorError> {
-        Ok(self.get_token_with_expiry(client).await?.0)
+        Ok(self.get_token_with_expiry(client).await?.token)
     }
 }
