@@ -223,10 +223,10 @@ pub enum Error {
     #[error("Error accessing file: {0}")]
     /// Error reading from a file.
     IOError(#[from] std::io::Error),
-    #[error("Error collecting stream: {0}")]
+    #[error("Error collecting stream: {0:#}")]
     /// Error collecting a stream.
     StreamError(anyhow::Error),
-    #[error("Error in middleware: {0}")]
+    #[error("Error in middleware: {0:#}")]
     /// Error in middleware.
     Middleware(anyhow::Error),
     #[error("Error in configuration: {0}")]
