@@ -54,16 +54,17 @@ export COGNITE_PROJECT=<your project name>
 * Instances
 * Spaces
 * Views
+* Containers
+* Streams
+* Records
 
 ## Example
-
-Since this is not published on crates.io, you'll have to reference the git repository
 
 Cargo.toml:
 
 ```TOML
 [dependencies]
-cognite = { git = "https://github.com/cognitedata/cognite-sdk-rust" }
+cognite = { version = "0.6.0" } # See crates.io for latest version.
 tokio = { version = "1.23", features = ["macros", "rt-multi-thread"] }
 ```
 
