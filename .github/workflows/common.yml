@@ -1,0 +1,52 @@
+name: Get release information
+
+on:
+    workflow_call:
+        outputs:
+            version:
+                description: 'Current cargo toml version'
+                value: ${{ jobs.prerequisites.outputs.version }}
+            should-release:
+                description: Checks if release would occur
+                value: ${{ jobs.prerequisites.outputs.should-release }}
+            branch:
+                description: Branch
+                value: ${{ jobs.prerequisites.outputs.branch }}
+
+jobs:
+  prerequisites:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.get-version.outputs.version }}
+      should-release: ${{ steps.should-release.outputs.test }}
+      branch: ${{ steps.branch.outputs.branch }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - name: Install jq
+        run: sudo apt-get install -y jq
+      
+      - name: Get branch name
+        id: branch
+        run: echo "branch=${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}}" >> "$GITHUB_OUTPUT"
+
+      - name: Get cargo toml version
+        id: get-version
+        run: |
+          echo "version=$(cargo metadata --format-version 1 | jq --raw-output '.packages[] | select(.name == "cognite-sdk") | .version')" >> "$GITHUB_OUTPUT"
+      
+      - name: Check if release should occur
+        id: should-release
+        run: echo "test=$(git tag --list 'v${{ steps.get-version.outputs.version }}' | wc -l | sed s/\ //g)" >> $GITHUB_OUTPUT
+      
+      - name: Message about build
+        uses: actions/github-script@v8
+        with:
+          script: |
+            if (${{ steps.should-release.outputs.test }} == 0) {
+              core.notice('Will release version ${{ steps.get-version.outputs.version }}...')
+            } else {
+              core.warning('Will not create release for version ${{ steps.get-version.outputs.version }} because it already exists.')
+            }

@@ -12,6 +12,6 @@ Do you want to use the Cognite SDK in your project? Check out [these docs][sdk-d
 
 See [Contributing][contributing] for details.
 
-[sdk-docs]: https://github.com/cognitedata/cognite-sdk-rust/tree/master/cognite/README.md
+[sdk-docs]: https://docs.rs/cognite-sdk/
 [api-docs]: https://docs.cognite.com/api/v1/
 [contributing]: https://github.com/cognitedata/cognite-sdk-rust/tree/master/CONTRIBUTING.md

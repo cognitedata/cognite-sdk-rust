@@ -155,7 +155,7 @@ pub enum MovingFunction {
 /// timeHistogram aggregate. It can be embedded like any other metric aggregate.
 pub struct MovingFunctionAggregate {
     /// The path to the buckets to use for the moving function.
-    /// Syntax is [AggregateName][MultiBucketKey]?(>[AggregateName])*.
+    /// Syntax is `[AggregateName][MultiBucketKey]?(>[AggregateName])*`.
     /// See documentation for more details.
     pub buckets_path: String,
     /// The size of window to slide accross the histogram.

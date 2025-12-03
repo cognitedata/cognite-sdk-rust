@@ -10,8 +10,6 @@ Rust SDK to ensure excellent user experience for developers and data scientists 
 
 Install rust. See [instructions here][rustup].
 
-To build the SDK, you will also need a version of protobuf-compiler, on debian-based systems that can be installed using `sudo apt-get install protobuf-compiler`.
-
 Set environment variables:
 
 ```bash
@@ -56,16 +54,17 @@ export COGNITE_PROJECT=<your project name>
 * Instances
 * Spaces
 * Views
+* Containers
+* Streams
+* Records
 
 ## Example
-
-Since this is not published on crates.io, you'll have to reference the git repository
 
 Cargo.toml:
 
 ```TOML
 [dependencies]
-cognite = { git = "https://github.com/cognitedata/cognite-sdk-rust" }
+cognite-sdk = { version = "0.6.0" } # See crates.io for latest version.
 tokio = { version = "1.23", features = ["macros", "rt-multi-thread"] }
 ```
 

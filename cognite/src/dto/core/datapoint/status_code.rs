@@ -230,7 +230,7 @@ impl StatusCode {
     /// "Overflow", "MultipleValues", "ExtraData", "Partial", "Interpolated",
     /// or "Calculated".
     ///
-    /// See https://reference.opcfoundation.org/Core/Part4/v104/docs/7.34
+    /// See <https://reference.opcfoundation.org/Core/Part4/v104/docs/7.34>
     /// for details.
     pub fn try_parse(symbol: &str) -> Result<StatusCode, ParseStatusCodeError> {
         let mut parts = symbol.split(&[' ', ',']);
