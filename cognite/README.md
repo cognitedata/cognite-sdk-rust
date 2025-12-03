@@ -64,7 +64,7 @@ Cargo.toml:
 
 ```TOML
 [dependencies]
-cognite = { version = "0.6.0" } # See crates.io for latest version.
+cognite-sdk = { version = "0.6.0" } # See crates.io for latest version.
 tokio = { version = "1.23", features = ["macros", "rt-multi-thread"] }
 ```
 
