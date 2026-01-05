@@ -1,13 +1,23 @@
 [package]
+name = "cognite-sdk"
+version = "0.6.0"
 authors = [
   "Einar Marstrander Omang <einar.omang@cognite.com>",
   "Haakon Garseg Mørk <haakon.mork@cognite.com>",
   "Niek Beckers <niek.beckers@cognite.com>",
 ]
+homepage = "https://github.com/cognitedata/cognite-sdk-rust"
+repository = "https://github.com/cognitedata/cognite-sdk-rust"
+description = "SDK for the Cognite Data Fusion API"
+license = "Apache-2.0"
 edition = "2021"
+publish = true
+documentation = "https://docs.rs/cognite-sdk/"
+readme = "README.md"
+categories = ["api-bindings"]
+
+[lib]
 name = "cognite"
-publish = false
-version = "0.5.3"
 
 [lints]
 workspace = true
