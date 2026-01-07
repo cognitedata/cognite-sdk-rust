@@ -78,7 +78,7 @@ pub struct Session {
     /// Session nonce, used by the CDF service to activate the session.
     pub nonce: Option<String>,
     /// Client ID.
-    pub client_id: Option<i64>,
+    pub client_id: Option<String>,
 }
 
 #[derive(Serialize, Deserialize, Clone)]
