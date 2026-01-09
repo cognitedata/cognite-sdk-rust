@@ -44,7 +44,7 @@ reqwest = { version = "^0.12", features = [
   "rustls-tls-native-roots",
   "stream",
 ], default-features = false } # Default brings in openssl
-reqwest-middleware = { version = "^0.4" }
+reqwest-middleware = { version = "^0.5" }
 
 anyhow = "^1"
 rand = "^0.9.0"
