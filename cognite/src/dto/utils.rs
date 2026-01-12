@@ -77,3 +77,44 @@ pub fn get_instance_properties<'a, TProperties>(
 
     properties.get_mut(&space).and_then(|v| v.get(&key))
 }
+
+/// Trait for chunking lists, for automatic chunked requests.
+/// This by design does not allocate, instead returning references into the original data.
+pub trait Chunkable<'a> {
+    /// The type of chunk produced. For example, a vector chunks into slices.
+    type Chunk: 'a;
+    /// Split the identity list into chunks of the given size.
+    fn as_chunks(&'a self, chunk_size: usize) -> impl Iterator<Item = Self::Chunk>;
+}
+
+impl<'a, T: 'a> Chunkable<'a> for Vec<T> {
+    type Chunk = &'a [T];
+
+    fn as_chunks(&'a self, chunk_size: usize) -> impl Iterator<Item = Self::Chunk> {
+        self.chunks(chunk_size)
+    }
+}
+
+impl<'a, T: 'a> Chunkable<'a> for &'a [T] {
+    type Chunk = &'a [T];
+
+    fn as_chunks(&'a self, chunk_size: usize) -> impl Iterator<Item = Self::Chunk> {
+        self.chunks(chunk_size)
+    }
+}
+
+impl<'a, T: 'a> Chunkable<'a> for &'a Vec<T> {
+    type Chunk = &'a [T];
+
+    fn as_chunks(&'a self, chunk_size: usize) -> impl Iterator<Item = Self::Chunk> {
+        self.chunks(chunk_size)
+    }
+}
+
+impl<'a, T: 'a, const N: usize> Chunkable<'a> for &'a [T; N] {
+    type Chunk = &'a [T];
+
+    fn as_chunks(&'a self, chunk_size: usize) -> impl Iterator<Item = Self::Chunk> {
+        self.as_slice().chunks(chunk_size)
+    }
+}
