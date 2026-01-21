@@ -6,7 +6,7 @@ use crate::dto::{
     items::{Cursor, ItemsVec},
 };
 use crate::error::Result;
-use crate::{CondSend, CondSync, Filter, IdentityList, Patch};
+use crate::{Filter, IdentityList, Patch};
 
 /// API resource for data sets.
 pub type DataSetsResource = Resource<DataSet>;
@@ -19,7 +19,7 @@ impl Create<AddDataSet, DataSet> for DataSetsResource {}
 impl<R> RetrieveWithIgnoreUnknownIds<IdentityList<R>, DataSet> for DataSetsResource
 where
     IdentityList<R>: Serialize,
-    R: CondSend + CondSync,
+    R: Send + Sync,
 {
 }
 impl Update<Patch<PatchDataSet>, DataSet> for DataSetsResource {}

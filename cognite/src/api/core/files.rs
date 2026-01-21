@@ -10,8 +10,7 @@ use crate::dto::items::Items;
 use crate::error::Result;
 use crate::utils::lease::CleanResource;
 use crate::{
-    CondSend, CondSync, Error, IdentityList, IdentityOrInstance, IdentityOrInstanceList,
-    PartitionedFilter,
+    CondSend, Error, IdentityList, IdentityOrInstance, IdentityOrInstanceList, PartitionedFilter,
 };
 use crate::{Identity, ItemsVec, Patch};
 
@@ -27,13 +26,13 @@ impl SearchItems<'_, FileFilter, FileSearch, FileMetadata> for Files {}
 impl<R> RetrieveWithIgnoreUnknownIds<IdentityOrInstanceList<R>, FileMetadata> for Files
 where
     IdentityOrInstanceList<R>: Serialize,
-    R: CondSend + CondSync,
+    R: Send + Sync,
 {
 }
 impl<R> DeleteWithIgnoreUnknownIds<IdentityList<R>> for Files
 where
     IdentityList<R>: Serialize,
-    R: CondSend + CondSync,
+    R: Send + Sync,
 {
 }
 impl Update<Patch<PatchFile>, FileMetadata> for Files {}

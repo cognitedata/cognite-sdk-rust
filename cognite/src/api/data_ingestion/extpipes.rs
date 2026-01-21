@@ -1,8 +1,8 @@
 use serde::Serialize;
 
 use crate::{
-    CondSend, CondSync, Create, DeleteWithIgnoreUnknownIds, FilterItems, IdentityList, Patch,
-    Resource, RetrieveWithIgnoreUnknownIds, Update, WithBasePath,
+    Create, DeleteWithIgnoreUnknownIds, FilterItems, IdentityList, Patch, Resource,
+    RetrieveWithIgnoreUnknownIds, Update, WithBasePath,
 };
 
 use crate::extpipes::*;
@@ -18,14 +18,14 @@ impl Create<AddExtPipe, ExtPipe> for ExtPipesResource {}
 impl<R> DeleteWithIgnoreUnknownIds<IdentityList<R>> for ExtPipesResource
 where
     IdentityList<R>: Serialize,
-    R: CondSend + CondSync,
+    R: Send + Sync,
 {
 }
 impl Update<Patch<PatchExtPipe>, ExtPipe> for ExtPipesResource {}
 impl<R> RetrieveWithIgnoreUnknownIds<IdentityList<R>, ExtPipe> for ExtPipesResource
 where
     IdentityList<R>: Serialize,
-    R: CondSend + CondSync,
+    R: Send + Sync,
 {
 }
 impl FilterItems<ExtPipeFilter, ExtPipe> for ExtPipesResource {}

@@ -5,7 +5,7 @@ use crate::api::resource::*;
 use crate::dto::core::asset::*;
 use crate::error::Result;
 use crate::utils::lease::CleanResource;
-use crate::{CondSend, CondSync, IdentityList, ItemsVec, Patch};
+use crate::{IdentityList, ItemsVec, Patch};
 
 /// Assets represent objects or groups of objects from the physical world.
 /// Assets are organized in hierarchies. For example, a water pump asset can
@@ -22,7 +22,7 @@ impl SearchItems<'_, AssetFilter, AssetSearch, Asset> for AssetsResource {}
 impl Update<Patch<PatchAsset>, Asset> for AssetsResource {}
 impl<R> DeleteWithRequest<DeleteAssetsRequest<IdentityList<R>>> for AssetsResource
 where
-    R: CondSend + CondSync,
+    R: Send + Sync,
     IdentityList<R>: Serialize,
 {
 }
@@ -30,7 +30,7 @@ impl FilterWithRequest<FilterAssetsRequest, Asset> for AssetsResource {}
 impl<R> RetrieveWithRequest<RetrieveAssetsRequest<IdentityList<R>>, ItemsVec<Asset>>
     for AssetsResource
 where
-    R: CondSend + CondSync,
+    R: Send + Sync,
     IdentityList<R>: Serialize,
 {
 }
@@ -54,7 +54,7 @@ impl AssetsResource {
     ) -> Result<Vec<Asset>>
     where
         IdentityList<R>: Serialize,
-        R: CondSend + CondSync,
+        R: Send + Sync,
     {
         let id_items = RetrieveAssetsRequest::new_with_extra_fields(
             asset_ids.into(),
@@ -84,7 +84,7 @@ impl AssetsResource {
     ) -> Result<()>
     where
         IdentityList<R>: Serialize,
-        R: CondSend + CondSync,
+        R: Send + Sync,
     {
         let id_items = DeleteAssetsRequest::new_with_extra_fields(
             asset_ids.into(),

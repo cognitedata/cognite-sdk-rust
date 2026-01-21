@@ -1,4 +1,4 @@
-use crate::{CondSend, CondSync, IntoParams};
+use crate::{CondSend, IntoParams};
 use anyhow::anyhow;
 use bytes::Bytes;
 use futures::{TryStream, TryStreamExt};
@@ -171,7 +171,7 @@ impl ApiClient {
     ///
     /// * `path` - Request path without leading slash.
     /// * `value` - Protobuf value to post.
-    pub async fn post_protobuf<D: DeserializeOwned + CondSend + CondSync, T: Message>(
+    pub async fn post_protobuf<D: DeserializeOwned + Send + Sync, T: Message>(
         &self,
         path: &str,
         value: &T,

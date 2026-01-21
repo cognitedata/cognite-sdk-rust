@@ -5,7 +5,7 @@ use crate::api::resource::*;
 use crate::dto::core::event::*;
 use crate::error::Result;
 use crate::utils::lease::CleanResource;
-use crate::{CondSend, CondSync, IdentityList, ItemsVec, Patch};
+use crate::{IdentityList, ItemsVec, Patch};
 
 /// Event objects store complex information about multiple assets over a time period.
 /// Typical types of events might include Alarms, Process Data, and Logs.
@@ -25,14 +25,14 @@ impl Create<AddEvent, Event> for EventsResource {}
 impl<R> DeleteWithIgnoreUnknownIds<IdentityList<R>> for EventsResource
 where
     IdentityList<R>: Serialize,
-    R: CondSend + CondSync,
+    R: Send + Sync,
 {
 }
 impl Update<Patch<PatchEvent>, Event> for EventsResource {}
 impl<R> RetrieveWithIgnoreUnknownIds<IdentityList<R>, Event> for EventsResource
 where
     IdentityList<R>: Serialize,
-    R: CondSend + CondSync,
+    R: Send + Sync,
 {
 }
 impl SearchItems<'_, EventFilter, EventSearch, Event> for EventsResource {}

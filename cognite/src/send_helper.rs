@@ -8,10 +8,8 @@
 mod imp {
     use futures::{stream::BoxStream, Stream, StreamExt};
 
-    pub trait CondSend: Send {}
-    impl<T> CondSend for T where T: Send {}
-    pub trait CondSync: Sync {}
-    impl<T> CondSync for T where T: Sync {}
+    pub use Send as CondSend;
+    pub use Sync as CondSync;
 
     pub trait CondBoxedStream: Stream {
         fn boxed_cond<'a>(self) -> BoxStream<'a, Self::Item>

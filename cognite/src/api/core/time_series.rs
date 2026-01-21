@@ -15,8 +15,6 @@ use crate::dto::core::time_series::*;
 use crate::error::Result;
 use crate::get_missing_from_result;
 use crate::utils::execute_with_parallelism;
-use crate::CondSend;
-use crate::CondSync;
 use crate::IdentityList;
 use crate::IdentityOrInstance;
 use crate::IdentityOrInstanceList;
@@ -44,14 +42,14 @@ impl SearchItems<'_, TimeSeriesFilter, TimeSeriesSearch, TimeSeries> for TimeSer
 impl<R> RetrieveWithIgnoreUnknownIds<IdentityOrInstanceList<R>, TimeSeries> for TimeSeriesResource
 where
     IdentityOrInstanceList<R>: Serialize,
-    R: CondSend + CondSync,
+    R: Send + Sync,
 {
 }
 impl Update<Patch<PatchTimeSeries>, TimeSeries> for TimeSeriesResource {}
 impl<R> DeleteWithIgnoreUnknownIds<IdentityList<R>> for TimeSeriesResource
 where
     IdentityList<R>: Serialize,
-    R: CondSend + CondSync,
+    R: Send + Sync,
 {
 }
 impl TimeSeriesResource {
