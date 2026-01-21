@@ -1,6 +1,8 @@
+use serde::Serialize;
+
 use crate::{
-    Create, DeleteWithIgnoreUnknownIds, FilterItems, Identity, Patch, Resource,
-    RetrieveWithIgnoreUnknownIds, Update, WithBasePath,
+    CondSend, CondSync, Create, DeleteWithIgnoreUnknownIds, FilterItems, IdentityList, Patch,
+    Resource, RetrieveWithIgnoreUnknownIds, Update, WithBasePath,
 };
 
 use crate::extpipes::*;
@@ -13,9 +15,19 @@ impl WithBasePath for ExtPipesResource {
 }
 
 impl Create<AddExtPipe, ExtPipe> for ExtPipesResource {}
-impl DeleteWithIgnoreUnknownIds<Identity> for ExtPipesResource {}
+impl<R> DeleteWithIgnoreUnknownIds<IdentityList<R>> for ExtPipesResource
+where
+    IdentityList<R>: Serialize,
+    R: CondSend + CondSync,
+{
+}
 impl Update<Patch<PatchExtPipe>, ExtPipe> for ExtPipesResource {}
-impl RetrieveWithIgnoreUnknownIds<Identity, ExtPipe> for ExtPipesResource {}
+impl<R> RetrieveWithIgnoreUnknownIds<IdentityList<R>, ExtPipe> for ExtPipesResource
+where
+    IdentityList<R>: Serialize,
+    R: CondSend + CondSync,
+{
+}
 impl FilterItems<ExtPipeFilter, ExtPipe> for ExtPipesResource {}
 
 /// Extraction pipeline runs represent statuses related to an extraction pipeline.

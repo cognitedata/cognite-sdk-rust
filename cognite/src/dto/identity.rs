@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use serde::{Deserialize, Serialize};
+use serde::{ser::SerializeSeq, Deserialize, Serialize};
 
 use crate::{
     models::instances::InstanceId, ApiErrorDetail, FromErrorDetail, IntegerStringOrObject,
@@ -77,6 +77,12 @@ impl Default for Identity {
 impl From<i64> for Identity {
     fn from(id: i64) -> Self {
         Identity::Id { id }
+    }
+}
+
+impl From<&String> for Identity {
+    fn from(value: &String) -> Self {
+        Self::from(value.clone())
     }
 }
 
@@ -232,6 +238,12 @@ impl From<&str> for IdentityOrInstance {
     }
 }
 
+impl From<&String> for IdentityOrInstance {
+    fn from(value: &String) -> Self {
+        Self::Identity(Identity::from(value))
+    }
+}
+
 impl From<String> for IdentityOrInstance {
     fn from(value: String) -> Self {
         Self::Identity(Identity::from(value))
@@ -300,3 +312,238 @@ impl FromErrorDetail for IdentityOrInstance {
         }
     }
 }
+
+/// Serializable wrapper around a list of identities.
+/// This implements serialize for individual strings or integers.
+/// as well as lists of these. This is useful for the many endpoints that
+/// accept lists of identities.
+pub struct IdentityList<R>(R);
+
+impl<R> From<R> for IdentityList<R> {
+    fn from(value: R) -> Self {
+        IdentityList(value)
+    }
+}
+
+/// Serializable wrapper around a list of identity or instance IDs.
+/// This implements serialize for individual strings, integers or instance IDs,
+/// as well as lists of these.
+/// This is useful for the many endpoints that accept lists of identities.
+pub struct IdentityOrInstanceList<R>(R);
+
+impl<T> Serialize for IdentityOrInstanceList<T>
+where
+    IdentityList<T>: Serialize,
+    T: Copy,
+{
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        IdentityList(self.0).serialize(serializer)
+    }
+}
+
+impl<R> From<R> for IdentityOrInstanceList<R> {
+    fn from(value: R) -> Self {
+        IdentityOrInstanceList(value)
+    }
+}
+
+macro_rules! identity_list_ser_directly {
+    ($r:ident, $t:ty) => {
+        impl Serialize for $r<$t> {
+            fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+            where
+                S: serde::Serializer,
+            {
+                self.0.serialize(serializer)
+            }
+        }
+    };
+    ($r:ident, $t:ty, $n:ident) => {
+        impl<const $n: usize> Serialize for $r<$t> {
+            fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+            where
+                S: serde::Serializer,
+            {
+                self.0.serialize(serializer)
+            }
+        }
+    };
+}
+
+identity_list_ser_directly!(IdentityList, &Vec<Identity>);
+identity_list_ser_directly!(IdentityOrInstanceList, &Vec<IdentityOrInstance>);
+identity_list_ser_directly!(IdentityList, &Vec<CogniteExternalId>);
+identity_list_ser_directly!(IdentityList, &Vec<CogniteId>);
+identity_list_ser_directly!(IdentityList, &Vec<&Identity>);
+identity_list_ser_directly!(IdentityOrInstanceList, &Vec<&IdentityOrInstance>);
+identity_list_ser_directly!(IdentityList, &Vec<&CogniteExternalId>);
+identity_list_ser_directly!(IdentityList, &Vec<&CogniteId>);
+identity_list_ser_directly!(IdentityList, &[Identity]);
+identity_list_ser_directly!(IdentityOrInstanceList, &[IdentityOrInstance]);
+identity_list_ser_directly!(IdentityList, &[CogniteExternalId]);
+identity_list_ser_directly!(IdentityList, &[CogniteId]);
+identity_list_ser_directly!(IdentityList, &[&Identity]);
+identity_list_ser_directly!(IdentityOrInstanceList, &[&IdentityOrInstance]);
+identity_list_ser_directly!(IdentityList, &[&CogniteExternalId]);
+identity_list_ser_directly!(IdentityList, &[&CogniteId]);
+identity_list_ser_directly!(IdentityList, &[Identity; N], N);
+identity_list_ser_directly!(IdentityOrInstanceList, &[IdentityOrInstance; N], N);
+identity_list_ser_directly!(IdentityList, &[CogniteExternalId; N], N);
+identity_list_ser_directly!(IdentityList, &[CogniteId; N], N);
+identity_list_ser_directly!(IdentityList, &[&Identity; N], N);
+identity_list_ser_directly!(IdentityOrInstanceList, &[&IdentityOrInstance; N], N);
+identity_list_ser_directly!(IdentityList, &[&CogniteExternalId; N], N);
+identity_list_ser_directly!(IdentityList, &[&CogniteId; N], N);
+
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+struct ExternalIdRef<'a, T> {
+    external_id: &'a T,
+}
+
+macro_rules! identity_list_ser_external_id {
+    ($t:ty) => {
+        impl Serialize for IdentityList<$t> {
+            fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+            where
+                S: serde::Serializer,
+            {
+                let mut seq = serializer.serialize_seq(Some(self.0.len()))?;
+                for id in self.0.iter() {
+                    seq.serialize_element(&ExternalIdRef { external_id: id })?;
+                }
+                seq.end()
+            }
+        }
+    };
+
+    ($t:ty, $n:ident) => {
+        impl<const $n: usize> Serialize for IdentityList<$t> {
+            fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+            where
+                S: serde::Serializer,
+            {
+                let mut seq = serializer.serialize_seq(Some($n))?;
+                for id in self.0.iter() {
+                    seq.serialize_element(&ExternalIdRef { external_id: id })?;
+                }
+                seq.end()
+            }
+        }
+    };
+}
+identity_list_ser_external_id!(&Vec<String>);
+identity_list_ser_external_id!(&[String]);
+identity_list_ser_external_id!(&[String; N], N);
+identity_list_ser_external_id!(&Vec<&String>);
+identity_list_ser_external_id!(&[&String]);
+identity_list_ser_external_id!(&[&String; N], N);
+identity_list_ser_external_id!(&Vec<&str>);
+identity_list_ser_external_id!(&[&str]);
+identity_list_ser_external_id!(&[&str; N], N);
+
+macro_rules! identity_list_ser_id {
+    ($t:ty) => {
+        impl Serialize for IdentityList<$t> {
+            fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+            where
+                S: serde::Serializer,
+            {
+                let mut seq = serializer.serialize_seq(Some(self.0.len()))?;
+                for id in self.0.iter() {
+                    seq.serialize_element(&CogniteId { id: *id })?;
+                }
+                seq.end()
+            }
+        }
+    };
+
+    ($t:ty, $n:ident) => {
+        impl<const N: usize> Serialize for IdentityList<$t> {
+            fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+            where
+                S: serde::Serializer,
+            {
+                let mut seq = serializer.serialize_seq(Some(N))?;
+                for id in self.0.iter() {
+                    seq.serialize_element(&CogniteId { id: *id })?;
+                }
+                seq.end()
+            }
+        }
+    };
+}
+
+identity_list_ser_id!(&Vec<i64>);
+identity_list_ser_id!(&[i64]);
+identity_list_ser_id!(&[i64; N], N);
+
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+struct InstanceIdRef<'a> {
+    instance_id: &'a InstanceId,
+}
+
+macro_rules! identity_list_ser_instance_id {
+    ($t:ty) => {
+        impl Serialize for IdentityOrInstanceList<$t> {
+            fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+            where
+                S: serde::Serializer,
+            {
+                let mut seq = serializer.serialize_seq(Some(self.0.len()))?;
+                for id in self.0.iter() {
+                    seq.serialize_element(&InstanceIdRef { instance_id: id })?;
+                }
+                seq.end()
+            }
+        }
+    };
+
+    ($t:ty, $n:ident) => {
+        impl<const N: usize> Serialize for IdentityOrInstanceList<$t> {
+            fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+            where
+                S: serde::Serializer,
+            {
+                let mut seq = serializer.serialize_seq(Some(N))?;
+                for id in self.0.iter() {
+                    seq.serialize_element(&InstanceIdRef { instance_id: id })?;
+                }
+                seq.end()
+            }
+        }
+    };
+}
+
+identity_list_ser_instance_id!(&Vec<InstanceId>);
+identity_list_ser_instance_id!(&[InstanceId]);
+identity_list_ser_instance_id!(&[InstanceId; N], N);
+identity_list_ser_instance_id!(&Vec<&InstanceId>);
+identity_list_ser_instance_id!(&[&InstanceId]);
+identity_list_ser_instance_id!(&[&InstanceId; N], N);
+
+macro_rules! identity_list_ser_single {
+    ($r:ident, $t:ty) => {
+        impl Serialize for $r<$t> {
+            fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+            where
+                S: serde::Serializer,
+            {
+                Serialize::serialize(&$r(&[self.0]), serializer)
+            }
+        }
+    };
+}
+
+identity_list_ser_single!(IdentityList, i64);
+identity_list_ser_single!(IdentityList, &str);
+identity_list_ser_single!(IdentityList, &String);
+identity_list_ser_single!(IdentityOrInstanceList, &InstanceId);
+identity_list_ser_single!(IdentityList, &Identity);
+identity_list_ser_single!(IdentityOrInstanceList, &IdentityOrInstance);
+identity_list_ser_single!(IdentityList, &CogniteExternalId);
+identity_list_ser_single!(IdentityList, &CogniteId);

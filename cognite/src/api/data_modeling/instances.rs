@@ -10,7 +10,7 @@ use crate::models::instances::{
 };
 use crate::models::instances::{FromReadable, WithView};
 use crate::models::views::ViewReference;
-use crate::Result;
+use crate::{CondSend, CondSync, Result};
 use crate::{DeleteWithResponse, FilterWithRequest, RetrieveWithRequest, UpsertCollection};
 use crate::{Resource, WithBasePath};
 
@@ -22,14 +22,14 @@ impl WithBasePath for Instances {
 }
 
 impl<TProperties> FilterWithRequest<FilterInstancesRequest, NodeOrEdge<TProperties>> for Instances where
-    TProperties: Serialize + DeserializeOwned + Send + Sync
+    TProperties: Serialize + DeserializeOwned + CondSend + CondSync
 {
 }
 impl<TProperties>
     RetrieveWithRequest<NodeAndEdgeRetrieveRequest, NodeAndEdgeRetrieveResponse<TProperties>>
     for Instances
 where
-    TProperties: Serialize + DeserializeOwned + Send + Sync,
+    TProperties: Serialize + DeserializeOwned + CondSend + CondSync,
 {
 }
 impl<TProperties> UpsertCollection<NodeAndEdgeCreateCollection<TProperties>, SlimNodeOrEdge>
@@ -44,7 +44,9 @@ impl Instances {
     /// # Arguments
     ///
     /// * `req` - Request with optional filter.
-    pub async fn filter_with_type_info<TProperties: DeserializeOwned + Send + Sync + 'static>(
+    pub async fn filter_with_type_info<
+        TProperties: DeserializeOwned + CondSend + CondSync + 'static,
+    >(
         &self,
         req: FilterInstancesRequest,
     ) -> Result<InstancesFilterResponse<TProperties>> {
@@ -58,7 +60,7 @@ impl Instances {
     /// # Arguments
     ///
     /// * `query` - Query to execute.
-    pub async fn query<TProperties: DeserializeOwned + Send + Sync + 'static>(
+    pub async fn query<TProperties: DeserializeOwned + CondSend + CondSync + 'static>(
         &self,
         query: QueryInstancesRequest,
     ) -> Result<QueryInstancesResponse<TProperties>> {
@@ -73,7 +75,7 @@ impl Instances {
     /// # Arguments
     ///
     /// * `query` - Query to execute.
-    pub async fn sync<TProperties: DeserializeOwned + Send + Sync + 'static>(
+    pub async fn sync<TProperties: DeserializeOwned + CondSend + CondSync + 'static>(
         &self,
         query: QueryInstancesRequest,
     ) -> Result<QueryInstancesResponse<TProperties>> {
@@ -101,7 +103,7 @@ impl Instances {
     /// # Arguments
     ///
     /// * `req` - Search request.
-    pub async fn search<TProperties: DeserializeOwned + Send + Sync + 'static>(
+    pub async fn search<TProperties: DeserializeOwned + CondSend + CondSync + 'static>(
         &self,
         req: SearchInstancesRequest,
     ) -> Result<NodeAndEdgeRetrieveResponse<TProperties>> {
@@ -121,8 +123,8 @@ impl Instances {
         view: Option<&ViewReference>,
     ) -> Result<Vec<TEntity>>
     where
-        TProperties: Serialize + DeserializeOwned + Send + Sync,
-        TEntity: FromReadable<TProperties> + WithView + Send,
+        TProperties: Serialize + DeserializeOwned + CondSend + CondSync,
+        TEntity: FromReadable<TProperties> + WithView + CondSend,
     {
         let response: NodeAndEdgeRetrieveResponse<TProperties> = self
             .retrieve(&NodeAndEdgeRetrieveRequest {
@@ -167,8 +169,8 @@ impl Instances {
         replace: bool,
     ) -> Result<Vec<SlimNodeOrEdge>>
     where
-        TProperties: Serialize + DeserializeOwned + Send + Sync,
-        TEntity: Clone + Into<NodeOrEdgeCreate<TProperties>> + Send,
+        TProperties: Serialize + DeserializeOwned + CondSend + CondSync,
+        TEntity: Clone + Into<NodeOrEdgeCreate<TProperties>> + CondSend,
     {
         let collection = col
             .iter()

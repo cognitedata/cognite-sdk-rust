@@ -41,6 +41,13 @@ async fn create_and_delete_time_series() {
         .iter()
         .map(|ts| Identity::Id { id: ts.id })
         .collect();
+
+    let retrieved = client.time_series.retrieve(&id_list, true).await.unwrap();
+    assert_eq!(retrieved.len(), id_list.len());
+    for ts in retrieved.iter() {
+        assert_eq!(ts.description.as_deref(), Some("changed"));
+    }
+
     client.time_series.delete(&id_list, true).await.unwrap();
 }
 
@@ -106,12 +113,7 @@ async fn create_and_delete_missing() {
 
     client
         .time_series
-        .delete(
-            &[Identity::ExternalId {
-                external_id: external_id_classic,
-            }],
-            false,
-        )
+        .delete(&external_id_classic, false)
         .await
         .unwrap();
     let _ = client
@@ -182,9 +184,5 @@ async fn timeseries_latest_datapoint() {
             .value,
         Some(1.5)
     );
-    client
-        .time_series
-        .delete(&[id.clone().into()], true)
-        .await
-        .unwrap();
+    client.time_series.delete(&id, true).await.unwrap();
 }

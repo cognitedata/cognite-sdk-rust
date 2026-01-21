@@ -1,7 +1,11 @@
+use serde::Serialize;
+use std::collections::HashSet;
+
 use crate::api::resource::*;
 use crate::dto::core::event::*;
 use crate::error::Result;
-use crate::{Identity, ItemsVec, Patch};
+use crate::utils::lease::CleanResource;
+use crate::{CondSend, CondSync, IdentityList, ItemsVec, Patch};
 
 /// Event objects store complex information about multiple assets over a time period.
 /// Typical types of events might include Alarms, Process Data, and Logs.
@@ -18,9 +22,19 @@ impl WithBasePath for EventsResource {
 }
 
 impl Create<AddEvent, Event> for EventsResource {}
-impl DeleteWithIgnoreUnknownIds<Identity> for EventsResource {}
+impl<R> DeleteWithIgnoreUnknownIds<IdentityList<R>> for EventsResource
+where
+    IdentityList<R>: Serialize,
+    R: CondSend + CondSync,
+{
+}
 impl Update<Patch<PatchEvent>, Event> for EventsResource {}
-impl RetrieveWithIgnoreUnknownIds<Identity, Event> for EventsResource {}
+impl<R> RetrieveWithIgnoreUnknownIds<IdentityList<R>, Event> for EventsResource
+where
+    IdentityList<R>: Serialize,
+    R: CondSend + CondSync,
+{
+}
 impl SearchItems<'_, EventFilter, EventSearch, Event> for EventsResource {}
 impl FilterWithRequest<EventFilterQuery, Event> for EventsResource {}
 
@@ -40,5 +54,13 @@ impl EventsResource {
         let resp: ItemsVec<EventAggregateResponse> =
             self.api_client.post("events/aggregate", &aggregate).await?;
         Ok(resp.items)
+    }
+}
+
+impl CleanResource<Event> for EventsResource {
+    async fn clean_resource(&self, resources: Vec<Event>) -> std::result::Result<(), crate::Error> {
+        let ids = resources.iter().map(|a| a.id).collect::<HashSet<i64>>();
+        self.delete(&ids.into_iter().collect::<Vec<_>>(), true)
+            .await
     }
 }

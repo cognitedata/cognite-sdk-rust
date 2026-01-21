@@ -9,8 +9,8 @@ use serde::{de::DeserializeOwned, Serialize};
 
 use crate::dto::items::*;
 use crate::{
-    ApiClient, CondBoxedStream, CondSend, EqIdentity, Filter, Identity, IntoParams, IntoPatch,
-    Partition, Patch, Result, Search, SetCursor, UpsertOptions, WithPartition,
+    ApiClient, CondBoxedStream, CondSend, CondSync, EqIdentity, Filter, Identity, IntoParams,
+    IntoPatch, Partition, Patch, Result, Search, SetCursor, UpsertOptions, WithPartition,
 };
 
 use super::utils::{get_duplicates_from_result, get_missing_from_result};
@@ -67,9 +67,9 @@ pub trait WithBasePath {
 /// Trait for simple GET / endpoints.
 pub trait List<TParams, TResponse>
 where
-    TParams: IntoParams + CondSend + Sync + 'static,
-    TResponse: Serialize + DeserializeOwned + CondSend + Sync,
-    Self: WithApiClient + WithBasePath + Sync,
+    TParams: IntoParams + CondSend + CondSync + 'static,
+    TResponse: Serialize + DeserializeOwned + CondSend + CondSync,
+    Self: WithApiClient + WithBasePath + CondSync,
 {
     /// Query a resource with optional query parameters.
     ///
@@ -98,7 +98,7 @@ where
     ) -> impl Future<Output = Result<Vec<TResponse>>> + CondSend
     where
         TParams: SetCursor + Clone,
-        TResponse: Send,
+        TResponse: CondSend,
     {
         async move {
             let mut result = vec![];
@@ -134,7 +134,7 @@ where
     ) -> impl TryStream<Ok = TResponse, Error = crate::Error, Item = Result<TResponse>> + CondSend
     where
         TParams: SetCursor + Clone,
-        TResponse: Send + 'static,
+        TResponse: CondSend + 'static,
     {
         let state = CursorStreamState {
             req: params,
@@ -177,9 +177,9 @@ where
 /// Trait for creating resources with POST / requests.
 pub trait Create<TCreate, TResponse>
 where
-    TCreate: Serialize + Sync + CondSend,
+    TCreate: Serialize + CondSync + CondSend,
     TResponse: Serialize + DeserializeOwned + CondSend,
-    Self: WithApiClient + WithBasePath + Sync,
+    Self: WithApiClient + WithBasePath + CondSync,
 {
     /// Create a list of resources.
     ///
@@ -205,7 +205,7 @@ where
     /// * `creates` - List of resources to create.
     fn create_from(
         &self,
-        creates: &[impl Into<TCreate> + Sync + Clone],
+        creates: &[impl Into<TCreate> + CondSync + Clone],
     ) -> impl Future<Output = Result<Vec<TResponse>>> + CondSend {
         async move {
             let to_add: Vec<TCreate> = creates.iter().map(|i| i.clone().into()).collect();
@@ -261,7 +261,7 @@ where
     /// * `creates` - List of resources to create.
     fn create_from_ignore_duplicates<'a, T: 'a>(
         &self,
-        creates: &'a [impl Into<TCreate> + Sync + Clone],
+        creates: &'a [impl Into<TCreate> + CondSync + Clone],
     ) -> impl Future<Output = Result<Vec<TResponse>>> + CondSend
     where
         TCreate: EqIdentity,
@@ -276,10 +276,10 @@ where
 /// Trait for upserts of resources that support both Create and Update.
 pub trait Upsert<'a, TCreate, TUpdate, TResponse>
 where
-    TCreate: Serialize + Sync + CondSend + EqIdentity + 'a + Clone + IntoPatch<TUpdate>,
-    TUpdate: Serialize + Sync + CondSend + Default,
-    TResponse: Serialize + DeserializeOwned + Sync + CondSend,
-    Self: WithApiClient + WithBasePath + Sync,
+    TCreate: Serialize + CondSync + CondSend + EqIdentity + 'a + Clone + IntoPatch<TUpdate>,
+    TUpdate: Serialize + CondSync + CondSend + Default,
+    TResponse: Serialize + DeserializeOwned + CondSync + CondSend,
+    Self: WithApiClient + WithBasePath + CondSync,
 {
     /// Upsert a list resources, meaning that they will first be attempted created,
     /// and if that fails with a conflict, update any that already existed, and create
@@ -345,10 +345,10 @@ where
 
 impl<'a, T, TCreate, TUpdate, TResponse> Upsert<'a, TCreate, TUpdate, TResponse> for T
 where
-    T: Create<TCreate, TResponse> + Update<Patch<TUpdate>, TResponse> + Sync,
-    TCreate: Serialize + Sync + CondSend + EqIdentity + 'a + Clone + IntoPatch<TUpdate>,
-    TUpdate: Serialize + Sync + CondSend + Default,
-    TResponse: Serialize + DeserializeOwned + Sync + CondSend,
+    T: Create<TCreate, TResponse> + Update<Patch<TUpdate>, TResponse> + CondSync,
+    TCreate: Serialize + CondSync + CondSend + EqIdentity + 'a + Clone + IntoPatch<TUpdate>,
+    TUpdate: Serialize + CondSync + CondSend + Default,
+    TResponse: Serialize + DeserializeOwned + CondSync + CondSend,
 {
 }
 
@@ -364,9 +364,9 @@ pub trait UpsertCollection<TUpsert, TResponse> {
         collection: &TUpsert,
     ) -> impl Future<Output = Result<Vec<TResponse>>> + CondSend
     where
-        TUpsert: Serialize + Sync + CondSend,
-        TResponse: Serialize + DeserializeOwned + Sync + CondSend,
-        Self: WithApiClient + WithBasePath + Sync,
+        TUpsert: Serialize + CondSync + CondSend,
+        TResponse: Serialize + DeserializeOwned + CondSync + CondSend,
+        Self: WithApiClient + WithBasePath + CondSync,
     {
         async move {
             let response: ItemsVec<TResponse> =
@@ -379,8 +379,8 @@ pub trait UpsertCollection<TUpsert, TResponse> {
 /// Trait for resource types that can be deleted with a list of `TIdt`.
 pub trait Delete<TIdt>
 where
-    TIdt: Serialize + Sync + CondSend,
-    Self: WithApiClient + WithBasePath + Sync,
+    TIdt: Serialize + CondSync + CondSend,
+    Self: WithApiClient + WithBasePath + CondSync,
 {
     /// Delete a list of resources by ID.
     ///
@@ -404,8 +404,8 @@ where
 /// Trait for resource types that can be deleted with a more complex request.
 pub trait DeleteWithRequest<TReq>
 where
-    TReq: Serialize + Sync + CondSend,
-    Self: WithApiClient + WithBasePath + Sync,
+    TReq: Serialize + CondSync + CondSend,
+    Self: WithApiClient + WithBasePath + CondSync,
 {
     /// Delete resources using `req`.
     ///
@@ -426,8 +426,8 @@ where
 /// a boolean option to ignore unknown ids.
 pub trait DeleteWithIgnoreUnknownIds<TIdt>
 where
-    TIdt: Serialize + Sync + CondSend,
-    Self: WithApiClient + WithBasePath + Sync,
+    TIdt: Serialize + CondSync + CondSend,
+    Self: WithApiClient + WithBasePath + CondSync,
 {
     /// Delete a list of resources, optionally ignore unknown ids.
     ///
@@ -438,15 +438,17 @@ where
     ///   cause the request to fail.
     fn delete(
         &self,
-        deletes: &[TIdt],
+        deletes: impl Into<TIdt> + CondSend,
         ignore_unknown_ids: bool,
     ) -> impl Future<Output = Result<()>> + CondSend
     where
-        Self: Sync,
+        Self: CondSync,
     {
         async move {
-            let req =
-                Items::new_with_extra_fields(deletes, IgnoreUnknownIds { ignore_unknown_ids });
+            let req = Items::new_with_extra_fields(
+                deletes.into(),
+                IgnoreUnknownIds { ignore_unknown_ids },
+            );
             self.get_client()
                 .post::<::serde_json::Value, _>(&format!("{}/delete", Self::BASE_PATH), &req)
                 .await?;
@@ -459,9 +461,9 @@ where
 /// has a non-empty response.
 pub trait DeleteWithResponse<TIdt, TResponse>
 where
-    TIdt: Serialize + Sync + CondSend,
-    TResponse: Serialize + DeserializeOwned + Sync + CondSend,
-    Self: WithApiClient + WithBasePath + Sync,
+    TIdt: Serialize + CondSync + CondSend,
+    TResponse: Serialize + DeserializeOwned + CondSync + CondSend,
+    Self: WithApiClient + WithBasePath + CondSync,
 {
     /// Delete a list of resources.
     ///
@@ -486,9 +488,9 @@ where
 /// Trait for resource types that can be patch updated.
 pub trait Update<TUpdate, TResponse>
 where
-    TUpdate: Serialize + Sync + CondSend,
+    TUpdate: Serialize + CondSync + CondSend,
     TResponse: Serialize + DeserializeOwned,
-    Self: WithApiClient + WithBasePath + Sync,
+    Self: WithApiClient + WithBasePath + CondSync,
 {
     /// Update a list of resources.
     ///
@@ -540,7 +542,7 @@ where
     ) -> impl Future<Output = Result<Vec<TResponse>>> + CondSend
     where
         TUpdate: EqIdentity,
-        TResponse: Send,
+        TResponse: CondSend,
     {
         async move {
             let response = self.update(updates).await;
@@ -582,9 +584,9 @@ where
         updates: &'a [T],
     ) -> impl Future<Output = Result<Vec<TResponse>>> + CondSend
     where
-        T: Sync + Clone + 'a,
+        T: CondSync + Clone + 'a,
         TUpdate: From<T> + EqIdentity,
-        TResponse: Send,
+        TResponse: CondSend,
     {
         async move {
             let to_update: Vec<TUpdate> =
@@ -597,9 +599,9 @@ where
 /// Trait for retrieving items from CDF by id.
 pub trait Retrieve<TIdt, TResponse>
 where
-    TIdt: Serialize + Sync + CondSend,
+    TIdt: Serialize + CondSync + CondSend,
     TResponse: Serialize + DeserializeOwned,
-    Self: WithApiClient + WithBasePath + Sync,
+    Self: WithApiClient + WithBasePath + CondSync,
 {
     /// Retrieve a list of items from CDF by id.
     ///
@@ -621,9 +623,9 @@ where
 /// Trait for retrieving items from CDF with a more complex request type.
 pub trait RetrieveWithRequest<TRequest, TResponse>
 where
-    TRequest: Serialize + Sync + CondSend,
+    TRequest: Serialize + CondSync + CondSend,
     TResponse: Serialize + DeserializeOwned,
-    Self: WithApiClient + WithBasePath + Sync,
+    Self: WithApiClient + WithBasePath + CondSync,
 {
     /// Retrieve items from CDF with a more complex request.
     ///
@@ -644,9 +646,9 @@ where
 /// Trait for retrieving items from CDF with an option to ignore unknown IDs.
 pub trait RetrieveWithIgnoreUnknownIds<TIdt, TResponse>
 where
-    TIdt: Serialize + Sync + CondSend,
+    TIdt: Serialize + CondSync + CondSend,
     TResponse: Serialize + DeserializeOwned,
-    Self: WithApiClient + WithBasePath + Sync,
+    Self: WithApiClient + WithBasePath + CondSync,
 {
     /// Retrieve a list of items from CDF. If ignore_unknown_ids is false,
     /// this will fail if any items are missing from CDF.
@@ -658,11 +660,12 @@ where
     ///   cause the request to fail.
     fn retrieve(
         &self,
-        ids: &[TIdt],
+        ids: impl Into<TIdt> + CondSend,
         ignore_unknown_ids: bool,
     ) -> impl Future<Output = Result<Vec<TResponse>>> + CondSend {
         async move {
-            let items = Items::new_with_extra_fields(ids, IgnoreUnknownIds { ignore_unknown_ids });
+            let items =
+                Items::new_with_extra_fields(ids.into(), IgnoreUnknownIds { ignore_unknown_ids });
             let response: ItemsVec<TResponse> = self
                 .get_client()
                 .post(&format!("{}/byids", Self::BASE_PATH), &items)
@@ -675,9 +678,9 @@ where
 /// Trait for resource types that allow filtering with a simple filter.
 pub trait FilterItems<TFilter, TResponse>
 where
-    TFilter: Serialize + Sync + CondSend + 'static,
+    TFilter: Serialize + CondSync + CondSend + 'static,
     TResponse: Serialize + DeserializeOwned,
-    Self: WithApiClient + WithBasePath + Sync,
+    Self: WithApiClient + WithBasePath + CondSync,
 {
     /// Filter resources using a simple filter.
     /// The response may contain a cursor that can be used to paginate results.
@@ -706,7 +709,7 @@ where
 
 impl<TFilter, TResponse, T> FilterWithRequest<Filter<TFilter>, TResponse> for T
 where
-    TFilter: Serialize + Sync + CondSend + 'static,
+    TFilter: Serialize + CondSync + CondSend + 'static,
     TResponse: Serialize + DeserializeOwned,
     T: FilterItems<TFilter, TResponse>,
     Self: WithApiClient + WithBasePath,
@@ -730,9 +733,9 @@ pub(crate) struct CursorStreamState<TFilter, TResponse> {
 /// Trait for resource types that allow filtering with a more complex request.
 pub trait FilterWithRequest<TFilter, TResponse>
 where
-    TFilter: Serialize + Sync + CondSend + 'static,
+    TFilter: Serialize + CondSync + CondSend + 'static,
     TResponse: Serialize + DeserializeOwned,
-    Self: WithApiClient + WithBasePath + Sync,
+    Self: WithApiClient + WithBasePath + CondSync,
 {
     /// Filter resources.
     ///
@@ -763,7 +766,7 @@ where
     ) -> impl Future<Output = Result<Vec<TResponse>>> + CondSend
     where
         TFilter: SetCursor,
-        TResponse: Send,
+        TResponse: CondSend,
     {
         async move {
             let mut result = vec![];
@@ -798,7 +801,7 @@ where
     ) -> impl TryStream<Ok = TResponse, Error = crate::Error, Item = Result<TResponse>> + CondSend
     where
         TFilter: SetCursor,
-        TResponse: Send + 'static,
+        TResponse: CondSend + 'static,
     {
         let state = CursorStreamState {
             req: filter,
@@ -851,7 +854,7 @@ where
     ) -> impl Future<Output = Result<Vec<TResponse>>> + CondSend
     where
         TFilter: SetCursor + WithPartition,
-        TResponse: Send,
+        TResponse: CondSend,
     {
         async move {
             let mut futures = Vec::with_capacity(num_partitions as usize);
@@ -888,7 +891,7 @@ where
     ) -> impl TryStream<Ok = TResponse, Error = crate::Error, Item = Result<TResponse>> + CondSend
     where
         TFilter: SetCursor + WithPartition,
-        TResponse: Send + 'static,
+        TResponse: CondSend + 'static,
     {
         let mut streams = SelectAll::new();
         for partition in 0..num_partitions {
@@ -903,10 +906,10 @@ where
 /// Trait for resource types that allow filtering with fuzzy search.
 pub trait SearchItems<'a, TFilter, TSearch, TResponse>
 where
-    TFilter: Serialize + Sync + CondSend + 'a,
-    TSearch: Serialize + Sync + CondSend + 'a,
+    TFilter: Serialize + CondSync + CondSend + 'a,
+    TSearch: Serialize + CondSync + CondSend + 'a,
     TResponse: Serialize + DeserializeOwned,
-    Self: WithApiClient + WithBasePath + Sync,
+    Self: WithApiClient + WithBasePath + CondSync,
 {
     /// Fuzzy search resources.
     ///

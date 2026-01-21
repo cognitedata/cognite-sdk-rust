@@ -69,7 +69,7 @@ impl<T> ProtoResponseHandler<T> {
     }
 }
 
-impl<T: Message + Default + Send + Sync> ResponseHandler for ProtoResponseHandler<T> {
+impl<T: Message + Default + CondSend + CondSync> ResponseHandler for ProtoResponseHandler<T> {
     type Output = T;
     const ACCEPT_HEADER: &'static str = "application/protobuf";
     async fn handle_response(self, response: Response) -> Result<Self::Output> {

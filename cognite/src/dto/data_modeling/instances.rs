@@ -246,6 +246,18 @@ pub struct InstanceId {
     pub external_id: String,
 }
 
+impl PartialEq<crate::time_series::InstanceId> for InstanceId {
+    fn eq(&self, other: &crate::time_series::InstanceId) -> bool {
+        self.space == other.space && self.external_id == other.external_id
+    }
+}
+
+impl PartialEq<InstanceId> for crate::time_series::InstanceId {
+    fn eq(&self, other: &InstanceId) -> bool {
+        self.space == other.space && self.external_id == other.external_id
+    }
+}
+
 #[skip_serializing_none]
 #[derive(Serialize, Deserialize, Derivative, Clone, Debug)]
 #[serde(rename_all = "camelCase")]

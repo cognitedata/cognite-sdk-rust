@@ -1,11 +1,18 @@
+use std::collections::HashSet;
+
 use bytes::Bytes;
 use futures::TryStream;
+use serde::Serialize;
 
 use crate::api::resource::*;
 use crate::dto::core::files::*;
 use crate::dto::items::Items;
 use crate::error::Result;
-use crate::{Error, IdentityOrInstance, PartitionedFilter};
+use crate::utils::lease::CleanResource;
+use crate::{
+    CondSend, CondSync, Error, IdentityList, IdentityOrInstance, IdentityOrInstanceList,
+    PartitionedFilter,
+};
 use crate::{Identity, ItemsVec, Patch};
 
 /// Files store documents, binary blobs, and other file data and relate it to assets.
@@ -17,9 +24,18 @@ impl WithBasePath for Files {
 
 impl FilterWithRequest<PartitionedFilter<FileFilter>, FileMetadata> for Files {}
 impl SearchItems<'_, FileFilter, FileSearch, FileMetadata> for Files {}
-impl RetrieveWithIgnoreUnknownIds<Identity, FileMetadata> for Files {}
-impl RetrieveWithIgnoreUnknownIds<IdentityOrInstance, FileMetadata> for Files {}
-impl Delete<Identity> for Files {}
+impl<R> RetrieveWithIgnoreUnknownIds<IdentityOrInstanceList<R>, FileMetadata> for Files
+where
+    IdentityOrInstanceList<R>: Serialize,
+    R: CondSend + CondSync,
+{
+}
+impl<R> DeleteWithIgnoreUnknownIds<IdentityList<R>> for Files
+where
+    IdentityList<R>: Serialize,
+    R: CondSend + CondSync,
+{
+}
 impl Update<Patch<PatchFile>, FileMetadata> for Files {}
 
 /// Utility for uploading files in multiple parts.
@@ -51,7 +67,7 @@ impl<'a> MultipartUploader<'a> {
     /// * `size` - Size of stream to upload.
     pub async fn upload_part_stream<S>(&self, part_no: usize, stream: S, size: u64) -> Result<()>
     where
-        S: futures::TryStream + Send + 'static,
+        S: futures::TryStream + CondSend + 'static,
         S::Error: Into<Box<dyn std::error::Error + Send + Sync>>,
         bytes::Bytes: From<S::Ok>,
     {
@@ -135,7 +151,7 @@ impl Files {
         stream_chunked: bool,
     ) -> Result<()>
     where
-        S: futures::TryStream + Send + 'static,
+        S: futures::TryStream + CondSend + 'static,
         S::Error: Into<Box<dyn std::error::Error + Send + Sync>>,
         bytes::Bytes: From<S::Ok>,
     {
@@ -178,7 +194,7 @@ impl Files {
         size: u64,
     ) -> Result<()>
     where
-        S: futures::TryStream + Send + 'static,
+        S: futures::TryStream + CondSend + 'static,
         S::Error: Into<Box<dyn std::error::Error + Send + Sync>>,
         bytes::Bytes: From<S::Ok>,
     {
@@ -432,5 +448,19 @@ impl Files {
         let links = self.download_link(&items).await?;
         let link = links.first().unwrap();
         self.download(&link.download_url).await
+    }
+}
+
+impl CleanResource<FileMetadata> for Files {
+    async fn clean_resource(
+        &self,
+        resources: Vec<FileMetadata>,
+    ) -> std::result::Result<(), crate::Error> {
+        let ids = resources
+            .iter()
+            .map(|a| Identity::from(a.id))
+            .collect::<HashSet<Identity>>();
+        self.delete(&ids.into_iter().collect::<Vec<_>>(), true)
+            .await
     }
 }
