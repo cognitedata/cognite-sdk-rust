@@ -124,6 +124,13 @@ fn main() {
 cargo run --example client
 ```
 
+## WASM
+
+We verify that the SDK compiles for webassembly, with some limitations:
+
+ - The HTTP library we use does not support streams on wasm, so file uploads loads the entire file into memory before uploading.
+ - All futures are `!Send`. This is because `JsFuture`, the future used to make HTTP requests through the browser, is `!Send`.
+
 ## Contributing
 
 See [Contributing][contributing] for details.

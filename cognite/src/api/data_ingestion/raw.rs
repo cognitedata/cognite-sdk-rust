@@ -168,7 +168,8 @@ impl RawResource {
         db_name: &'a str,
         table_name: &'a str,
         params: Option<RetrieveRowsQuery>,
-    ) -> impl TryStream<Ok = RawRow, Error = crate::Error, Item = Result<RawRow>> + 'a {
+    ) -> impl TryStream<Ok = RawRow, Error = crate::Error, Item = Result<RawRow>> + CondSend + 'a
+    {
         let req = params.unwrap_or_default();
         let initial_state = match &req.cursor {
             Some(p) => CursorState::Some(p.to_owned()),
