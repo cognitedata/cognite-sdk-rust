@@ -1,12 +1,12 @@
 use std::collections::VecDeque;
 
 use futures::stream::{try_unfold, SelectAll};
-use futures::{FutureExt, StreamExt, TryStream, TryStreamExt};
+use futures::{FutureExt, TryStream, TryStreamExt};
 
 use crate::api::resource::Resource;
 use crate::dto::items::Items;
 use crate::error::Result;
-use crate::{raw::*, CursorState, CursorStreamState};
+use crate::{raw::*, CondBoxedStream, CondSend, CursorState, CursorStreamState};
 use crate::{Cursor, ItemsVec, LimitCursorQuery};
 
 /// Raw is a NoSQL JSON store. Each project can have a variable number of databases,
@@ -260,7 +260,8 @@ impl RawResource {
         db_name: &'a str,
         table_name: &'a str,
         params: RetrieveAllPartitionedQuery,
-    ) -> impl TryStream<Ok = RawRow, Error = crate::Error, Item = Result<RawRow>> + 'a {
+    ) -> impl TryStream<Ok = RawRow, Error = crate::Error, Item = Result<RawRow>> + CondSend + 'a
+    {
         self.retrieve_cursors_for_parallel_reads(
             db_name,
             table_name,
@@ -283,7 +284,7 @@ impl RawResource {
                 };
                 streams.push(
                     self.retrieve_all_rows_stream(db_name, table_name, Some(query))
-                        .boxed_local(),
+                        .boxed_cond(),
                 );
             }
             streams

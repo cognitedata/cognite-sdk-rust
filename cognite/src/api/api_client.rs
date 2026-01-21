@@ -242,6 +242,11 @@ impl ApiClient {
     /// # Warning
     /// If `stream_chunked` is false, this will collect the input stream into a memory, which can
     /// be _very_ expensive.
+    ///
+    /// # Note on WASM
+    ///
+    /// Note that wasm32-unknown-unknown targets do not support chunked streaming uploads,
+    /// so effectively `stream_chunked` is always false.
     #[cfg_attr(target_arch = "wasm32", allow(unused_variables))]
     pub async fn put_stream<S>(
         &self,

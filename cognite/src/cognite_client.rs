@@ -59,6 +59,7 @@ pub struct ClientConfig {
     /// Maximum delay between retries.
     pub max_retry_delay_ms: Option<u64>,
     /// Request timeout in milliseconds.
+    /// Note that this option does not work on wasm32 targets.
     pub timeout_ms: Option<u64>,
     /// Initial delay for exponential backoff, defaults to 125 milliseconds.
     pub initial_delay_ms: Option<u64>,
