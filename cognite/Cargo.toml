@@ -44,25 +44,31 @@ reqwest = { version = "^0.12", features = [
   "rustls-tls-native-roots",
   "stream",
 ], default-features = false } # Default brings in openssl
-reqwest-middleware = { version = "^0.4" }
+reqwest-middleware = { version = "^0.4.1" }
+
 
 anyhow = "^1"
 rand = "^0.9.0"
 serde = { version = "^1", features = ["derive"] }
 serde_json = "^1"
 serde_with = "^3"
-task-local-extensions = { version = "^0.1", optional = true }
 thiserror = "^2"
-tokio = { version = "^1", default-features = false, features = ["fs"] }
 tokio-util = { version = "^0.7", default-features = false, features = [
   "codec",
   "io",
 ] }
 pin-project = "1.1.10"
 
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+getrandom = { version = "0.3", features = ["wasm_js"] }
+tokio = { version = "^1", default-features = false }
+tokio-util = { version = "0.7.10", features = ["rt"] }
+
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+tokio = { version = "^1", default-features = false, features = ["fs"] }
+
 [target.'cfg(not(target_arch = "wasm32"))'.dev-dependencies]
 tokio = { version = "1.37.0", features = ["macros", "rt-multi-thread"] }
-tokio-util = { version = "0.7.10" }
 wiremock = "0.6.0"
 
 [dev-dependencies]

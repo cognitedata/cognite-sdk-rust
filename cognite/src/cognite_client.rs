@@ -2,7 +2,6 @@ use reqwest::Client;
 use reqwest_middleware::{ClientBuilder, ClientWithMiddleware, Middleware};
 use std::env;
 use std::sync::Arc;
-use std::time::Duration;
 
 use super::{ApiClient, Error, Result};
 use crate::api::core::sequences::SequencesResource;
@@ -60,6 +59,7 @@ pub struct ClientConfig {
     /// Maximum delay between retries.
     pub max_retry_delay_ms: Option<u64>,
     /// Request timeout in milliseconds.
+    /// Note that this option does not work on wasm32 targets.
     pub timeout_ms: Option<u64>,
     /// Initial delay for exponential backoff, defaults to 125 milliseconds.
     pub initial_delay_ms: Option<u64>,
@@ -177,10 +177,12 @@ impl CogniteClient {
         let client = if let Some(client) = client {
             client
         } else {
+            #[allow(unused_mut)]
             let mut builder = Client::builder();
             // We can add more here later
+            #[cfg(not(target_arch = "wasm32"))]
             if let Some(timeout) = config.timeout_ms {
-                builder = builder.timeout(Duration::from_millis(timeout));
+                builder = builder.timeout(std::time::Duration::from_millis(timeout));
             }
 
             builder.build()?
