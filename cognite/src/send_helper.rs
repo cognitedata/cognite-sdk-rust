@@ -11,16 +11,7 @@ mod imp {
     pub use Send as CondSend;
     pub use Sync as CondSync;
 
-    pub trait CondBoxedStream: Stream {
-        fn boxed_cond<'a>(self) -> BoxStream<'a, Self::Item>
-        where
-            Self: 'a;
-    }
-
-    impl<T> CondBoxedStream for T
-    where
-        T: Stream + Sized + Send,
-    {
+    pub trait CondBoxedStream: Sized + Stream + Send {
         fn boxed_cond<'a>(self) -> BoxStream<'a, Self::Item>
         where
             Self: 'a,
@@ -28,26 +19,21 @@ mod imp {
             self.boxed()
         }
     }
+
+    impl<T: Stream + Sized + Send> CondBoxedStream for T {}
+
+    pub type CondBoxFuture<'a, T> = futures::future::BoxFuture<'a, T>;
 }
 
 #[cfg(target_arch = "wasm32")]
 mod imp {
     use futures::{stream::LocalBoxStream, Stream, StreamExt};
     pub trait CondSend {}
-    impl<T> CondSend for T {}
+    impl<T: ?Sized> CondSend for T {}
     pub trait CondSync {}
-    impl<T> CondSync for T {}
+    impl<T: ?Sized> CondSync for T {}
 
-    pub trait CondBoxedStream: Stream {
-        fn boxed_cond<'a>(self) -> LocalBoxStream<'a, Self::Item>
-        where
-            Self: 'a;
-    }
-
-    impl<T> CondBoxedStream for T
-    where
-        T: Stream + Sized,
-    {
+    pub trait CondBoxedStream: Sized + Stream {
         fn boxed_cond<'a>(self) -> LocalBoxStream<'a, Self::Item>
         where
             Self: 'a,
@@ -55,6 +41,10 @@ mod imp {
             self.boxed_local()
         }
     }
+
+    impl<T: Stream + Sized> CondBoxedStream for T {}
+
+    pub type CondBoxFuture<'a, T> = futures::future::LocalBoxFuture<'a, T>;
 }
 
 pub(crate) use imp::*;

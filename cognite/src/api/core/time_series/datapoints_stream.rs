@@ -8,6 +8,7 @@ use futures::{stream::FuturesUnordered, Stream, StreamExt, TryStream};
 use pin_project::pin_project;
 
 use crate::{
+    send_helper::CondBoxFuture,
     time_series::{
         DataPointListItem, DataPointListResponse, DatapointAggregate, DatapointDouble,
         DatapointString, DatapointsFilter, DatapointsQuery, InstanceId, ListDatapointType,
@@ -145,12 +146,6 @@ impl Default for DatapointsStreamOptions {
     }
 }
 
-#[cfg(target_arch = "wasm32")]
-type LBoxFuture<'a, T> = futures::future::LocalBoxFuture<'a, T>;
-
-#[cfg(not(target_arch = "wasm32"))]
-type LBoxFuture<'a, T> = futures::future::BoxFuture<'a, T>;
-
 pub(super) struct DatapointsStream<'a> {
     timeseries: &'a TimeSeriesResource,
     filter: DatapointsFilter,
@@ -160,7 +155,7 @@ pub(super) struct DatapointsStream<'a> {
     // Technically, if we had existential types, we could avoid the box here.
     // In practice it really doesn't matter, the overhead of a network request is much larger
     // than anything from boxing.
-    futures: FuturesUnordered<LBoxFuture<'a, Result<FetchResult, crate::Error>>>,
+    futures: FuturesUnordered<CondBoxFuture<'a, Result<FetchResult, crate::Error>>>,
 }
 
 impl<'a> DatapointsStream<'a> {
