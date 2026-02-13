@@ -3,7 +3,8 @@ use std::collections::HashMap;
 use serde::{ser::SerializeSeq, Deserialize, Serialize};
 
 use crate::{
-    models::instances::InstanceId, ApiErrorDetail, FromErrorDetail, IntegerStringOrObject,
+    models::instances::InstanceId, ApiErrorDetail, Chunkable, FromErrorDetail,
+    IntegerStringOrObject,
 };
 
 #[derive(Serialize, Deserialize, Debug, Hash, PartialEq, Eq, Clone)]
@@ -151,6 +152,14 @@ pub trait EqIdentity {
 impl From<String> for CogniteExternalId {
     fn from(external_id: String) -> Self {
         CogniteExternalId { external_id }
+    }
+}
+
+impl<'a> From<&'a str> for CogniteExternalId {
+    fn from(external_id: &'a str) -> Self {
+        CogniteExternalId {
+            external_id: external_id.to_owned(),
+        }
     }
 }
 
@@ -319,6 +328,17 @@ impl FromErrorDetail for IdentityOrInstance {
 /// accept lists of identities.
 pub struct IdentityList<R>(R);
 
+impl<'a, R> Chunkable<'a> for IdentityList<R>
+where
+    R: Chunkable<'a>,
+{
+    type Chunk = IdentityList<R::Chunk>;
+
+    fn as_chunks(&'a self, chunk_size: usize) -> impl Iterator<Item = Self::Chunk> {
+        self.0.as_chunks(chunk_size).map(IdentityList)
+    }
+}
+
 impl<R> From<R> for IdentityList<R> {
     fn from(value: R) -> Self {
         IdentityList(value)
@@ -341,6 +361,17 @@ where
         S: serde::Serializer,
     {
         IdentityList(self.0).serialize(serializer)
+    }
+}
+
+impl<'a, R> Chunkable<'a> for IdentityOrInstanceList<R>
+where
+    R: Chunkable<'a>,
+{
+    type Chunk = IdentityOrInstanceList<R::Chunk>;
+
+    fn as_chunks(&'a self, chunk_size: usize) -> impl Iterator<Item = Self::Chunk> {
+        self.0.as_chunks(chunk_size).map(IdentityOrInstanceList)
     }
 }
 
@@ -539,11 +570,181 @@ macro_rules! identity_list_ser_single {
     };
 }
 
+macro_rules! impl_chunk_single {
+    ($t:ty) => {
+        impl<'a> Chunkable<'a> for $t {
+            type Chunk = &'a $t;
+            fn as_chunks(&'a self, _chunk_size: usize) -> impl Iterator<Item = Self::Chunk> {
+                std::iter::once(self)
+            }
+        }
+    };
+}
+
 identity_list_ser_single!(IdentityList, i64);
+
+impl Chunkable<'_> for i64 {
+    type Chunk = i64;
+    fn as_chunks(&self, _chunk_size: usize) -> impl Iterator<Item = Self::Chunk> {
+        std::iter::once(*self)
+    }
+}
+
 identity_list_ser_single!(IdentityList, &str);
+impl_chunk_single!(&'a str);
 identity_list_ser_single!(IdentityList, &String);
+impl_chunk_single!(&'a String);
 identity_list_ser_single!(IdentityOrInstanceList, &InstanceId);
+impl_chunk_single!(&'a InstanceId);
 identity_list_ser_single!(IdentityList, &Identity);
+impl_chunk_single!(&'a Identity);
 identity_list_ser_single!(IdentityOrInstanceList, &IdentityOrInstance);
+impl_chunk_single!(&'a IdentityOrInstance);
 identity_list_ser_single!(IdentityList, &CogniteExternalId);
+impl_chunk_single!(&'a CogniteExternalId);
 identity_list_ser_single!(IdentityList, &CogniteId);
+impl_chunk_single!(&'a CogniteId);
+
+#[cfg(test)]
+mod tests {
+    use crate::{
+        models::instances::InstanceId, Chunkable, CogniteExternalId, CogniteId, IdentityOrInstance,
+        IdentityOrInstanceList,
+    };
+
+    use super::{Identity, IdentityList};
+
+    macro_rules! test_identity_list {
+        ($v:expr) => {
+            let v = $v;
+            let list = IdentityList::from(&v);
+            let serialized = serde_json::to_string(&list).unwrap();
+            let deserialized: Vec<Identity> = serde_json::from_str(&serialized).unwrap();
+            let reserialized = serde_json::to_string(&deserialized).unwrap();
+            assert_eq!(serialized, reserialized);
+
+            let chunks = list.as_chunks(2).collect::<Vec<_>>();
+            assert_eq!(chunks.len(), 2);
+            for chunk in chunks {
+                assert_eq!(chunk.0.len(), 2);
+            }
+        };
+    }
+
+    macro_rules! test_identity_or_instance_list {
+        ($v:expr) => {
+            let v = $v;
+            let list = IdentityOrInstanceList::from(&v);
+            let serialized = serde_json::to_string(&list).unwrap();
+            let deserialized: Vec<IdentityOrInstance> = serde_json::from_str(&serialized).unwrap();
+            let reserialized = serde_json::to_string(&deserialized).unwrap();
+            assert_eq!(serialized, reserialized);
+
+            let chunks = list.as_chunks(2).collect::<Vec<_>>();
+            assert_eq!(chunks.len(), 2);
+            for chunk in chunks {
+                assert_eq!(chunk.0.len(), 2);
+            }
+        };
+    }
+
+    #[test]
+    fn test_identity_list() {
+        test_identity_list!(vec![
+            Identity::external_id("ext1"),
+            Identity::id(2),
+            Identity::external_id("ext3"),
+            Identity::id(4)
+        ]);
+        test_identity_list!(vec![
+            CogniteExternalId::from("ext1"),
+            CogniteExternalId::from("ext2"),
+            CogniteExternalId::from("ext3"),
+            CogniteExternalId::from("ext4")
+        ]);
+        test_identity_list!(vec![
+            CogniteId::from(1),
+            CogniteId::from(2),
+            CogniteId::from(3),
+            CogniteId::from(4)
+        ]);
+        test_identity_list!([
+            Identity::external_id("ext1"),
+            Identity::id(2),
+            Identity::external_id("ext3"),
+            Identity::id(4)
+        ]);
+
+        test_identity_list!(vec!["ext1", "ext2", "ext3", "ext4"]);
+        test_identity_list!(vec![1i64, 2, 3, 4]);
+        test_identity_list!(["ext1", "ext2", "ext3", "ext4"]);
+        test_identity_list!([1i64, 2, 3, 4]);
+    }
+
+    #[test]
+    fn test_identity_or_instance_list() {
+        use crate::models::instances::InstanceId;
+        test_identity_or_instance_list!(vec![
+            IdentityOrInstance::external_id("ext1"),
+            IdentityOrInstance::id(2),
+            IdentityOrInstance::instance_id(InstanceId {
+                space: "space1".to_owned(),
+                external_id: "inst1".to_owned()
+            }),
+            IdentityOrInstance::id(4)
+        ]);
+        test_identity_or_instance_list!([
+            IdentityOrInstance::external_id("ext1"),
+            IdentityOrInstance::id(2),
+            IdentityOrInstance::instance_id(InstanceId {
+                space: "space1".to_owned(),
+                external_id: "inst1".to_owned()
+            }),
+            IdentityOrInstance::id(4)
+        ]);
+        test_identity_or_instance_list!(vec![
+            InstanceId {
+                space: "space1".to_owned(),
+                external_id: "inst1".to_owned()
+            },
+            InstanceId {
+                space: "space2".to_owned(),
+                external_id: "inst2".to_owned()
+            },
+            InstanceId {
+                space: "space3".to_owned(),
+                external_id: "inst3".to_owned()
+            },
+            InstanceId {
+                space: "space4".to_owned(),
+                external_id: "inst4".to_owned()
+            }
+        ]);
+        test_identity_or_instance_list!(["ext1", "ext2", "ext3", "ext4"]);
+        test_identity_or_instance_list!([1i64, 2, 3, 4]);
+    }
+
+    #[test]
+    fn test_identity_list_single() {
+        let x = "extId";
+        let list = IdentityList::from(x);
+        let serialized = serde_json::to_string(&list).unwrap();
+        assert_eq!(serialized, r#"[{"externalId":"extId"}]"#);
+
+        let x = 42i64;
+        let list = IdentityList::from(x);
+        let serialized = serde_json::to_string(&list).unwrap();
+        assert_eq!(serialized, r#"[{"id":42}]"#);
+
+        let x = InstanceId {
+            space: "space1".to_owned(),
+            external_id: "inst1".to_owned(),
+        };
+        let list = IdentityOrInstanceList::from(&x);
+        let serialized = serde_json::to_string(&list).unwrap();
+        assert_eq!(
+            serialized,
+            r#"[{"instanceId":{"space":"space1","externalId":"inst1"}}]"#
+        );
+    }
+}
