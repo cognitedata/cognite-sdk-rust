@@ -2,6 +2,8 @@
 
 use std::future::Future;
 
+use crate::CondSend;
+
 /// Utility for leasing resources that need to be cleaned up, typically as part of tests.
 /// When the ResourceLease is dropped, it will attempt to delete all created resources
 /// using the provided CleanResource implementation.
@@ -24,7 +26,7 @@ pub trait CleanResource<T> {
     fn clean_resource(
         &self,
         resources: Vec<T>,
-    ) -> impl Future<Output = Result<(), crate::Error>> + Send;
+    ) -> impl Future<Output = Result<(), crate::Error>> + CondSend;
 }
 
 impl<R, T> ResourceLease<R, T>
@@ -51,8 +53,8 @@ where
     /// Create resources using the provided async function, and add them to the lease if the request succeeds.
     pub async fn for_create<F, Fut>(&mut self, create_fn: F) -> Result<(), crate::Error>
     where
-        F: Fn() -> Fut + Send,
-        Fut: Future<Output = Result<Vec<T>, crate::Error>> + Send,
+        F: Fn() -> Fut + CondSend,
+        Fut: Future<Output = Result<Vec<T>, crate::Error>> + CondSend,
     {
         let created_resources = create_fn().await?;
 
@@ -100,6 +102,24 @@ where
             return;
         }
 
+        // Since wasm futures aren't Send, we need to handle spawning differently.
+        // This isn't very practical, but it's better than leaving the lease out
+        // of wasm32 targets entirely.
+        // This effectively spins up a dedicated thread for cleaning up the resources.
+        #[cfg(target_arch = "wasm32")]
+        {
+            let h = tokio_util::task::LocalPoolHandle::new(1);
+            h.spawn_pinned(|| async move {
+                let r = resource.clean_resource(resources).await;
+                if let Err(e) = r {
+                    if let Some(on_error) = on_error {
+                        on_error(e);
+                    }
+                }
+            });
+        }
+
+        #[cfg(not(target_arch = "wasm32"))]
         tokio::spawn(async move {
             let r = resource.clean_resource(resources).await;
             if let Err(e) = r {

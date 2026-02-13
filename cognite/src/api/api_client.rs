@@ -1,10 +1,10 @@
-use crate::IntoParams;
+use crate::{CondSend, IntoParams};
 use anyhow::anyhow;
 use bytes::Bytes;
 use futures::{TryStream, TryStreamExt};
 use prost::Message;
-use reqwest::header::{HeaderValue, CONTENT_LENGTH, CONTENT_TYPE};
-use reqwest::{Body, Response};
+use reqwest::header::{HeaderValue, CONTENT_TYPE};
+use reqwest::Response;
 use reqwest_middleware::ClientWithMiddleware;
 use serde::de::DeserializeOwned;
 use serde::ser::Serialize;
@@ -243,6 +243,11 @@ impl ApiClient {
     /// If `stream_chunked` is false, this will collect the input stream into a memory, which can
     /// be _very_ expensive.
     ///
+    /// # Note on WASM
+    ///
+    /// Note that wasm32-unknown-unknown targets do not support chunked streaming uploads,
+    /// so effectively `stream_chunked` is always false.
+    #[cfg_attr(target_arch = "wasm32", allow(unused_variables))]
     pub async fn put_stream<S>(
         &self,
         url: &str,
@@ -252,7 +257,7 @@ impl ApiClient {
         known_size: Option<u64>,
     ) -> Result<()>
     where
-        S: futures::TryStream + Send + 'static,
+        S: futures::TryStream + CondSend + 'static,
         S::Error: Into<Box<dyn std::error::Error + Send + Sync + 'static>>,
         bytes::Bytes: From<S::Ok>,
     {
@@ -265,23 +270,27 @@ impl ApiClient {
                 .header("X-Upload-Content-Type", HeaderValue::from_str(mime_type)?);
         }
 
+        #[cfg(not(target_arch = "wasm32"))]
         if stream_chunked {
             if let Some(size) = known_size {
-                b = b.header(CONTENT_LENGTH, HeaderValue::from_str(&size.to_string())?);
+                b = b.header(
+                    reqwest::header::CONTENT_LENGTH,
+                    HeaderValue::from_str(&size.to_string())?,
+                );
             }
-            b = b.body(Body::wrap_stream(stream));
-        } else {
-            let body: Vec<S::Ok> = stream
-                .try_collect()
-                .await
-                .map_err(|e| Error::StreamError(anyhow!(e.into())))?;
-            let body: Vec<u8> = body
-                .into_iter()
-                .flat_map(Into::<bytes::Bytes>::into)
-                .collect();
-            b = b.body(body);
+            b = b.body(reqwest::Body::wrap_stream(stream));
+            return b.send().await;
         }
 
+        let body: Vec<S::Ok> = stream
+            .try_collect()
+            .await
+            .map_err(|e| Error::StreamError(anyhow!(e.into())))?;
+        let body: Vec<u8> = body
+            .into_iter()
+            .flat_map(Into::<bytes::Bytes>::into)
+            .collect();
+        b = b.body(body);
         b.send().await
     }
 

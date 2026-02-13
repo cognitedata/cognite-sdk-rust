@@ -14,6 +14,9 @@ pub const VERSION: &str = env!("CARGO_PKG_VERSION");
 /// Utility methods and tooling.
 pub mod utils;
 
+mod send_helper;
+pub(crate) use send_helper::{CondBoxedStream, CondSend, CondSync};
+
 /// Common types for DTOs.
 pub mod dto_common {
     pub use super::dto::core::common::*;

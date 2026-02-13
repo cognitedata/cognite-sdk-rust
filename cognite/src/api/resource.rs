@@ -4,13 +4,13 @@ use std::{marker::PhantomData, sync::Arc};
 
 use futures::future::try_join_all;
 use futures::stream::{try_unfold, SelectAll};
-use futures::{StreamExt, TryStream};
+use futures::TryStream;
 use serde::{de::DeserializeOwned, Serialize};
 
 use crate::dto::items::*;
 use crate::{
-    ApiClient, EqIdentity, Filter, Identity, IntoParams, IntoPatch, Partition, Patch, Result,
-    Search, SetCursor, UpsertOptions, WithPartition,
+    ApiClient, CondBoxedStream, CondSend, EqIdentity, Filter, Identity, IntoParams, IntoPatch,
+    Partition, Patch, Result, Search, SetCursor, UpsertOptions, WithPartition,
 };
 
 use super::utils::{get_duplicates_from_result, get_missing_from_result};
@@ -79,7 +79,7 @@ where
     fn list(
         &self,
         params: Option<TParams>,
-    ) -> impl Future<Output = Result<ItemsVec<TResponse, Cursor>>> + Send {
+    ) -> impl Future<Output = Result<ItemsVec<TResponse, Cursor>>> + CondSend {
         async move {
             self.get_client()
                 .get_with_params(Self::BASE_PATH, params)
@@ -92,7 +92,10 @@ where
     /// # Arguments
     ///
     /// * `params` - Initial query parameters. This can contain a cursor which is the starting point.
-    fn list_all(&self, mut params: TParams) -> impl Future<Output = Result<Vec<TResponse>>> + Send
+    fn list_all(
+        &self,
+        mut params: TParams,
+    ) -> impl Future<Output = Result<Vec<TResponse>>> + CondSend
     where
         TParams: SetCursor + Clone,
         TResponse: Send,
@@ -128,7 +131,7 @@ where
     fn list_all_stream(
         &self,
         params: TParams,
-    ) -> impl TryStream<Ok = TResponse, Error = crate::Error, Item = Result<TResponse>> + Send
+    ) -> impl TryStream<Ok = TResponse, Error = crate::Error, Item = Result<TResponse>> + CondSend
     where
         TParams: SetCursor + Clone,
         TResponse: Send + 'static,
@@ -183,7 +186,10 @@ where
     /// # Arguments
     ///
     /// `creates` - List of resources to create.
-    fn create(&self, creates: &[TCreate]) -> impl Future<Output = Result<Vec<TResponse>>> + Send {
+    fn create(
+        &self,
+        creates: &[TCreate],
+    ) -> impl Future<Output = Result<Vec<TResponse>>> + CondSend {
         async move {
             let items = Items::new(creates);
             let response: ItemsVec<TResponse> =
@@ -200,7 +206,7 @@ where
     fn create_from(
         &self,
         creates: &[impl Into<TCreate> + Sync + Clone],
-    ) -> impl Future<Output = Result<Vec<TResponse>>> + Send {
+    ) -> impl Future<Output = Result<Vec<TResponse>>> + CondSend {
         async move {
             let to_add: Vec<TCreate> = creates.iter().map(|i| i.clone().into()).collect();
             self.create(&to_add).await
@@ -215,7 +221,7 @@ where
     fn create_ignore_duplicates(
         &self,
         creates: &[TCreate],
-    ) -> impl Future<Output = Result<Vec<TResponse>>> + Send
+    ) -> impl Future<Output = Result<Vec<TResponse>>> + CondSend
     where
         TCreate: EqIdentity,
     {
@@ -256,7 +262,7 @@ where
     fn create_from_ignore_duplicates<'a, T: 'a>(
         &self,
         creates: &'a [impl Into<TCreate> + Sync + Clone],
-    ) -> impl Future<Output = Result<Vec<TResponse>>> + Send
+    ) -> impl Future<Output = Result<Vec<TResponse>>> + CondSend
     where
         TCreate: EqIdentity,
     {
@@ -287,7 +293,7 @@ where
         &'a self,
         upserts: &'a [TCreate],
         options: &UpsertOptions,
-    ) -> impl Future<Output = Result<Vec<TResponse>>> + Send {
+    ) -> impl Future<Output = Result<Vec<TResponse>>> + CondSend {
         async move {
             let items = Items::new(upserts);
             let resp: Result<ItemsVec<TResponse>> =
@@ -353,7 +359,10 @@ pub trait UpsertCollection<TUpsert, TResponse> {
     /// # Arguments
     ///
     /// * `collection` - Items to insert or update.
-    fn upsert(&self, collection: &TUpsert) -> impl Future<Output = Result<Vec<TResponse>>> + Send
+    fn upsert(
+        &self,
+        collection: &TUpsert,
+    ) -> impl Future<Output = Result<Vec<TResponse>>> + CondSend
     where
         TUpsert: Serialize + Sync + Send,
         TResponse: Serialize + DeserializeOwned + Sync + Send,
@@ -378,7 +387,7 @@ where
     /// # Arguments
     ///
     /// * `deletes` - IDs of items to delete.
-    fn delete(&self, deletes: &[TIdt]) -> impl Future<Output = Result<()>> + Send {
+    fn delete(&self, deletes: &[TIdt]) -> impl Future<Output = Result<()>> + CondSend {
         async move {
             let items = Items::new(deletes);
             self.get_client()
@@ -403,7 +412,7 @@ where
     /// # Arguments
     ///
     /// * `req` - Request describing items to delete.
-    fn delete(&self, req: &TReq) -> impl Future<Output = Result<()>> + Send {
+    fn delete(&self, req: &TReq) -> impl Future<Output = Result<()>> + CondSend {
         async move {
             self.get_client()
                 .post::<::serde_json::Value, TReq>(&format!("{}/delete", Self::BASE_PATH), req)
@@ -431,7 +440,7 @@ where
         &self,
         deletes: impl Into<TIdt> + Send,
         ignore_unknown_ids: bool,
-    ) -> impl Future<Output = Result<()>> + Send
+    ) -> impl Future<Output = Result<()>> + CondSend
     where
         Self: Sync,
     {
@@ -461,7 +470,10 @@ where
     /// # Arguments
     ///
     /// * `deletes` - IDs of items to delete.
-    fn delete(&self, deletes: &[TIdt]) -> impl Future<Output = Result<ItemsVec<TResponse>>> + Send {
+    fn delete(
+        &self,
+        deletes: &[TIdt],
+    ) -> impl Future<Output = Result<ItemsVec<TResponse>>> + CondSend {
         async move {
             let items = Items::new(deletes);
             let response: ItemsVec<TResponse> = self
@@ -485,7 +497,10 @@ where
     /// # Arguments
     ///
     /// * `updates` - Items to update.
-    fn update(&self, updates: &[TUpdate]) -> impl Future<Output = Result<Vec<TResponse>>> + Send {
+    fn update(
+        &self,
+        updates: &[TUpdate],
+    ) -> impl Future<Output = Result<Vec<TResponse>>> + CondSend {
         async move {
             let items = Items::new(updates);
             let response: ItemsVec<TResponse> = self
@@ -504,7 +519,7 @@ where
     fn update_from<'a, T>(
         &self,
         updates: &'a [T],
-    ) -> impl Future<Output = Result<Vec<TResponse>>> + Send
+    ) -> impl Future<Output = Result<Vec<TResponse>>> + CondSend
     where
         T: std::marker::Sync + Clone + 'a,
         TUpdate: From<T>,
@@ -524,7 +539,7 @@ where
     fn update_ignore_unknown_ids(
         &self,
         updates: &[TUpdate],
-    ) -> impl Future<Output = Result<Vec<TResponse>>> + Send
+    ) -> impl Future<Output = Result<Vec<TResponse>>> + CondSend
     where
         TUpdate: EqIdentity,
         TResponse: Send,
@@ -567,7 +582,7 @@ where
     fn update_from_ignore_unknown_ids<'a, T>(
         &self,
         updates: &'a [T],
-    ) -> impl Future<Output = Result<Vec<TResponse>>> + Send
+    ) -> impl Future<Output = Result<Vec<TResponse>>> + CondSend
     where
         T: Sync + Clone + 'a,
         TUpdate: From<T> + EqIdentity,
@@ -593,7 +608,7 @@ where
     /// # Arguments
     ///
     /// * `ids` - IDs of items to retrieve.
-    fn retrieve(&self, ids: &[TIdt]) -> impl Future<Output = Result<Vec<TResponse>>> + Send {
+    fn retrieve(&self, ids: &[TIdt]) -> impl Future<Output = Result<Vec<TResponse>>> + CondSend {
         async move {
             let items = Items::new(ids);
             let response: ItemsVec<TResponse> = self
@@ -617,7 +632,7 @@ where
     /// # Arguments
     ///
     /// * `req` - Request describing items to retrieve.
-    fn retrieve(&self, req: &TRequest) -> impl Future<Output = Result<TResponse>> + Send {
+    fn retrieve(&self, req: &TRequest) -> impl Future<Output = Result<TResponse>> + CondSend {
         async move {
             let response: TResponse = self
                 .get_client()
@@ -647,7 +662,7 @@ where
         &self,
         ids: impl Into<TIdt> + Send,
         ignore_unknown_ids: bool,
-    ) -> impl Future<Output = Result<Vec<TResponse>>> + Send {
+    ) -> impl Future<Output = Result<Vec<TResponse>>> + CondSend {
         async move {
             let items =
                 Items::new_with_extra_fields(ids.into(), IgnoreUnknownIds { ignore_unknown_ids });
@@ -680,7 +695,7 @@ where
         filter: TFilter,
         cursor: Option<String>,
         limit: Option<u32>,
-    ) -> impl Future<Output = Result<ItemsVec<TResponse, Cursor>>> + Send {
+    ) -> impl Future<Output = Result<ItemsVec<TResponse, Cursor>>> + CondSend {
         async move {
             let filter = Filter::<TFilter>::new(filter, cursor, limit);
             let response: ItemsVec<TResponse, Cursor> = self
@@ -730,7 +745,7 @@ where
     fn filter(
         &self,
         filter: TFilter,
-    ) -> impl Future<Output = Result<ItemsVec<TResponse, Cursor>>> + Send {
+    ) -> impl Future<Output = Result<ItemsVec<TResponse, Cursor>>> + CondSend {
         async move {
             let response: ItemsVec<TResponse, Cursor> = self
                 .get_client()
@@ -745,7 +760,10 @@ where
     /// # Arguments
     ///
     /// * `filter` - Filter which items to retrieve.
-    fn filter_all(&self, mut filter: TFilter) -> impl Future<Output = Result<Vec<TResponse>>> + Send
+    fn filter_all(
+        &self,
+        mut filter: TFilter,
+    ) -> impl Future<Output = Result<Vec<TResponse>>> + CondSend
     where
         TFilter: SetCursor,
         TResponse: Send,
@@ -780,7 +798,7 @@ where
     fn filter_all_stream(
         &self,
         filter: TFilter,
-    ) -> impl TryStream<Ok = TResponse, Error = crate::Error, Item = Result<TResponse>> + Send
+    ) -> impl TryStream<Ok = TResponse, Error = crate::Error, Item = Result<TResponse>> + CondSend
     where
         TFilter: SetCursor,
         TResponse: Send + 'static,
@@ -833,7 +851,7 @@ where
         &self,
         filter: TFilter,
         num_partitions: u32,
-    ) -> impl Future<Output = Result<Vec<TResponse>>> + Send
+    ) -> impl Future<Output = Result<Vec<TResponse>>> + CondSend
     where
         TFilter: SetCursor + WithPartition,
         TResponse: Send,
@@ -870,7 +888,7 @@ where
         &self,
         filter: TFilter,
         num_partitions: u32,
-    ) -> impl TryStream<Ok = TResponse, Error = crate::Error, Item = Result<TResponse>> + Send
+    ) -> impl TryStream<Ok = TResponse, Error = crate::Error, Item = Result<TResponse>> + CondSend
     where
         TFilter: SetCursor + WithPartition,
         TResponse: Send + 'static,
@@ -878,7 +896,7 @@ where
         let mut streams = SelectAll::new();
         for partition in 0..num_partitions {
             let part_filter = filter.with_partition(Partition::new(partition + 1, num_partitions));
-            streams.push(self.filter_all_stream(part_filter).boxed());
+            streams.push(self.filter_all_stream(part_filter).boxed_cond());
         }
 
         streams
@@ -905,7 +923,7 @@ where
         filter: TFilter,
         search: TSearch,
         limit: Option<u32>,
-    ) -> impl Future<Output = Result<Vec<TResponse>>> + Send {
+    ) -> impl Future<Output = Result<Vec<TResponse>>> + CondSend {
         async move {
             let req = Search::<TFilter, TSearch>::new(filter, search, limit);
             let response: ItemsVec<TResponse> = self

@@ -3,14 +3,15 @@ use std::collections::HashSet;
 use bytes::Bytes;
 use futures::TryStream;
 use serde::Serialize;
-use tokio_util::codec::{BytesCodec, FramedRead};
 
 use crate::api::resource::*;
 use crate::dto::core::files::*;
 use crate::dto::items::Items;
 use crate::error::Result;
 use crate::utils::lease::CleanResource;
-use crate::{Error, IdentityList, IdentityOrInstance, IdentityOrInstanceList, PartitionedFilter};
+use crate::{
+    CondSend, Error, IdentityList, IdentityOrInstance, IdentityOrInstanceList, PartitionedFilter,
+};
 use crate::{Identity, ItemsVec, Patch};
 
 /// Files store documents, binary blobs, and other file data and relate it to assets.
@@ -65,7 +66,7 @@ impl<'a> MultipartUploader<'a> {
     /// * `size` - Size of stream to upload.
     pub async fn upload_part_stream<S>(&self, part_no: usize, stream: S, size: u64) -> Result<()>
     where
-        S: futures::TryStream + Send + 'static,
+        S: futures::TryStream + CondSend + 'static,
         S::Error: Into<Box<dyn std::error::Error + Send + Sync>>,
         bytes::Bytes: From<S::Ok>,
     {
@@ -78,6 +79,7 @@ impl<'a> MultipartUploader<'a> {
             .await
     }
 
+    #[cfg(not(target_arch = "wasm32"))]
     /// Upload a part given by part index given by `part_no`. The part number
     /// counts from zero, so with 5 parts you must upload with `part_no` 0, 1, 2, 3, and 4.
     ///
@@ -87,7 +89,7 @@ impl<'a> MultipartUploader<'a> {
     /// * `file` - File to upload.
     pub async fn upload_part_file<S>(&self, part_no: usize, file: tokio::fs::File) -> Result<()> {
         let size = file.metadata().await?.len();
-        let stream = FramedRead::new(file, BytesCodec::new());
+        let stream = tokio_util::codec::FramedRead::new(file, tokio_util::codec::BytesCodec::new());
 
         self.upload_part_stream(part_no, stream, size).await
     }
@@ -148,7 +150,7 @@ impl Files {
         stream_chunked: bool,
     ) -> Result<()>
     where
-        S: futures::TryStream + Send + 'static,
+        S: futures::TryStream + CondSend + 'static,
         S::Error: Into<Box<dyn std::error::Error + Send + Sync>>,
         bytes::Bytes: From<S::Ok>,
     {
@@ -191,7 +193,7 @@ impl Files {
         size: u64,
     ) -> Result<()>
     where
-        S: futures::TryStream + Send + 'static,
+        S: futures::TryStream + CondSend + 'static,
         S::Error: Into<Box<dyn std::error::Error + Send + Sync>>,
         bytes::Bytes: From<S::Ok>,
     {
@@ -200,6 +202,7 @@ impl Files {
             .await
     }
 
+    #[cfg(not(target_arch = "wasm32"))]
     /// Upload a file as a stream to CDF. `url` should be the upload URL returned from
     /// `upload`.
     ///
@@ -215,7 +218,7 @@ impl Files {
         file: tokio::fs::File,
     ) -> Result<()> {
         let size = file.metadata().await?.len();
-        let stream = FramedRead::new(file, BytesCodec::new());
+        let stream = tokio_util::codec::FramedRead::new(file, tokio_util::codec::BytesCodec::new());
 
         self.api_client
             .put_stream(url, mime_type, stream, true, Some(size))

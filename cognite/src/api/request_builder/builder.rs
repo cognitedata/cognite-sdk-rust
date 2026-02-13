@@ -5,6 +5,8 @@ use serde::de::DeserializeOwned;
 use serde::Serialize;
 
 use crate::ApiClient;
+use crate::CondSend;
+use crate::CondSync;
 use crate::Error;
 use crate::SkipAuthentication;
 use reqwest::{IntoUrl, Response};
@@ -156,7 +158,7 @@ impl<'a> RequestBuilder<'a, ()> {
     }
 
     /// Expect the response for a successful request to be `T` encoded as protobuf.
-    pub fn accept_protobuf<T: Message + Default + Send + Sync>(
+    pub fn accept_protobuf<T: Message + Default + CondSend + CondSync>(
         self,
     ) -> RequestBuilder<'a, ProtoResponseHandler<T>> {
         self.accept(ProtoResponseHandler::new())
