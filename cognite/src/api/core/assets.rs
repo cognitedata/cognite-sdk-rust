@@ -16,6 +16,11 @@ impl WithBasePath for AssetsResource {
     const BASE_PATH: &'static str = "assets";
 }
 
+impl WithChunkSizes for AssetsResource {
+    const REQUEST_CHUNK_SIZE: usize = 1000;
+    const REQUEST_PARALLELISM: usize = 4;
+}
+
 impl List<AssetQuery, Asset> for AssetsResource {}
 impl Create<AddAsset, Asset> for AssetsResource {}
 impl SearchItems<'_, AssetFilter, AssetSearch, Asset> for AssetsResource {}

@@ -50,8 +50,8 @@ async fn create_retrieve_delete_spaces() {
         }])
         .await
         .unwrap();
-    assert_eq!(deleted.items.len(), 1);
-    let space = &deleted.items[0];
+    assert_eq!(deleted.len(), 1);
+    let space = &deleted[0];
     assert_eq!(space_id, space.space);
 }
 
@@ -99,7 +99,7 @@ async fn create_and_delete_file_instance() {
     assert_eq!(external_id.to_string(), file.id.external_id);
 
     let mut backoff = Backoff::default();
-    let mut deleted: Option<ItemsVec<NodeOrEdgeSpecification>> = None;
+    let mut deleted: Option<Vec<NodeOrEdgeSpecification>> = None;
     for _ in 0..10 {
         match client.models.instances.delete(&[node_specs.clone()]).await {
             Ok(res) => {
@@ -113,7 +113,7 @@ async fn create_and_delete_file_instance() {
         }
     }
     let deleted = deleted.unwrap();
-    let deleted = deleted.items.first().unwrap();
+    let deleted = deleted.first().unwrap();
     assert!(matches!(deleted, NodeOrEdgeSpecification::Node(_)));
 }
 
@@ -152,7 +152,7 @@ async fn create_and_delete_timeseries_instance() {
     assert_eq!(external_id.to_string(), timeseries.id.external_id);
 
     let mut backoff = Backoff::default();
-    let mut deleted: Option<ItemsVec<NodeOrEdgeSpecification>> = None;
+    let mut deleted: Option<Vec<NodeOrEdgeSpecification>> = None;
     for _ in 0..10 {
         match client.models.instances.delete(&[node_specs.clone()]).await {
             Ok(res) => {
@@ -166,6 +166,6 @@ async fn create_and_delete_timeseries_instance() {
         }
     }
     let deleted = deleted.unwrap();
-    let deleted = deleted.items.first().unwrap();
+    let deleted = deleted.first().unwrap();
     assert!(matches!(deleted, NodeOrEdgeSpecification::Node(_)));
 }

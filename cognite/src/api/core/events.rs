@@ -21,6 +21,11 @@ impl WithBasePath for EventsResource {
     const BASE_PATH: &'static str = "events";
 }
 
+impl WithChunkSizes for EventsResource {
+    const REQUEST_CHUNK_SIZE: usize = 1000;
+    const REQUEST_PARALLELISM: usize = 4;
+}
+
 impl Create<AddEvent, Event> for EventsResource {}
 impl<R> DeleteWithIgnoreUnknownIds<IdentityList<R>> for EventsResource
 where

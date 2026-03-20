@@ -21,6 +21,11 @@ impl WithBasePath for Files {
     const BASE_PATH: &'static str = "files";
 }
 
+impl WithChunkSizes for Files {
+    const REQUEST_CHUNK_SIZE: usize = 1000;
+    const REQUEST_PARALLELISM: usize = 4;
+}
+
 impl FilterWithRequest<PartitionedFilter<FileFilter>, FileMetadata> for Files {}
 impl SearchItems<'_, FileFilter, FileSearch, FileMetadata> for Files {}
 impl<R> RetrieveWithIgnoreUnknownIds<IdentityOrInstanceList<R>, FileMetadata> for Files

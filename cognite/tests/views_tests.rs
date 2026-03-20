@@ -109,8 +109,7 @@ async fn delete_views() {
             version: "1".to_string(),
         }])
         .await
-        .unwrap()
-        .items[0];
+        .unwrap()[0];
 
     assert_eq!(result.external_id, "MyView".to_string());
     assert_eq!(result.space, "MySpace".to_string());

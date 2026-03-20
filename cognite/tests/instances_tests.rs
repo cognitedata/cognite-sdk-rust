@@ -213,8 +213,7 @@ async fn create_and_delete_instances() {
         .instances
         .delete(&instances_delete)
         .await
-        .unwrap()
-        .items;
+        .unwrap();
 
     assert_eq!(
         results

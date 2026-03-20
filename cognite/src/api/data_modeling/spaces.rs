@@ -4,6 +4,7 @@ use crate::{
         SpaceId,
     },
     Create, DeleteWithResponse, LimitCursorQuery, List, Resource, Retrieve, WithBasePath,
+    WithChunkSizes,
 };
 
 /// Spaces contain and namespace instances, views, and containers.
@@ -12,6 +13,11 @@ pub type SpacesResource = Resource<Space>;
 
 impl WithBasePath for SpacesResource {
     const BASE_PATH: &'static str = "models/spaces";
+}
+
+impl WithChunkSizes for SpacesResource {
+    const REQUEST_CHUNK_SIZE: usize = 100;
+    const REQUEST_PARALLELISM: usize = 2;
 }
 
 impl Create<SpaceCreate, Space> for SpacesResource {}

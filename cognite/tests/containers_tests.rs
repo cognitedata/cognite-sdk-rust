@@ -76,7 +76,7 @@ async fn create_retrieve_delete_container() {
         .await
         .unwrap();
 
-    assert!(container_deleted.items.len() == 1);
+    assert!(container_deleted.len() == 1);
 }
 
 #[tokio::test]

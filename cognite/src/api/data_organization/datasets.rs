@@ -15,6 +15,11 @@ impl WithBasePath for DataSetsResource {
     const BASE_PATH: &'static str = "datasets";
 }
 
+impl WithChunkSizes for DataSetsResource {
+    const REQUEST_CHUNK_SIZE: usize = 10;
+    const REQUEST_PARALLELISM: usize = 4;
+}
+
 impl Create<AddDataSet, DataSet> for DataSetsResource {}
 impl<R> RetrieveWithIgnoreUnknownIds<IdentityList<R>, DataSet> for DataSetsResource
 where

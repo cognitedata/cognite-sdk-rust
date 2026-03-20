@@ -1,12 +1,17 @@
 use crate::{
     models::records::{ListStreamParams, RetrieveStreamParams, Stream, StreamWrite},
-    CogniteExternalId, Create, Items, List, Resource, WithBasePath,
+    CogniteExternalId, Create, Items, List, Resource, WithBasePath, WithChunkSizes,
 };
 
 pub type StreamsResource = Resource<Stream>;
 
 impl WithBasePath for StreamsResource {
     const BASE_PATH: &'static str = "streams";
+}
+
+impl WithChunkSizes for StreamsResource {
+    const REQUEST_CHUNK_SIZE: usize = 1;
+    const REQUEST_PARALLELISM: usize = 2;
 }
 
 impl Create<StreamWrite, Stream> for StreamsResource {}

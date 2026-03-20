@@ -14,6 +14,11 @@ impl WithBasePath for SequencesResource {
     const BASE_PATH: &'static str = "sequences";
 }
 
+impl WithChunkSizes for SequencesResource {
+    const REQUEST_CHUNK_SIZE: usize = 1000;
+    const REQUEST_PARALLELISM: usize = 4;
+}
+
 impl List<LimitCursorPartitionQuery, Sequence> for SequencesResource {}
 impl Create<AddSequence, Sequence> for SequencesResource {}
 impl SearchItems<'_, SequenceFilter, SequenceSearch, Sequence> for SequencesResource {}

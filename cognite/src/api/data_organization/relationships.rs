@@ -15,6 +15,11 @@ impl WithBasePath for RelationshipsResource {
     const BASE_PATH: &'static str = "relationships";
 }
 
+impl WithChunkSizes for RelationshipsResource {
+    const REQUEST_CHUNK_SIZE: usize = 1000;
+    const REQUEST_PARALLELISM: usize = 4;
+}
+
 impl Create<AddRelationship, Relationship> for RelationshipsResource {}
 impl Update<Patch<PatchRelationship>, Relationship> for RelationshipsResource {}
 impl<R> DeleteWithIgnoreUnknownIds<IdentityList<R>> for RelationshipsResource

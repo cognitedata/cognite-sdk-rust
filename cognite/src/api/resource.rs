@@ -8,9 +8,10 @@ use futures::TryStream;
 use serde::{de::DeserializeOwned, Serialize};
 
 use crate::dto::items::*;
+use crate::utils::execute_with_parallelism;
 use crate::{
-    ApiClient, CondBoxedStream, CondSend, EqIdentity, Filter, Identity, IntoParams, IntoPatch,
-    Partition, Patch, Result, Search, SetCursor, UpsertOptions, WithPartition,
+    ApiClient, Chunkable, CondBoxedStream, CondSend, EqIdentity, Filter, Identity, IntoParams,
+    IntoPatch, Partition, Patch, Result, Search, SetCursor, UpsertOptions, WithPartition,
 };
 
 use super::utils::{get_duplicates_from_result, get_missing_from_result};
@@ -63,6 +64,33 @@ pub trait WithBasePath {
     /// Base path for this resource type.
     const BASE_PATH: &'static str;
 }
+
+/// Trait for default chunking restrictions on a type.
+pub trait WithChunkSizes {
+    /// Default chunk size for requests to this resource type.
+    const REQUEST_CHUNK_SIZE: usize;
+    /// Default parallelism for requests to this resource type.
+    const REQUEST_PARALLELISM: usize;
+    /// Default chunk size for create requests to this resource type.
+    const CREATE_CHUNK_SIZE: usize = Self::REQUEST_CHUNK_SIZE;
+    /// Default chunk size for retrieve requests to this resource type.
+    const RETRIEVE_CHUNK_SIZE: usize = Self::REQUEST_CHUNK_SIZE;
+    /// Default chunk size for update requests to this resource type.
+    const UPDATE_CHUNK_SIZE: usize = Self::REQUEST_CHUNK_SIZE;
+    /// Default chunk size for delete requests to this resource type.
+    const DELETE_CHUNK_SIZE: usize = Self::REQUEST_CHUNK_SIZE;
+}
+
+// This could have been a function, but due to limitations in the rust compiler,
+// that causes issues with bounds. See rustc #100013
+macro_rules! execute_with_parallelism(
+    ($it:expr, $ch:expr, |$item:ident| $body:expr) => {
+        {
+            let futures_iter = Chunkable::as_chunks($it, $ch).map(|$item| async move { $body });
+            execute_with_parallelism(futures_iter, $ch).await
+        }
+    };
+);
 
 /// Trait for simple GET / endpoints.
 pub trait List<TParams, TResponse>
@@ -179,22 +207,28 @@ pub trait Create<TCreate, TResponse>
 where
     TCreate: Serialize + Sync + Send,
     TResponse: Serialize + DeserializeOwned + Send,
-    Self: WithApiClient + WithBasePath + Sync,
+    Self: WithApiClient + WithBasePath + WithChunkSizes + Sync,
 {
     /// Create a list of resources.
     ///
     /// # Arguments
     ///
     /// `creates` - List of resources to create.
-    fn create(
+    fn create<'a>(
         &self,
-        creates: &[TCreate],
+        creates: &'a [TCreate],
     ) -> impl Future<Output = Result<Vec<TResponse>>> + CondSend {
         async move {
-            let items = Items::new(creates);
-            let response: ItemsVec<TResponse> =
-                self.get_client().post(Self::BASE_PATH, &items).await?;
-            Ok(response.items)
+            let client = self.get_client();
+
+            let chunked_response =
+                execute_with_parallelism!(creates, Self::CREATE_CHUNK_SIZE, |chunk| {
+                    let items = Items::new(chunk);
+                    let response: ItemsVec<TResponse> =
+                        client.post(Self::BASE_PATH, &items).await?;
+                    Ok::<_, crate::Error>(response.items)
+                })?;
+            Ok(chunked_response.into_iter().flatten().collect())
         }
     }
 
@@ -243,10 +277,15 @@ where
                     return resp;
                 }
 
-                let items = Items::new(next);
-                let response: ItemsVec<TResponse> =
-                    self.get_client().post(Self::BASE_PATH, &items).await?;
-                Ok(response.items)
+                let client = self.get_client();
+                let chunked_response =
+                    execute_with_parallelism!(&next, Self::CREATE_CHUNK_SIZE, |chunk| {
+                        let items = Items::new(chunk);
+                        let response: ItemsVec<TResponse> =
+                            client.post(Self::BASE_PATH, &items).await?;
+                        Ok::<_, crate::Error>(response.items)
+                    })?;
+                Ok(chunked_response.into_iter().flatten().collect())
             } else {
                 resp
             }
@@ -279,7 +318,12 @@ where
     TCreate: Serialize + Sync + Send + EqIdentity + 'a + Clone + IntoPatch<TUpdate>,
     TUpdate: Serialize + Sync + Send + Default,
     TResponse: Serialize + DeserializeOwned + Sync + Send,
-    Self: WithApiClient + WithBasePath + Sync,
+    Self: WithApiClient
+        + WithBasePath
+        + WithChunkSizes
+        + Sync
+        + Create<TCreate, TResponse>
+        + Update<Patch<TUpdate>, TResponse>,
 {
     /// Upsert a list resources, meaning that they will first be attempted created,
     /// and if that fails with a conflict, update any that already existed, and create
@@ -295,11 +339,9 @@ where
         options: &UpsertOptions,
     ) -> impl Future<Output = Result<Vec<TResponse>>> + CondSend {
         async move {
-            let items = Items::new(upserts);
-            let resp: Result<ItemsVec<TResponse>> =
-                self.get_client().post(Self::BASE_PATH, &items).await;
+            let create_res = self.create(upserts).await;
 
-            let duplicates: Option<Vec<Identity>> = get_duplicates_from_result(&resp);
+            let duplicates: Option<Vec<Identity>> = get_duplicates_from_result(&create_res);
 
             if let Some(duplicates) = duplicates {
                 let mut to_create = Vec::with_capacity(upserts.len() - duplicates.len());
@@ -318,26 +360,27 @@ where
 
                 let mut result = Vec::with_capacity(to_create.len() + to_update.len());
                 if !to_create.is_empty() {
-                    let mut create_response: ItemsVec<TResponse> = self
-                        .get_client()
-                        .post(Self::BASE_PATH, &Items::new(to_create))
-                        .await?;
-                    result.append(&mut create_response.items);
+                    let create_response =
+                        execute_with_parallelism!(&to_create, Self::CREATE_CHUNK_SIZE, |chunk| {
+                            let response: ItemsVec<TResponse> = self
+                                .get_client()
+                                .post(Self::BASE_PATH, &Items::new(chunk))
+                                .await?;
+                            Ok::<_, crate::Error>(response.items)
+                        })?;
+
+                    for chunk in create_response.into_iter() {
+                        result.extend(chunk);
+                    }
                 }
                 if !to_update.is_empty() {
-                    let mut update_response: ItemsVec<TResponse> = self
-                        .get_client()
-                        .post(
-                            &format!("{}/update", Self::BASE_PATH),
-                            &Items::new(&to_update),
-                        )
-                        .await?;
-                    result.append(&mut update_response.items);
+                    let update_response = self.update(&to_update).await?;
+                    result.extend(update_response);
                 }
 
                 Ok(result)
             } else {
-                resp.map(|i| i.items)
+                create_res
             }
         }
     }
@@ -359,19 +402,25 @@ pub trait UpsertCollection<TUpsert, TResponse> {
     /// # Arguments
     ///
     /// * `collection` - Items to insert or update.
-    fn upsert(
-        &self,
-        collection: &TUpsert,
-    ) -> impl Future<Output = Result<Vec<TResponse>>> + CondSend
+    fn upsert<'a>(
+        &'a self,
+        collection: &'a TUpsert,
+    ) -> impl Future<Output = Result<Vec<TResponse>>> + CondSend + 'a
     where
-        TUpsert: Serialize + Sync + Send,
+        TUpsert: Serialize + Chunkable<'a> + Sync + Send,
         TResponse: Serialize + DeserializeOwned + Sync + Send,
-        Self: WithApiClient + WithBasePath + Sync,
+        Self: WithApiClient + WithBasePath + WithChunkSizes + Sync,
+        <TUpsert as Chunkable<'a>>::Chunk: Serialize + Sync + Send,
     {
         async move {
-            let response: ItemsVec<TResponse> =
-                self.get_client().post(Self::BASE_PATH, &collection).await?;
-            Ok(response.items)
+            let client = self.get_client();
+            let chunked_response =
+                execute_with_parallelism!(collection, Self::CREATE_CHUNK_SIZE, |chunk| {
+                    let response: ItemsVec<TResponse> =
+                        client.post(Self::BASE_PATH, &chunk).await?;
+                    Ok::<_, crate::Error>(response.items)
+                })?;
+            Ok(chunked_response.into_iter().flatten().collect())
         }
     }
 }
@@ -380,7 +429,7 @@ pub trait UpsertCollection<TUpsert, TResponse> {
 pub trait Delete<TIdt>
 where
     TIdt: Serialize + Sync + Send,
-    Self: WithApiClient + WithBasePath + Sync,
+    Self: WithApiClient + WithBasePath + WithChunkSizes + Sync,
 {
     /// Delete a list of resources by ID.
     ///
@@ -389,13 +438,13 @@ where
     /// * `deletes` - IDs of items to delete.
     fn delete(&self, deletes: &[TIdt]) -> impl Future<Output = Result<()>> + CondSend {
         async move {
-            let items = Items::new(deletes);
-            self.get_client()
-                .post::<::serde_json::Value, Items<&[TIdt]>>(
-                    &format!("{}/delete", Self::BASE_PATH),
-                    &items,
-                )
-                .await?;
+            execute_with_parallelism!(deletes, Self::DELETE_CHUNK_SIZE, |chunk| {
+                let items = Items::new(chunk);
+                self.get_client()
+                    .post::<::serde_json::Value, _>(&format!("{}/delete", Self::BASE_PATH), &items)
+                    .await?;
+                Ok::<_, crate::Error>(())
+            })?;
             Ok(())
         }
     }
@@ -463,24 +512,25 @@ pub trait DeleteWithResponse<TIdt, TResponse>
 where
     TIdt: Serialize + Sync + Send,
     TResponse: Serialize + DeserializeOwned + Sync + Send,
-    Self: WithApiClient + WithBasePath + Sync,
+    Self: WithApiClient + WithBasePath + WithChunkSizes + Sync,
 {
     /// Delete a list of resources.
     ///
     /// # Arguments
     ///
     /// * `deletes` - IDs of items to delete.
-    fn delete(
-        &self,
-        deletes: &[TIdt],
-    ) -> impl Future<Output = Result<ItemsVec<TResponse>>> + CondSend {
+    fn delete(&self, deletes: &[TIdt]) -> impl Future<Output = Result<Vec<TResponse>>> + CondSend {
         async move {
-            let items = Items::new(deletes);
-            let response: ItemsVec<TResponse> = self
-                .get_client()
-                .post(&format!("{}/delete", Self::BASE_PATH), &items)
-                .await?;
-            Ok(response)
+            let chunked_response =
+                execute_with_parallelism!(deletes, Self::DELETE_CHUNK_SIZE, |chunk| {
+                    let items = Items::new(chunk);
+                    let response: ItemsVec<TResponse> = self
+                        .get_client()
+                        .post(&format!("{}/delete", Self::BASE_PATH), &items)
+                        .await?;
+                    Ok::<_, crate::Error>(response.items)
+                })?;
+            Ok(chunked_response.into_iter().flatten().collect())
         }
     }
 }
@@ -489,8 +539,8 @@ where
 pub trait Update<TUpdate, TResponse>
 where
     TUpdate: Serialize + Sync + Send,
-    TResponse: Serialize + DeserializeOwned,
-    Self: WithApiClient + WithBasePath + Sync,
+    TResponse: Serialize + DeserializeOwned + Sync + Send,
+    Self: WithApiClient + WithBasePath + WithChunkSizes + Sync,
 {
     /// Update a list of resources.
     ///
@@ -502,12 +552,16 @@ where
         updates: &[TUpdate],
     ) -> impl Future<Output = Result<Vec<TResponse>>> + CondSend {
         async move {
-            let items = Items::new(updates);
-            let response: ItemsVec<TResponse> = self
-                .get_client()
-                .post(&format!("{}/update", Self::BASE_PATH), &items)
-                .await?;
-            Ok(response.items)
+            let chunked_response =
+                execute_with_parallelism!(updates, Self::UPDATE_CHUNK_SIZE, |chunk| {
+                    let items = Items::new(chunk);
+                    let response: ItemsVec<TResponse> = self
+                        .get_client()
+                        .post(&format!("{}/update", Self::BASE_PATH), &items)
+                        .await?;
+                    Ok::<_, crate::Error>(response.items)
+                })?;
+            Ok(chunked_response.into_iter().flatten().collect())
         }
     }
 
@@ -560,13 +614,16 @@ where
                     }
                     return response;
                 }
-
-                let items = Items::new(next);
-                let response: ItemsVec<TResponse> = self
-                    .get_client()
-                    .post(&format!("{}/update", Self::BASE_PATH), &items)
-                    .await?;
-                Ok(response.items)
+                let chunked_response =
+                    execute_with_parallelism!(&next, Self::UPDATE_CHUNK_SIZE, |chunk| {
+                        let items = Items::new(chunk);
+                        let response: ItemsVec<TResponse> = self
+                            .get_client()
+                            .post(&format!("{}/update", Self::BASE_PATH), &items)
+                            .await?;
+                        Ok::<_, crate::Error>(response.items)
+                    })?;
+                Ok(chunked_response.into_iter().flatten().collect())
             } else {
                 response
             }
@@ -600,8 +657,8 @@ where
 pub trait Retrieve<TIdt, TResponse>
 where
     TIdt: Serialize + Sync + Send,
-    TResponse: Serialize + DeserializeOwned,
-    Self: WithApiClient + WithBasePath + Sync,
+    TResponse: Serialize + DeserializeOwned + Sync + Send,
+    Self: WithApiClient + WithBasePath + WithChunkSizes + Sync,
 {
     /// Retrieve a list of items from CDF by id.
     ///
@@ -610,12 +667,16 @@ where
     /// * `ids` - IDs of items to retrieve.
     fn retrieve(&self, ids: &[TIdt]) -> impl Future<Output = Result<Vec<TResponse>>> + CondSend {
         async move {
-            let items = Items::new(ids);
-            let response: ItemsVec<TResponse> = self
-                .get_client()
-                .post(&format!("{}/byids", Self::BASE_PATH), &items)
-                .await?;
-            Ok(response.items)
+            let chunked_response =
+                execute_with_parallelism!(ids, Self::RETRIEVE_CHUNK_SIZE, |chunk| {
+                    let items = Items::new(chunk);
+                    let response: ItemsVec<TResponse> = self
+                        .get_client()
+                        .post(&format!("{}/byids", Self::BASE_PATH), &items)
+                        .await?;
+                    Ok::<_, crate::Error>(response.items)
+                })?;
+            Ok(chunked_response.into_iter().flatten().collect())
         }
     }
 }

@@ -84,37 +84,53 @@ pub trait Chunkable<'a> {
     /// The type of chunk produced. For example, a vector chunks into slices.
     type Chunk: 'a;
     /// Split the identity list into chunks of the given size.
-    fn as_chunks(&'a self, chunk_size: usize) -> impl Iterator<Item = Self::Chunk>;
+    fn as_chunks(&'a self, chunk_size: usize) -> impl Iterator<Item = Self::Chunk> + Send + 'a;
 }
 
-impl<'a, T: 'a> Chunkable<'a> for Vec<T> {
+impl<'a, T: Send + Sync + 'a> Chunkable<'a> for Vec<T> {
     type Chunk = &'a [T];
 
-    fn as_chunks(&'a self, chunk_size: usize) -> impl Iterator<Item = Self::Chunk> {
+    fn as_chunks(&'a self, chunk_size: usize) -> impl Iterator<Item = Self::Chunk> + Send {
         self.chunks(chunk_size)
     }
 }
 
-impl<'a, T: 'a> Chunkable<'a> for &'a [T] {
+impl<'a, T: Send + Sync + 'a> Chunkable<'a> for &'a [T] {
     type Chunk = &'a [T];
 
-    fn as_chunks(&'a self, chunk_size: usize) -> impl Iterator<Item = Self::Chunk> {
+    fn as_chunks(&'a self, chunk_size: usize) -> impl Iterator<Item = Self::Chunk> + Send {
         self.chunks(chunk_size)
     }
 }
 
-impl<'a, T: 'a> Chunkable<'a> for &'a Vec<T> {
+impl<'a, T: Send + Sync + 'a> Chunkable<'a> for [T] {
     type Chunk = &'a [T];
 
-    fn as_chunks(&'a self, chunk_size: usize) -> impl Iterator<Item = Self::Chunk> {
+    fn as_chunks(&'a self, chunk_size: usize) -> impl Iterator<Item = Self::Chunk> + Send {
         self.chunks(chunk_size)
     }
 }
 
-impl<'a, T: 'a, const N: usize> Chunkable<'a> for &'a [T; N] {
+impl<'a, T: Send + Sync + 'a> Chunkable<'a> for &'a Vec<T> {
     type Chunk = &'a [T];
 
-    fn as_chunks(&'a self, chunk_size: usize) -> impl Iterator<Item = Self::Chunk> {
+    fn as_chunks(&'a self, chunk_size: usize) -> impl Iterator<Item = Self::Chunk> + Send {
+        self.chunks(chunk_size)
+    }
+}
+
+impl<'a, T: Send + Sync + 'a, const N: usize> Chunkable<'a> for &'a [T; N] {
+    type Chunk = &'a [T];
+
+    fn as_chunks(&'a self, chunk_size: usize) -> impl Iterator<Item = Self::Chunk> + Send {
+        self.as_slice().chunks(chunk_size)
+    }
+}
+
+impl<'a, T: Send + Sync + 'a, const N: usize> Chunkable<'a> for [T; N] {
+    type Chunk = &'a [T];
+
+    fn as_chunks(&'a self, chunk_size: usize) -> impl Iterator<Item = Self::Chunk> + Send {
         self.as_slice().chunks(chunk_size)
     }
 }

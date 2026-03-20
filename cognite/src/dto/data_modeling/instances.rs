@@ -6,21 +6,22 @@ use serde_with::skip_serializing_none;
 
 use crate::{
     models::{ItemId, PropertySort, SourceReference, TaggedViewReference},
-    AdvancedFilter, RawValue, SetCursor,
+    AdvancedFilter, Items, RawValue, SetCursor,
 };
 
 use super::views::ViewCorePropertyType;
 mod extensions;
 pub use extensions::*;
 
-#[skip_serializing_none]
-#[derive(Serialize, Deserialize, Derivative, Clone, Debug)]
-#[serde(rename_all = "camelCase")]
 /// A list of nodes and edges to create. Parametrized by the type used for
 /// instance properties.
-pub struct NodeAndEdgeCreateCollection<TProperties> {
-    /// Nodes and edges to create.
-    pub items: Vec<NodeOrEdgeCreate<TProperties>>,
+pub type NodeAndEdgeCreateCollection<TProperties> = Items<Vec<TProperties>, NodeAndEdgeCreateData>;
+
+#[skip_serializing_none]
+#[derive(Serialize, Deserialize, Derivative, Clone, Debug, Default)]
+#[serde(rename_all = "camelCase")]
+/// Extra arguments for creating nodes and edges.
+pub struct NodeAndEdgeCreateData {
     /// Whether to auto create direct relations that do not exist.
     pub auto_create_direct_relations: Option<bool>,
     /// Whether to auto create start nodes that do not exist.
@@ -38,19 +39,6 @@ pub struct NodeAndEdgeCreateCollection<TProperties> {
     /// Or should we merge in new values for properties together with the existing values (false)?
     /// Note: This setting applies for all nodes or edges specified in the ingestion call.
     pub replace: Option<bool>,
-}
-
-impl<TProperties> Default for NodeAndEdgeCreateCollection<TProperties> {
-    fn default() -> Self {
-        Self {
-            items: vec![],
-            auto_create_direct_relations: None,
-            auto_create_start_nodes: None,
-            auto_create_end_nodes: None,
-            skip_on_version_conflict: None,
-            replace: None,
-        }
-    }
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]

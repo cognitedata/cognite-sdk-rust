@@ -2,7 +2,7 @@ use serde::Serialize;
 
 use crate::{
     Create, DeleteWithIgnoreUnknownIds, FilterItems, IdentityList, Patch, Resource,
-    RetrieveWithIgnoreUnknownIds, Update, WithBasePath,
+    RetrieveWithIgnoreUnknownIds, Update, WithBasePath, WithChunkSizes,
 };
 
 use crate::extpipes::*;
@@ -12,6 +12,11 @@ pub type ExtPipesResource = Resource<ExtPipe>;
 
 impl WithBasePath for ExtPipesResource {
     const BASE_PATH: &'static str = "extpipes";
+}
+
+impl WithChunkSizes for ExtPipesResource {
+    const REQUEST_CHUNK_SIZE: usize = 1000;
+    const REQUEST_PARALLELISM: usize = 2;
 }
 
 impl Create<AddExtPipe, ExtPipe> for ExtPipesResource {}
@@ -39,6 +44,11 @@ pub type ExtPipeRunsResource = Resource<ExtPipeRun>;
 
 impl WithBasePath for ExtPipeRunsResource {
     const BASE_PATH: &'static str = "extpipes/runs";
+}
+
+impl WithChunkSizes for ExtPipeRunsResource {
+    const REQUEST_CHUNK_SIZE: usize = 1;
+    const REQUEST_PARALLELISM: usize = 1;
 }
 
 impl Create<AddExtPipeRun, ExtPipeRun> for ExtPipeRunsResource {}

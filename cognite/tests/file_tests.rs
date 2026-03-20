@@ -251,7 +251,7 @@ async fn create_delete_dm_files() {
     });
 
     let mut backoff = Backoff::default();
-    let mut deleted: Option<ItemsVec<NodeOrEdgeSpecification>> = None;
+    let mut deleted: Option<Vec<NodeOrEdgeSpecification>> = None;
     for _ in 0..10 {
         match client.models.instances.delete(&[node_specs.clone()]).await {
             Ok(res) => {
@@ -265,7 +265,7 @@ async fn create_delete_dm_files() {
         }
     }
     let deleted = deleted.unwrap();
-    let deleted = deleted.items.first().unwrap();
+    let deleted = deleted.first().unwrap();
     assert!(matches!(deleted, NodeOrEdgeSpecification::Node(_)));
 }
 
@@ -342,7 +342,7 @@ async fn create_core_dm_multipart_file() {
     });
 
     let mut backoff = Backoff::default();
-    let mut deleted: Option<ItemsVec<NodeOrEdgeSpecification>> = None;
+    let mut deleted: Option<Vec<NodeOrEdgeSpecification>> = None;
     for _ in 0..10 {
         match client.models.instances.delete(&[node_specs.clone()]).await {
             Ok(res) => {
@@ -356,6 +356,6 @@ async fn create_core_dm_multipart_file() {
         }
     }
     let deleted = deleted.unwrap();
-    let deleted = deleted.items.first().unwrap();
+    let deleted = deleted.first().unwrap();
     assert!(matches!(deleted, NodeOrEdgeSpecification::Node(_)));
 }

@@ -4,7 +4,9 @@ use std::collections::HashMap;
 use std::hash::Hash;
 
 use futures::stream::FuturesUnordered;
-use futures::{Future, StreamExt};
+use futures::{Future, FutureExt, StreamExt};
+
+use crate::Chunkable;
 
 /// Chunk a map of lists both by the maximum number of keys per map,
 /// and the number of total values.
@@ -80,29 +82,66 @@ pub fn chunk_map<'a, TKey: Hash + Eq + 'a + Clone, TValue: 'a>(
 /// # Panics
 ///
 /// This function panics if parallelism is 0.
+///
+/// Returns the reslts of the futures in the same order as the input.
+/// If any future returns an error, the function returns immediately with that error, and no further futures are polled.
 pub async fn execute_with_parallelism<T, TErr>(
     mut futures: impl Iterator<Item = impl Future<Output = Result<T, TErr>>>,
     parallelism: usize,
 ) -> Result<Vec<T>, TErr> {
-    let mut res = Vec::new();
-
     assert!(parallelism > 0, "Parallelism must be greater than 0");
 
     let mut running = FuturesUnordered::new();
 
+    let mut results = Vec::new();
+
     for fut in (&mut futures).take(parallelism) {
-        running.push(fut);
-    }
+        results.push(None);
+        let len = results.len() - 1;
 
-    while let Some(r) = running.next().await {
-        res.push(r?);
-
-        if let Some(fut) = futures.next() {
-            running.push(fut);
+        if running.len() >= parallelism {
+            let (r, idx) = running.next().await.unwrap();
+            results[idx] = Some(r?);
         }
+
+        running.push(fut.map(move |r| (r, len)));
     }
 
-    Ok(res)
+    while let Some((r, idx)) = running.next().await {
+        results[idx] = Some(r?);
+    }
+
+    Ok(results.into_iter().map(|r| r.unwrap()).collect())
+}
+
+/// Execute a function on chunks of a list, with a maximum parallelism.
+///
+/// # Arguments
+///
+/// * `items` - The list to chunk and execute on.
+/// * `chunk_size` - The size of the chunks to create from the list.
+/// * `parallelism` - The maximum number of chunks to process in parallel.
+/// * `func` - The function to execute on each chunk. Must be async, and return a Result.
+///
+/// # Panics
+///
+/// This function panics if parallelism is 0, or if chunk_size is 0.
+///
+/// Returns the results of the function on each chunk, in the same order as the input list.
+pub async fn execute_chunked<'a, R, T: Chunkable<'a> + ?Sized + 'a, TErr>(
+    items: &'a T,
+    chunk_size: usize,
+    parallelism: usize,
+    func: impl AsyncFn(T::Chunk) -> Result<R, TErr>,
+) -> Result<Vec<R>, TErr> {
+    // TODO: This whole function does not work properly, due to limitations in the rust compiler.
+    assert!(chunk_size > 0, "Chunk size must be greater than 0");
+
+    let futures_iter = items.as_chunks(chunk_size).map(|r| func(r));
+
+    let r = execute_with_parallelism(futures_iter, parallelism).await?;
+
+    Ok(r)
 }
 
 #[cfg(test)]

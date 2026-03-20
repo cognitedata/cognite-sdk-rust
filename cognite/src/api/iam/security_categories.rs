@@ -1,6 +1,6 @@
 use crate::api::resource::Resource;
 use crate::dto::iam::security_category::*;
-use crate::{Create, Delete, List, WithBasePath};
+use crate::{Create, Delete, List, WithBasePath, WithChunkSizes};
 
 /// Manage security categories for a specific project. Security categories can be used to
 /// restrict access to a resource. Applying a security category to a resource means that
@@ -10,6 +10,11 @@ pub type SecurityCategoriesResource = Resource<SecurityCategory>;
 
 impl WithBasePath for SecurityCategoriesResource {
     const BASE_PATH: &'static str = "securitycategories";
+}
+
+impl WithChunkSizes for SecurityCategoriesResource {
+    const REQUEST_CHUNK_SIZE: usize = 100;
+    const REQUEST_PARALLELISM: usize = 4;
 }
 
 impl Create<AddSecurityCategory, SecurityCategory> for SecurityCategoriesResource {}

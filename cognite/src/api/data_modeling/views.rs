@@ -4,7 +4,7 @@ use crate::{
         views::{ViewCreateDefinition, ViewReference},
         ItemIdOptionalVersion,
     },
-    Create, DeleteWithResponse, List, Resource, Retrieve, WithBasePath,
+    Create, DeleteWithResponse, List, Resource, Retrieve, WithBasePath, WithChunkSizes,
 };
 
 /// A view is a logical view on the stored data. Views organize
@@ -13,6 +13,11 @@ pub type ViewsResource = Resource<ViewDefinition>;
 
 impl WithBasePath for ViewsResource {
     const BASE_PATH: &'static str = "models/views";
+}
+
+impl WithChunkSizes for ViewsResource {
+    const REQUEST_CHUNK_SIZE: usize = 100;
+    const REQUEST_PARALLELISM: usize = 2;
 }
 
 impl Create<ViewCreateDefinition, ViewDefinition> for ViewsResource {}

@@ -1,6 +1,8 @@
 use serde::{Deserialize, Serialize};
 use serde_with::skip_serializing_none;
 
+use crate::Chunkable;
+
 /// A generic structure for handling items in requests and responses.
 #[derive(Copy, Clone, Debug, Default, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -43,6 +45,20 @@ impl<C, E: Default> From<C> for Items<C, E> {
 
 /// A convenience type for `Items` using a `Vec` to store items.
 pub type ItemsVec<T, E = ()> = Items<Vec<T>, E>;
+
+impl<'a, T: Send + Sync + 'a, E: Send + Sync + 'a> Chunkable<'a> for Items<T, E>
+where
+    E: Clone,
+    T: Chunkable<'a>,
+{
+    type Chunk = Items<T::Chunk, E>;
+
+    fn as_chunks(&'a self, chunk_size: usize) -> impl Iterator<Item = Self::Chunk> + Send {
+        self.items
+            .as_chunks(chunk_size)
+            .map(move |chunk| Items::new_with_extra_fields(chunk, self.extra_fields.clone()))
+    }
+}
 
 /// Extra fields for `Items` types with cursor data.
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]

@@ -4,21 +4,27 @@ use serde::Serialize;
 use crate::dto::data_modeling::instances::SlimNodeOrEdge;
 use crate::models::instances::{
     AggregateInstancesRequest, AggregateInstancesResponse, FilterInstancesRequest,
-    InstancesFilterResponse, NodeAndEdgeCreateCollection, NodeAndEdgeRetrieveRequest,
-    NodeAndEdgeRetrieveResponse, NodeOrEdge, NodeOrEdgeCreate, NodeOrEdgeSpecification,
-    QueryInstancesRequest, QueryInstancesResponse, SearchInstancesRequest, SourceReferenceInternal,
+    InstancesFilterResponse, NodeAndEdgeCreateCollection, NodeAndEdgeCreateData,
+    NodeAndEdgeRetrieveRequest, NodeAndEdgeRetrieveResponse, NodeOrEdge, NodeOrEdgeCreate,
+    NodeOrEdgeSpecification, QueryInstancesRequest, QueryInstancesResponse, SearchInstancesRequest,
+    SourceReferenceInternal,
 };
 use crate::models::instances::{FromReadable, WithView};
 use crate::models::views::ViewReference;
-use crate::Result;
 use crate::{DeleteWithResponse, FilterWithRequest, RetrieveWithRequest, UpsertCollection};
 use crate::{Resource, WithBasePath};
+use crate::{Result, WithChunkSizes};
 
 /// Instances are nodes and edges in a data model. These contain the actual data in the data model.
 pub type Instances = Resource<SlimNodeOrEdge>;
 
 impl WithBasePath for Instances {
     const BASE_PATH: &'static str = "models/instances";
+}
+
+impl WithChunkSizes for Instances {
+    const REQUEST_CHUNK_SIZE: usize = 1000;
+    const REQUEST_PARALLELISM: usize = 4;
 }
 
 impl<TProperties> FilterWithRequest<FilterInstancesRequest, NodeOrEdge<TProperties>> for Instances where
@@ -177,11 +183,13 @@ impl Instances {
 
         let collection = NodeAndEdgeCreateCollection {
             items: collection,
-            auto_create_direct_relations: auto_create_direct_relations.or(Some(true)),
-            auto_create_start_nodes,
-            auto_create_end_nodes,
-            skip_on_version_conflict,
-            replace: Some(replace),
+            extra_fields: NodeAndEdgeCreateData {
+                auto_create_direct_relations: auto_create_direct_relations.or(Some(true)),
+                auto_create_start_nodes,
+                auto_create_end_nodes,
+                skip_on_version_conflict,
+                replace: Some(replace),
+            },
         };
         self.upsert(&collection).await
     }

@@ -1,6 +1,6 @@
 use crate::api::resource::Resource;
 use crate::dto::iam::session::*;
-use crate::{CogniteId, Create, Items, List, Retrieve, WithBasePath};
+use crate::{CogniteId, Create, Items, List, Retrieve, WithBasePath, WithChunkSizes};
 use crate::{ItemsVec, Result};
 
 /// Sessions are used to maintain access to CDF resources for an extended period of time.
@@ -8,6 +8,11 @@ pub type SessionsResource = Resource<Session>;
 
 impl WithBasePath for SessionsResource {
     const BASE_PATH: &'static str = "sessions";
+}
+
+impl WithChunkSizes for SessionsResource {
+    const REQUEST_PARALLELISM: usize = 1;
+    const REQUEST_CHUNK_SIZE: usize = 1;
 }
 
 impl List<SessionQuery, Session> for SessionsResource {}

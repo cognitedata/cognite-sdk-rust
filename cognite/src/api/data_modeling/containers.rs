@@ -4,6 +4,7 @@ use crate::{
     },
     models::ItemId,
     Create, DeleteWithResponse, Items, ItemsVec, List, Resource, Result, Retrieve, WithBasePath,
+    WithChunkSizes,
 };
 
 /// A container represents a bag of properties, each property has a type.
@@ -12,6 +13,11 @@ pub type ContainersResource = Resource<ContainerDefinition>;
 
 impl WithBasePath for ContainersResource {
     const BASE_PATH: &'static str = "models/containers";
+}
+
+impl WithChunkSizes for ContainersResource {
+    const REQUEST_CHUNK_SIZE: usize = 100;
+    const REQUEST_PARALLELISM: usize = 2;
 }
 
 impl Create<ContainerCreate, ContainerDefinition> for ContainersResource {}

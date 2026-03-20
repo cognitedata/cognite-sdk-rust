@@ -34,6 +34,11 @@ impl WithBasePath for TimeSeriesResource {
     const BASE_PATH: &'static str = "timeseries";
 }
 
+impl WithChunkSizes for TimeSeriesResource {
+    const REQUEST_CHUNK_SIZE: usize = 1000;
+    const REQUEST_PARALLELISM: usize = 4;
+}
+
 impl List<TimeSeriesQuery, TimeSeries> for TimeSeriesResource {}
 impl Create<AddTimeSeries, TimeSeries> for TimeSeriesResource {}
 impl FilterItems<TimeSeriesFilter, TimeSeries> for TimeSeriesResource {}
