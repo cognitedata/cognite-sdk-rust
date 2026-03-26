@@ -176,8 +176,8 @@ impl CogniteClient {
     ///
     /// # Arguments
     ///
-    /// * `api_base_url` - Base URL for the API (e.g., `https://api.cognitedata.com`). 
-    ///                    Will be extended to `{api_base_url}/api/v1`.
+    /// * `api_base_url` - Base URL for the API (e.g., `https://api.cognitedata.com`).
+    ///   Will be extended to `{api_base_url}/api/v1`.
     /// * `auth` - Authentication provider.
     /// * `app_name` - Value used for the `x-cdp-app` header.
     /// * `config` - Optional configuration for retries.
