@@ -48,7 +48,7 @@ reqwest-middleware = { version = "^0.4.1" }
 
 
 anyhow = "^1"
-rand = "^0.9.0"
+rand = "^0.10.0"
 serde = { version = "^1", features = ["derive"] }
 serde_json = "^1"
 serde_with = "^3"
@@ -60,7 +60,7 @@ tokio-util = { version = "^0.7", default-features = false, features = [
 pin-project = "1.1.10"
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
-getrandom = { version = "0.3", features = ["wasm_js"] }
+getrandom = { version = "0.4", features = ["wasm_js"] }
 tokio = { version = "^1", default-features = false }
 tokio-util = { version = "0.7.10", features = ["rt"] }
 

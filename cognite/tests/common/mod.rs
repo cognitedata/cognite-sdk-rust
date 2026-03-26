@@ -3,7 +3,7 @@ use std::{future::Future, sync::LazyLock, time::Duration};
 #[cfg(test)]
 use cognite::ClientConfig;
 use cognite::CogniteClient;
-use rand::{distr::Alphanumeric, rng, Rng};
+use rand::{distr::Alphanumeric, rng, RngExt};
 use tokio::sync::Semaphore;
 
 #[allow(dead_code)]

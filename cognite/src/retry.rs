@@ -3,7 +3,7 @@
 
 use async_trait::async_trait;
 use http::Extensions;
-use rand::{rng, Rng};
+use rand::{rng, RngExt};
 use reqwest::{Request, Response, StatusCode};
 use reqwest_middleware::{Middleware, Next, Result};
 use std::time::Duration;
