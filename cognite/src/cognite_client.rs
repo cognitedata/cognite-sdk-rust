@@ -168,6 +168,32 @@ impl CogniteClient {
         Self::new_internal(api_client)
     }
 
+    /// Create a new cognite client without project-scoped paths, using a user-provided authentication manager.
+    ///
+    /// This is useful for APIs that are not project-scoped, such as the Signals API or other
+    /// non-standard endpoints. The api_base_path is constructed as `{api_base_url}/api/v1` without
+    /// appending `/projects/{project}`.
+    ///
+    /// # Arguments
+    ///
+    /// * `api_base_url` - Base URL for the API (e.g., `https://api.cognitedata.com`). 
+    ///                    Will be extended to `{api_base_url}/api/v1`.
+    /// * `auth` - Authentication provider.
+    /// * `app_name` - Value used for the `x-cdp-app` header.
+    /// * `config` - Optional configuration for retries.
+    pub fn new_unscoped(
+        api_base_url: &str,
+        auth: AuthHeaderManager,
+        app_name: &str,
+        config: Option<ClientConfig>,
+    ) -> Result<Self> {
+        let api_base_path = format!("{}/api/v1", api_base_url.trim_end_matches('/'));
+        let client = Self::get_client(config.unwrap_or_default(), auth, None, None)?;
+        let api_client = ApiClient::new(&api_base_path, app_name, client.clone());
+
+        Self::new_internal(api_client)
+    }
+
     fn get_client(
         config: ClientConfig,
         authenticator: AuthHeaderManager,
@@ -210,11 +236,15 @@ impl CogniteClient {
         config: ClientConfig,
         client: Option<Client>,
         app_name: String,
-        project: String,
+        project: Option<String>,
         base_url: String,
         middleware: Option<Vec<Arc<dyn Middleware>>>,
     ) -> Result<Self> {
-        let api_base_path = format!("{}/api/{}/projects/{}", base_url, "v1", project);
+        let base_url = base_url.trim_end_matches('/');
+        let api_base_path = match project {
+            Some(proj) => format!("{}/api/{}/projects/{}", base_url, "v1", proj),
+            None => format!("{}/api/v1", base_url),
+        };
         let client = Self::get_client(config, auth, client, middleware)?;
         let api_client = ApiClient::new(&api_base_path, &app_name, client.clone());
         Self::new_internal(api_client)
@@ -371,6 +401,8 @@ impl Builder {
     }
 
     /// Create a cognite client. This may fail if not all required parameters are provided.
+    ///
+    /// If no project is set, an unscoped client will be created (without `/projects/{project}` in the path).
     pub fn build(self) -> Result<CogniteClient> {
         let auth = self
             .auth
@@ -380,9 +412,6 @@ impl Builder {
         let app_name = self
             .app_name
             .ok_or_else(|| Error::Config("App name is required".to_string()))?;
-        let project = self
-            .project
-            .ok_or_else(|| Error::Config("Project is required".to_string()))?;
         let base_url = self
             .base_url
             .unwrap_or_else(|| "https://api.cognitedata.com/".to_owned());
@@ -392,9 +421,150 @@ impl Builder {
             config,
             client,
             app_name,
-            project,
+            self.project,
             base_url,
             self.custom_middleware,
         )
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_new_unscoped_creates_client() {
+        let base_url = "https://api.example.com";
+        let auth = AuthHeaderManager::AuthTicket("test_token".to_string());
+        let app_name = "test_app";
+        
+        let client = CogniteClient::new_unscoped(base_url, auth, app_name, None);
+        
+        assert!(client.is_ok());
+        let client = client.unwrap();
+        assert_eq!(client.api_client.api_base_url(), "https://api.example.com/api/v1");
+    }
+
+    #[test]
+    fn test_new_unscoped_vs_new_custom_auth_paths() {
+        let base_url = "https://api.example.com";
+        let auth_unscoped = AuthHeaderManager::AuthTicket("test_token".to_string());
+        let auth_custom = AuthHeaderManager::AuthTicket("test_token".to_string());
+        let app_name = "test_app";
+        let project = "test_project";
+        
+        let client_unscoped = CogniteClient::new_unscoped(
+            base_url, 
+            auth_unscoped, 
+            app_name, 
+            None
+        ).unwrap();
+        
+        let client_custom = CogniteClient::new_custom_auth(
+            base_url, 
+            project,
+            auth_custom, 
+            app_name, 
+            None
+        ).unwrap();
+        
+        // new_unscoped adds /api/v1 but NOT the project path
+        assert_eq!(client_unscoped.api_client.api_base_url(), "https://api.example.com/api/v1");
+        // new_custom_auth adds /api/v1/projects/{project}
+        assert_eq!(
+            client_custom.api_client.api_base_url(), 
+            "https://api.example.com/api/v1/projects/test_project"
+        );
+    }
+
+    #[test]
+    fn test_new_unscoped_with_custom_config() {
+        let base_url = "https://api.example.com";
+        let auth = AuthHeaderManager::AuthTicket("test_token".to_string());
+        let app_name = "test_app";
+        let config = ClientConfig {
+            max_retries: 3,
+            max_retry_delay_ms: Some(1000),
+            timeout_ms: Some(5000),
+            initial_delay_ms: Some(100),
+        };
+        
+        let client = CogniteClient::new_unscoped(
+            base_url, 
+            auth, 
+            app_name, 
+            Some(config)
+        );
+        
+        assert!(client.is_ok());
+    }
+
+    #[test]
+    fn test_new_unscoped_handles_trailing_slash() {
+        let auth = AuthHeaderManager::AuthTicket("test_token".to_string());
+        let client = CogniteClient::new_unscoped(
+            "https://api.example.com/",
+            auth,
+            "test_app",
+            None
+        ).unwrap();
+        
+        // Should not have double slash
+        assert_eq!(
+            client.api_client.api_base_url(), 
+            "https://api.example.com/api/v1"
+        );
+    }
+
+    #[test]
+    fn test_builder_without_project_creates_unscoped() {
+        let auth = AuthHeaderManager::AuthTicket("test_token".to_string());
+        
+        let mut builder = CogniteClient::builder();
+        builder.set_custom_auth(auth);
+        builder.set_app_name("test_app");
+        builder.set_base_url("https://api.example.com");
+        let client = builder.build().unwrap();
+        
+        // Should build unscoped client
+        assert_eq!(
+            client.api_client.api_base_url(), 
+            "https://api.example.com/api/v1"
+        );
+    }
+
+    #[test]
+    fn test_builder_with_project_creates_scoped() {
+        let auth = AuthHeaderManager::AuthTicket("test_token".to_string());
+        
+        let mut builder = CogniteClient::builder();
+        builder.set_custom_auth(auth);
+        builder.set_app_name("test_app");
+        builder.set_project("test_project");
+        builder.set_base_url("https://api.example.com");
+        let client = builder.build().unwrap();
+        
+        // Should build scoped client
+        assert_eq!(
+            client.api_client.api_base_url(), 
+            "https://api.example.com/api/v1/projects/test_project"
+        );
+    }
+
+    #[test]
+    fn test_builder_without_project_handles_trailing_slash() {
+        let auth = AuthHeaderManager::AuthTicket("test_token".to_string());
+        
+        let mut builder = CogniteClient::builder();
+        builder.set_custom_auth(auth);
+        builder.set_app_name("test_app");
+        builder.set_base_url("https://api.example.com/");
+        let client = builder.build().unwrap();
+        
+        // Should not have double slash
+        assert_eq!(
+            client.api_client.api_base_url(), 
+            "https://api.example.com/api/v1"
+        );
     }
 }
