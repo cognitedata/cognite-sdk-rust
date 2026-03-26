@@ -45,7 +45,7 @@ jobs:
           COGNITE_CLIENT_SECRET: ${{ secrets.CLIENT_SECRET }}
           CORE_DM_TEST_SPACE: ${{ secrets.CORE_DM_TEST_SPACE }}
       - name: Upload coverage to codecov.io
-        uses: codecov/codecov-action@v5
+        uses: codecov/codecov-action@v6
         with:
           files: codecov.json
           token: ${{ secrets.CODECOV_TOKEN }}
