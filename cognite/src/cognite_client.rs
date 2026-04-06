@@ -413,13 +413,13 @@ mod tests {
         let mut builder = CogniteClient::builder();
         builder.set_custom_auth(auth);
         builder.set_app_name("test_app");
-        builder.set_base_url("https://api.example.com");
+        builder.set_base_url("https://api.cognite.com");
         let client = builder.build().unwrap();
 
         // Should build unscoped client
         assert_eq!(
             client.api_client.api_base_url(),
-            "https://api.example.com/api/v1"
+            "https://api.cognite.com/api/v1"
         );
     }
 
@@ -431,13 +431,13 @@ mod tests {
         builder.set_custom_auth(auth);
         builder.set_app_name("test_app");
         builder.set_project("test_project");
-        builder.set_base_url("https://api.example.com");
+        builder.set_base_url("https://api.cognite.com");
         let client = builder.build().unwrap();
 
         // Should build scoped client
         assert_eq!(
             client.api_client.api_base_url(),
-            "https://api.example.com/api/v1/projects/test_project"
+            "https://api.cognite.com/api/v1/projects/test_project"
         );
     }
 
@@ -448,13 +448,13 @@ mod tests {
         let mut builder = CogniteClient::builder();
         builder.set_custom_auth(auth);
         builder.set_app_name("test_app");
-        builder.set_base_url("https://api.example.com/");
+        builder.set_base_url("https://api.cognite.com/");
         let client = builder.build().unwrap();
 
         // Should not have double slash
         assert_eq!(
             client.api_client.api_base_url(),
-            "https://api.example.com/api/v1"
+            "https://api.cognite.com/api/v1"
         );
     }
 }
