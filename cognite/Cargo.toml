@@ -41,10 +41,12 @@ reqwest = { version = "^0.13", features = [
   "gzip",
   "json",
   "multipart",
-  "rustls-tls-native-roots",
+  "rustls-native-certs",
   "stream",
+  "form",
+  "query"
 ], default-features = false } # Default brings in openssl
-reqwest-middleware = { version = "^0.4.1" }
+reqwest-middleware = { version = "^0.5.0", features = ["query", "form"]}
 
 
 anyhow = "^1"
