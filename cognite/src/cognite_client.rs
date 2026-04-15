@@ -388,9 +388,7 @@ impl Builder {
         let api_base_path = format!("{}/api/v1", base_url);
         let client = CogniteClient::get_client(config, auth, self.client, self.custom_middleware)?;
         let api_client = ApiClient::new(&api_base_path, &app_name, client);
-        Ok(UnscopedCogniteClient {
-            api_client: Arc::new(api_client),
-        })
+        Ok(UnscopedCogniteClient(api_client))
     }
 
     /// Create a cognite client. This may fail if not all required parameters are provided.
@@ -423,10 +421,13 @@ impl Builder {
 }
 
 /// Client for interacting with unscoped CDF APIs (those not under `/projects/{project}`).
-pub struct UnscopedCogniteClient {
-    /// Reference to an API client, which can let you make
-    /// your own requests to the CDF API.
-    pub api_client: Arc<ApiClient>,
+pub struct UnscopedCogniteClient(ApiClient);
+
+impl UnscopedCogniteClient {
+    /// Returns a reference to the underlying API client.
+    pub fn api_client(&self) -> &ApiClient {
+        &self.0
+    }
 }
 
 #[cfg(test)]
@@ -472,7 +473,7 @@ mod tests {
         let client = builder.build_unscoped().unwrap();
 
         assert_eq!(
-            client.api_client.api_base_url(),
+            client.api_client().api_base_url(),
             "https://api.cognite.com/api/v1"
         );
     }
@@ -488,7 +489,7 @@ mod tests {
         let client = builder.build_unscoped().unwrap();
 
         assert_eq!(
-            client.api_client.api_base_url(),
+            client.api_client().api_base_url(),
             "https://api.cognite.com/api/v1"
         );
     }
