@@ -42,7 +42,7 @@ jobs:
         run: echo "test=$(git tag --list 'v${{ steps.get-version.outputs.version }}' | wc -l | sed s/\ //g)" >> $GITHUB_OUTPUT
       
       - name: Message about build
-        uses: actions/github-script@v8
+        uses: actions/github-script@v9
         with:
           script: |
             if (${{ steps.should-release.outputs.test }} == 0) {
