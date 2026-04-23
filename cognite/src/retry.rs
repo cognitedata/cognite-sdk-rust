@@ -80,7 +80,7 @@ impl CustomRetryMiddleware {
     }
 }
 
-#[derive(PartialEq, Eq)]
+#[derive(PartialEq, Eq, Debug)]
 pub(crate) enum Retryable {
     /// The failure was due to something that might resolve in the future.
     Transient,
@@ -148,5 +148,197 @@ impl Retryable {
                 }
             },
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use reqwest::StatusCode;
+
+    fn create_mock_response(status: StatusCode) -> reqwest::Response {
+        http::Response::builder()
+            .status(status)
+            .body("")
+            .unwrap()
+            .into()
+    }
+
+    fn create_mock_response_with_header(
+        status: StatusCode,
+        header_name: &str,
+        header_value: &str,
+    ) -> reqwest::Response {
+        http::Response::builder()
+            .status(status)
+            .header(header_name, header_value)
+            .body("")
+            .unwrap()
+            .into()
+    }
+
+    #[test]
+    fn test_retryable_success_response() {
+        let response = create_mock_response(StatusCode::OK);
+        let result: reqwest_middleware::Result<reqwest::Response> = Ok(response);
+        
+        assert_eq!(Retryable::from_reqwest_response(&result), None);
+    }
+
+    #[test]
+    fn test_retryable_unauthorized_401() {
+        let response = create_mock_response(StatusCode::UNAUTHORIZED);
+        let result: reqwest_middleware::Result<reqwest::Response> = Ok(response);
+        
+        assert_eq!(
+            Retryable::from_reqwest_response(&result),
+            Some(Retryable::Unauthorized)
+        );
+    }
+
+    #[test]
+    fn test_retryable_rate_limit_429() {
+        let response = create_mock_response(StatusCode::TOO_MANY_REQUESTS);
+        let result: reqwest_middleware::Result<reqwest::Response> = Ok(response);
+        
+        assert_eq!(
+            Retryable::from_reqwest_response(&result),
+            Some(Retryable::Transient)
+        );
+    }
+
+    #[test]
+    fn test_retryable_timeout_408() {
+        let response = create_mock_response(StatusCode::REQUEST_TIMEOUT);
+        let result: reqwest_middleware::Result<reqwest::Response> = Ok(response);
+        
+        assert_eq!(
+            Retryable::from_reqwest_response(&result),
+            Some(Retryable::Transient)
+        );
+    }
+
+    #[test]
+    fn test_retryable_server_error_500() {
+        let response = create_mock_response(StatusCode::INTERNAL_SERVER_ERROR);
+        let result: reqwest_middleware::Result<reqwest::Response> = Ok(response);
+        
+        assert_eq!(
+            Retryable::from_reqwest_response(&result),
+            Some(Retryable::Transient)
+        );
+    }
+
+    #[test]
+    fn test_retryable_server_error_502() {
+        let response = create_mock_response(StatusCode::BAD_GATEWAY);
+        let result: reqwest_middleware::Result<reqwest::Response> = Ok(response);
+        
+        assert_eq!(
+            Retryable::from_reqwest_response(&result),
+            Some(Retryable::Transient)
+        );
+    }
+
+    #[test]
+    fn test_retryable_server_error_503() {
+        let response = create_mock_response(StatusCode::SERVICE_UNAVAILABLE);
+        let result: reqwest_middleware::Result<reqwest::Response> = Ok(response);
+        
+        assert_eq!(
+            Retryable::from_reqwest_response(&result),
+            Some(Retryable::Transient)
+        );
+    }
+
+    #[test]
+    fn test_retryable_bad_request_400() {
+        let response = create_mock_response(StatusCode::BAD_REQUEST);
+        let result: reqwest_middleware::Result<reqwest::Response> = Ok(response);
+        
+        assert_eq!(
+            Retryable::from_reqwest_response(&result),
+            Some(Retryable::Fatal)
+        );
+    }
+
+    #[test]
+    fn test_retryable_not_found_404() {
+        let response = create_mock_response(StatusCode::NOT_FOUND);
+        let result: reqwest_middleware::Result<reqwest::Response> = Ok(response);
+        
+        assert_eq!(
+            Retryable::from_reqwest_response(&result),
+            Some(Retryable::Fatal)
+        );
+    }
+
+    #[test]
+    fn test_retryable_forbidden_403() {
+        let response = create_mock_response(StatusCode::FORBIDDEN);
+        let result: reqwest_middleware::Result<reqwest::Response> = Ok(response);
+        
+        assert_eq!(
+            Retryable::from_reqwest_response(&result),
+            Some(Retryable::Fatal)
+        );
+    }
+
+    #[test]
+    fn test_retryable_custom_header_makes_retryable() {
+        let response = create_mock_response_with_header(
+            StatusCode::BAD_REQUEST,
+            "cdf-is-auto-retryable",
+            "true",
+        );
+        let result: reqwest_middleware::Result<reqwest::Response> = Ok(response);
+        
+        assert_eq!(
+            Retryable::from_reqwest_response(&result),
+            Some(Retryable::Transient)
+        );
+    }
+
+    #[test]
+    fn test_retryable_custom_header_false_value_is_fatal() {
+        let response = create_mock_response_with_header(
+            StatusCode::BAD_REQUEST,
+            "cdf-is-auto-retryable",
+            "false",
+        );
+        let result: reqwest_middleware::Result<reqwest::Response> = Ok(response);
+        
+        assert_eq!(
+            Retryable::from_reqwest_response(&result),
+            Some(Retryable::Fatal)
+        );
+    }
+
+    #[test]
+    fn test_retryable_custom_header_overrides_server_error() {
+        let response = create_mock_response_with_header(
+            StatusCode::INTERNAL_SERVER_ERROR,
+            "cdf-is-auto-retryable",
+            "true",
+        );
+        let result: reqwest_middleware::Result<reqwest::Response> = Ok(response);
+        
+        // Server errors are already transient, but this tests the header is recognized
+        assert_eq!(
+            Retryable::from_reqwest_response(&result),
+            Some(Retryable::Transient)
+        );
+    }
+
+    #[test]
+    fn test_retry_middleware_max_retries_capped_at_10() {
+        let middleware = CustomRetryMiddleware::new(100, 5000, 100);
+        assert_eq!(middleware.max_retries, 10);
+    }
+
+    #[test]
+    fn test_retry_middleware_max_retries_normal() {
+        let middleware = CustomRetryMiddleware::new(5, 5000, 100);
+        assert_eq!(middleware.max_retries, 5);
     }
 }
