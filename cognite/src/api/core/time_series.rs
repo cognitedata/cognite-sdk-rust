@@ -198,7 +198,7 @@ impl TimeSeriesResource {
             Some(m) => m,
             None => return result,
         };
-        let idt_set = HashSet::<IdentityOrInstance>::from_iter(missing_idts.into_iter());
+        let idt_set = HashSet::<IdentityOrInstance>::from_iter(missing_idts);
 
         let mut items = vec![];
         for elem in add_datapoints.items.iter() {
