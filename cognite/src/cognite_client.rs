@@ -214,6 +214,7 @@ impl CogniteClient {
         base_url: String,
         middleware: Option<Vec<Arc<dyn Middleware>>>,
     ) -> Result<Self> {
+        let base_url = base_url.trim_end_matches('/');
         let api_base_path = format!("{}/api/{}/projects/{}", base_url, "v1", project);
         let client = Self::get_client(config, auth, client, middleware)?;
         let api_client = ApiClient::new(&api_base_path, &app_name, client.clone());
@@ -370,6 +371,26 @@ impl Builder {
         self
     }
 
+    /// Create an unscoped cognite client. This may fail if not all required parameters are provided.
+    /// Any project set via `set_project` is ignored.
+    pub fn build_unscoped(self) -> Result<UnscopedCogniteClient> {
+        let auth = self
+            .auth
+            .ok_or_else(|| Error::Config("Some form of auth is required".to_string()))?;
+        let config = self.config.unwrap_or_default();
+        let app_name = self
+            .app_name
+            .ok_or_else(|| Error::Config("App name is required".to_string()))?;
+        let base_url = self
+            .base_url
+            .unwrap_or_else(|| "https://api.cognitedata.com/".to_owned());
+        let base_url = base_url.trim_end_matches('/');
+        let api_base_path = format!("{}/api/v1", base_url);
+        let client = CogniteClient::get_client(config, auth, self.client, self.custom_middleware)?;
+        let api_client = ApiClient::new(&api_base_path, &app_name, client);
+        Ok(UnscopedCogniteClient(api_client))
+    }
+
     /// Create a cognite client. This may fail if not all required parameters are provided.
     pub fn build(self) -> Result<CogniteClient> {
         let auth = self
@@ -396,5 +417,80 @@ impl Builder {
             base_url,
             self.custom_middleware,
         )
+    }
+}
+
+/// Client for interacting with unscoped CDF APIs (those not under `/projects/{project}`).
+pub struct UnscopedCogniteClient(ApiClient);
+
+impl UnscopedCogniteClient {
+    /// Returns a reference to the underlying API client.
+    pub fn api_client(&self) -> &ApiClient {
+        &self.0
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_builder_with_project_creates_scoped() {
+        let auth = AuthHeaderManager::AuthTicket("test_token".to_string());
+
+        let mut builder = CogniteClient::builder();
+        builder.set_custom_auth(auth);
+        builder.set_app_name("test_app");
+        builder.set_project("test_project");
+        builder.set_base_url("https://api.cognite.com");
+        let client = builder.build().unwrap();
+
+        assert_eq!(
+            client.api_client.api_base_url(),
+            "https://api.cognite.com/api/v1/projects/test_project"
+        );
+    }
+
+    #[test]
+    fn test_builder_without_project_fails() {
+        let auth = AuthHeaderManager::AuthTicket("test_token".to_string());
+
+        let mut builder = CogniteClient::builder();
+        builder.set_custom_auth(auth);
+        builder.set_app_name("test_app");
+        builder.set_base_url("https://api.cognite.com");
+        assert!(builder.build().is_err());
+    }
+
+    #[test]
+    fn test_unscoped_builder_creates_unscoped() {
+        let auth = AuthHeaderManager::AuthTicket("test_token".to_string());
+
+        let mut builder = CogniteClient::builder();
+        builder.set_custom_auth(auth);
+        builder.set_app_name("test_app");
+        builder.set_base_url("https://api.cognite.com");
+        let client = builder.build_unscoped().unwrap();
+
+        assert_eq!(
+            client.api_client().api_base_url(),
+            "https://api.cognite.com/api/v1"
+        );
+    }
+
+    #[test]
+    fn test_unscoped_builder_handles_trailing_slash() {
+        let auth = AuthHeaderManager::AuthTicket("test_token".to_string());
+
+        let mut builder = CogniteClient::builder();
+        builder.set_custom_auth(auth);
+        builder.set_app_name("test_app");
+        builder.set_base_url("https://api.cognite.com/");
+        let client = builder.build_unscoped().unwrap();
+
+        assert_eq!(
+            client.api_client().api_base_url(),
+            "https://api.cognite.com/api/v1"
+        );
     }
 }
