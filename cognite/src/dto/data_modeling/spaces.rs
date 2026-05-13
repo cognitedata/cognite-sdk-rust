@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 use serde_with::skip_serializing_none;
 
-use crate::{to_query, IntoParams, SetCursor};
+use crate::{to_query, IntoParams, LimitCursorQuery, SetCursor};
 #[skip_serializing_none]
 #[derive(Serialize, Deserialize, Clone, Debug, Default)]
 #[serde(rename_all = "camelCase")]
@@ -60,5 +60,15 @@ impl IntoParams for SpaceQuery {
 impl SetCursor for SpaceQuery {
     fn set_cursor(&mut self, cursor: Option<String>) {
         self.cursor = cursor;
+    }
+}
+
+impl From<LimitCursorQuery> for SpaceQuery {
+    fn from(q: LimitCursorQuery) -> Self {
+        Self {
+            limit: q.limit,
+            cursor: q.cursor,
+            include_global: None,
+        }
     }
 }

@@ -86,6 +86,30 @@ async fn list_global_spaces() {
 }
 
 #[tokio::test]
+async fn list_spaces_accepts_limit_cursor_query() {
+    let _permit = common::CDM_CONCURRENCY_PERMITS.acquire().await.unwrap();
+    let client: CogniteClient = common::get_client();
+    let query = LimitCursorQuery {
+        limit: Some(5),
+        cursor: None,
+    };
+    let spaces = client.models.spaces.list(Some(query.into())).await.unwrap();
+    assert!(spaces.items.len() <= 5);
+}
+
+#[tokio::test]
+async fn list_all_spaces_accepts_limit_cursor_query() {
+    let _permit = common::CDM_CONCURRENCY_PERMITS.acquire().await.unwrap();
+    let client: CogniteClient = common::get_client();
+    let query = LimitCursorQuery {
+        limit: Some(5),
+        cursor: None,
+    };
+    let spaces = client.models.spaces.list_all(query.into()).await.unwrap();
+    assert!(!spaces.is_empty());
+}
+
+#[tokio::test]
 async fn cursoring_global_spaces() {
     let _permit = common::CDM_CONCURRENCY_PERMITS.acquire().await.unwrap();
     let client: CogniteClient = common::get_client();
