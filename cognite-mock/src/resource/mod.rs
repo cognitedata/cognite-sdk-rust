@@ -5,6 +5,7 @@ pub mod files;
 pub mod labels;
 pub mod raw;
 pub mod relationships;
+pub mod time_series;
 
 pub use assets::MockAssetsResource;
 pub use datasets::MockDataSetsResource;
@@ -13,3 +14,4 @@ pub use files::MockFilesResource;
 pub use labels::MockLabelsResource;
 pub use raw::MockRawResource;
 pub use relationships::MockRelationshipsResource;
+pub use time_series::MockTimeSeriesResource;

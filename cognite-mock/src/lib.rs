@@ -27,4 +27,5 @@ pub mod error;
 pub mod resource;
 pub mod store;
 
+pub use client::{IdGen, MockClient, MockCogniteClient};
 pub use error::MockError;
