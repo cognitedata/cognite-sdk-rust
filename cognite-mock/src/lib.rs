@@ -22,6 +22,7 @@
 
 mod patch;
 
+pub mod client;
 pub mod error;
 pub mod resource;
 pub mod store;
