@@ -67,7 +67,7 @@ async fn create_retrieve_delete_spaces_and_data_model() {
         .unwrap();
     assert_eq!(data_model_created.len(), 1);
 
-    let data_model_retrieved = client
+    let data_model_deleted = client
         .models
         .data_models
         .delete(&[DataModelId {
@@ -77,7 +77,7 @@ async fn create_retrieve_delete_spaces_and_data_model() {
         }])
         .await
         .unwrap();
-    assert_eq!(data_model_retrieved.items.len(), 1);
+    assert_eq!(data_model_deleted.items.len(), 1);
 
     let deleted = client
         .models
