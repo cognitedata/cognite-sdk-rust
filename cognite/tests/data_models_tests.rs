@@ -2,7 +2,9 @@
 
 mod common;
 
-use cognite::models::spaces::SpaceCreate;
+use cognite::models::data_models::DataModelId;
+use cognite::models::views::{ViewCreateOrReference, ViewReference};
+use cognite::models::{data_models::DataModelCreate, spaces::SpaceCreate};
 
 use cognite::models::*;
 
@@ -16,7 +18,7 @@ use instances::{
 use uuid::Uuid;
 
 #[tokio::test]
-async fn create_retrieve_delete_spaces() {
+async fn create_retrieve_delete_spaces_and_data_model() {
     let _permit = CDM_CONCURRENCY_PERMITS.acquire().await.unwrap();
     let space_id = format!("{}-space-1", PREFIX.as_str());
     let client = get_client();
@@ -41,6 +43,41 @@ async fn create_retrieve_delete_spaces() {
     assert_eq!(retrieved.len(), 1);
     let space = &retrieved[0];
     assert_eq!(space.name, Some("Test space".to_owned()));
+
+    let data_model_create = DataModelCreate {
+        space: space_id.clone(),
+        external_id: "DM1".to_string(),
+        version: "1".to_string(),
+        name: None,
+        description: None,
+        views: Some(vec![ViewCreateOrReference::Reference(
+            ViewReference {
+                space: "cdf_cdm".to_string(),
+                external_id: "CogniteAsset".to_string(),
+                version: "v1".to_string(),
+            }
+            .into(),
+        )]),
+    };
+    let data_model_created = client
+        .models
+        .data_models
+        .create(&[data_model_create])
+        .await
+        .unwrap();
+    assert_eq!(data_model_created.len(), 1);
+
+    let data_model_deleted = client
+        .models
+        .data_models
+        .delete(&[DataModelId {
+            space: space_id.clone(),
+            external_id: "DM1".to_string(),
+            version: Some("1".to_string()),
+        }])
+        .await
+        .unwrap();
+    assert_eq!(data_model_deleted.items.len(), 1);
 
     let deleted = client
         .models
