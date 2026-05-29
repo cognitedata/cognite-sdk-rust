@@ -38,13 +38,15 @@ prost-types = "^0.14"
 
 http = {"version" = "^1" }
 reqwest = { version = "^0.13", features = [
+  "form",
   "gzip",
   "json",
   "multipart",
-  "rustls-tls-native-roots",
+  "query",
+  "rustls-native-certs",
   "stream",
 ], default-features = false } # Default brings in openssl
-reqwest-middleware = { version = "^0.4.1" }
+reqwest-middleware = { version = "0.5", features = ["form", "query"] }
 
 
 anyhow = "^1"
