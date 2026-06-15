@@ -511,7 +511,8 @@ impl<'de> Deserialize<'de> for LatestDatapointsResponse {
                             },
                         )?))
                     // Fall back to `is_string` when `type` is absent or unrecognized.
-                    } else if r.time_series_type == Some(CoreTimeSeriesType::String) || r.is_string {
+                    } else if r.time_series_type == Some(CoreTimeSeriesType::String) || r.is_string
+                    {
                         Some(LatestDatapoint::String(serde_json::from_value(v).map_err(
                             |e| {
                                 D::Error::custom(format!(
