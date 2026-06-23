@@ -3,5 +3,6 @@
   "extends": [
     "local>cognitedata/renovate-config-public"
   ],
-  "rangeStrategy": "replace"
+  "rangeStrategy": "replace",
+  "pinDigests": true
 }
