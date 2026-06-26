@@ -30,7 +30,7 @@ jobs:
           message: Cognite SDK version ${{ needs.common.outputs.version }}
 
       - name: Create github release
-        uses: softprops/action-gh-release@v3.0.0
+        uses: softprops/action-gh-release@718ea10b132b3b2eba29c1007bb80653f286566b # v3.0.1
         with:
           tag_name: v${{ needs.common.outputs.version }}
           generate_release_notes: true
