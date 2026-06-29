@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 use serde_with::skip_serializing_none;
 
-use crate::{Identity, IdentityOrInstance};
+use crate::IdentityOrInstance;
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
@@ -212,8 +212,8 @@ pub struct LatestDatapointsQuery {
     /// Default `true`
     pub treat_uncertain_as_bad: Option<bool>,
     #[serde(flatten)]
-    /// ID or external ID of time series to retrieve data from.
-    pub id: Identity,
+    /// ID, external ID or instance ID of time series to retrieve data from.
+    pub id: IdentityOrInstance,
 }
 
 impl LatestDatapointsQuery {
@@ -221,11 +221,14 @@ impl LatestDatapointsQuery {
     ///
     /// # Arguments
     ///
-    /// * `id` - Time series ID.
+    /// * `id` - Time series ID, external ID or instance ID.
     /// * `before` - Get data points before this time.
-    pub fn new(id: Identity, before: impl Into<String>) -> LatestDatapointsQuery {
+    pub fn new(
+        id: impl Into<IdentityOrInstance>,
+        before: impl Into<String>,
+    ) -> LatestDatapointsQuery {
         LatestDatapointsQuery {
-            id,
+            id: id.into(),
             before: Some(before.into()),
             target_unit: Default::default(),
             target_unit_system: Default::default(),

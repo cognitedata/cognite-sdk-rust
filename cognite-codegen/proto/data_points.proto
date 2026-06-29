@@ -31,6 +31,17 @@ message StringDatapoints {
     repeated StringDatapoint datapoints = 1;
 }
 
+message StateDatapoint {
+    int64 timestamp = 1;
+    optional int64 numericValue = 2;
+    optional string stringValue = 3;
+    Status status = 4;
+}
+
+message StateDatapoints {
+    repeated StateDatapoint datapoints = 1;
+}
+
 message AggregateDatapoint {
     int64 timestamp = 1;
     double average = 2;
@@ -49,10 +60,21 @@ message AggregateDatapoint {
     double durationGood = 15;
     double durationUncertain = 16;
     double durationBad = 17;
+    NumericDatapoint maxDatapoint = 18;
+    NumericDatapoint minDatapoint = 19;
+    repeated StateAggregate stateAggregates = 20;
 }
 
 message AggregateDatapoints {
     repeated AggregateDatapoint datapoints = 1;
+}
+
+message StateAggregate {
+    int64 numericValue = 1;
+    optional string stringValue = 2;
+    optional int64 stateCount = 3;
+    optional int64 stateTransitions = 4;
+    optional int64 stateDuration = 5;
 }
 
 message InstanceId {

@@ -38,7 +38,23 @@ pub struct StringDatapoints {
     #[prost(message, repeated, tag = "1")]
     pub datapoints: ::prost::alloc::vec::Vec<StringDatapoint>,
 }
-#[derive(Clone, Copy, PartialEq, ::prost::Message)]
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
+pub struct StateDatapoint {
+    #[prost(int64, tag = "1")]
+    pub timestamp: i64,
+    #[prost(int64, optional, tag = "2")]
+    pub numeric_value: ::core::option::Option<i64>,
+    #[prost(string, optional, tag = "3")]
+    pub string_value: ::core::option::Option<::prost::alloc::string::String>,
+    #[prost(message, optional, tag = "4")]
+    pub status: ::core::option::Option<Status>,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct StateDatapoints {
+    #[prost(message, repeated, tag = "1")]
+    pub datapoints: ::prost::alloc::vec::Vec<StateDatapoint>,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
 pub struct AggregateDatapoint {
     #[prost(int64, tag = "1")]
     pub timestamp: i64,
@@ -74,11 +90,30 @@ pub struct AggregateDatapoint {
     pub duration_uncertain: f64,
     #[prost(double, tag = "17")]
     pub duration_bad: f64,
+    #[prost(message, optional, tag = "18")]
+    pub max_datapoint: ::core::option::Option<NumericDatapoint>,
+    #[prost(message, optional, tag = "19")]
+    pub min_datapoint: ::core::option::Option<NumericDatapoint>,
+    #[prost(message, repeated, tag = "20")]
+    pub state_aggregates: ::prost::alloc::vec::Vec<StateAggregate>,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct AggregateDatapoints {
     #[prost(message, repeated, tag = "1")]
     pub datapoints: ::prost::alloc::vec::Vec<AggregateDatapoint>,
+}
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
+pub struct StateAggregate {
+    #[prost(int64, tag = "1")]
+    pub numeric_value: i64,
+    #[prost(string, optional, tag = "2")]
+    pub string_value: ::core::option::Option<::prost::alloc::string::String>,
+    #[prost(int64, optional, tag = "3")]
+    pub state_count: ::core::option::Option<i64>,
+    #[prost(int64, optional, tag = "4")]
+    pub state_transitions: ::core::option::Option<i64>,
+    #[prost(int64, optional, tag = "5")]
+    pub state_duration: ::core::option::Option<i64>,
 }
 #[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct InstanceId {
@@ -95,7 +130,7 @@ pub struct DataPointInsertionItem {
     )]
     pub time_series_reference:
         ::core::option::Option<data_point_insertion_item::TimeSeriesReference>,
-    #[prost(oneof = "data_point_insertion_item::DatapointType", tags = "3, 4")]
+    #[prost(oneof = "data_point_insertion_item::DatapointType", tags = "3, 4, 6")]
     pub datapoint_type: ::core::option::Option<data_point_insertion_item::DatapointType>,
 }
 /// Nested message and enum types in `DataPointInsertionItem`.
@@ -115,6 +150,8 @@ pub mod data_point_insertion_item {
         NumericDatapoints(super::NumericDatapoints),
         #[prost(message, tag = "4")]
         StringDatapoints(super::StringDatapoints),
+        #[prost(message, tag = "6")]
+        StateDatapoints(super::StateDatapoints),
     }
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
@@ -140,7 +177,9 @@ pub struct DataPointListItem {
     pub next_cursor: ::prost::alloc::string::String,
     #[prost(string, tag = "10")]
     pub unit_external_id: ::prost::alloc::string::String,
-    #[prost(oneof = "data_point_list_item::DatapointType", tags = "3, 4, 5")]
+    #[prost(enumeration = "TimeSeriesType", tag = "12")]
+    pub r#type: i32,
+    #[prost(oneof = "data_point_list_item::DatapointType", tags = "3, 4, 5, 13")]
     pub datapoint_type: ::core::option::Option<data_point_list_item::DatapointType>,
 }
 /// Nested message and enum types in `DataPointListItem`.
@@ -153,10 +192,44 @@ pub mod data_point_list_item {
         StringDatapoints(super::StringDatapoints),
         #[prost(message, tag = "5")]
         AggregateDatapoints(super::AggregateDatapoints),
+        #[prost(message, tag = "13")]
+        StateDatapoints(super::StateDatapoints),
     }
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct DataPointListResponse {
     #[prost(message, repeated, tag = "1")]
     pub items: ::prost::alloc::vec::Vec<DataPointListItem>,
+}
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::prost::Enumeration)]
+#[repr(i32)]
+pub enum TimeSeriesType {
+    TimeseriesTypeUnspecified = 0,
+    TimeseriesTypeNumeric = 1,
+    TimeseriesTypeString = 2,
+    TimeseriesTypeState = 3,
+}
+impl TimeSeriesType {
+    /// String value of the enum field names used in the ProtoBuf definition.
+    ///
+    /// The values are not transformed in any way and thus are considered stable
+    /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+    pub fn as_str_name(&self) -> &'static str {
+        match self {
+            Self::TimeseriesTypeUnspecified => "TIMESERIES_TYPE_UNSPECIFIED",
+            Self::TimeseriesTypeNumeric => "TIMESERIES_TYPE_NUMERIC",
+            Self::TimeseriesTypeString => "TIMESERIES_TYPE_STRING",
+            Self::TimeseriesTypeState => "TIMESERIES_TYPE_STATE",
+        }
+    }
+    /// Creates an enum from field names used in the ProtoBuf definition.
+    pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+        match value {
+            "TIMESERIES_TYPE_UNSPECIFIED" => Some(Self::TimeseriesTypeUnspecified),
+            "TIMESERIES_TYPE_NUMERIC" => Some(Self::TimeseriesTypeNumeric),
+            "TIMESERIES_TYPE_STRING" => Some(Self::TimeseriesTypeString),
+            "TIMESERIES_TYPE_STATE" => Some(Self::TimeseriesTypeState),
+            _ => None,
+        }
+    }
 }

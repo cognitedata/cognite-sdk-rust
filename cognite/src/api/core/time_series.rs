@@ -82,6 +82,8 @@ impl TimeSeriesResource {
         add_datapoints: &DataPointInsertionRequest,
     ) -> Result<()> {
         self.api_client
+            // TODO: remove when state time series is no longer in beta
+            .clone_with_api_version("beta")
             .post_protobuf::<::serde_json::Value, DataPointInsertionRequest>(
                 "timeseries/data",
                 add_datapoints,
@@ -265,6 +267,8 @@ impl TimeSeriesResource {
     ) -> Result<DataPointListResponse> {
         let datapoints_response: DataPointListResponse = self
             .api_client
+            // TODO: remove when state time series is no longer in beta
+            .clone_with_api_version("beta")
             .post_expect_protobuf("timeseries/data/list", &datapoints_filter)
             .await?;
         Ok(datapoints_response)
@@ -284,6 +288,8 @@ impl TimeSeriesResource {
         let query = Items::new_with_extra_fields(items, IgnoreUnknownIds { ignore_unknown_ids });
         let datapoints_response: Items<Vec<LatestDatapointsResponse>> = self
             .api_client
+            // TODO: remove when state time series is no longer in beta
+            .clone_with_api_version("beta")
             .post("timeseries/data/latest", &query)
             .await?;
         Ok(datapoints_response.items)
@@ -297,6 +303,8 @@ impl TimeSeriesResource {
     pub async fn delete_datapoints(&self, query: &[DeleteDatapointsQuery]) -> Result<()> {
         let items = Items::new(query);
         self.api_client
+            // TODO: remove when state time series is no longer in beta
+            .clone_with_api_version("beta")
             .post::<::serde_json::Value, _>("timeseries/data/delete", &items)
             .await?;
         Ok(())
