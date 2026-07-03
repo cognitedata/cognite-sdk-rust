@@ -16,6 +16,7 @@ message DataPointInsertionItem {
     oneof datapointType {
         NumericDatapoints numericDatapoints = 3;
         StringDatapoints stringDatapoints = 4;
+        StateDatapoints stateDatapoints = 6;
     }
 }
 

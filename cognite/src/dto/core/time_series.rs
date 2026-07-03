@@ -15,6 +15,21 @@ use serde::{Deserialize, Serialize};
 use serde_with::skip_serializing_none;
 use std::collections::HashMap;
 
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+/// Time series value type.
+pub enum CoreTimeSeriesType {
+    /// Numeric time series.
+    Numeric,
+    /// String time series.
+    String,
+    /// State time series.
+    State,
+    /// A time series type not yet known to this SDK version.
+    #[serde(other)]
+    Unknown,
+}
+
 #[derive(Serialize, Deserialize, Debug, Default, Clone)]
 #[serde(rename_all = "camelCase")]
 /// A CDF time series.
@@ -30,6 +45,9 @@ pub struct TimeSeries {
     pub name: Option<String>,
     /// Whether this is a time series for string or double data points.
     pub is_string: bool,
+    /// Time series value type.
+    #[serde(default)]
+    pub r#type: Option<CoreTimeSeriesType>,
     /// Custom, application specific metadata. String key -> String value.
     /// Maximum length of key is 128 bytes, up to 256 key-value pairs,
     /// of total size of at most 10000 bytes across all keys and values.

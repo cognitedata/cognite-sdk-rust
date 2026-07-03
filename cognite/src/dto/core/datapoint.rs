@@ -17,6 +17,8 @@ pub use self::status_code::*;
 use serde::{de::Error, Deserialize, Serialize};
 use serde_json::Value;
 
+use crate::dto::core::time_series::CoreTimeSeriesType;
+use crate::dto::data_modeling::instances::InstanceId as DmInstanceId;
 use crate::Identity;
 use crate::IdentityOrInstance;
 
@@ -28,6 +30,8 @@ pub enum DatapointsEnumType {
     NumericDatapoints(Vec<DatapointDouble>),
     /// Datapoints with string values.
     StringDatapoints(Vec<DatapointString>),
+    /// Datapoints with state values.
+    StateDatapoints(Vec<DatapointState>),
     /// Aggregate data points.
     AggregateDatapoints(Vec<DatapointAggregate>),
 }
@@ -41,6 +45,12 @@ impl From<Vec<DatapointDouble>> for DatapointsEnumType {
 impl From<Vec<DatapointString>> for DatapointsEnumType {
     fn from(value: Vec<DatapointString>) -> Self {
         Self::StringDatapoints(value)
+    }
+}
+
+impl From<Vec<DatapointState>> for DatapointsEnumType {
+    fn from(value: Vec<DatapointState>) -> Self {
+        Self::StateDatapoints(value)
     }
 }
 
@@ -62,6 +72,13 @@ impl DatapointsEnumType {
     pub fn string(self) -> Option<Vec<DatapointString>> {
         match self {
             Self::StringDatapoints(x) => Some(x),
+            _ => None,
+        }
+    }
+    /// Get self as state datapoints, or none if a different type.
+    pub fn state(self) -> Option<Vec<DatapointState>> {
+        match self {
+            Self::StateDatapoints(x) => Some(x),
             _ => None,
         }
     }
@@ -208,6 +225,20 @@ pub struct DatapointString {
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
+/// A datapoint with a state value.
+pub struct DatapointState {
+    /// Timestamp in milliseconds since epoch.
+    pub timestamp: i64,
+    /// Numeric representation of the state value.
+    pub numeric_value: Option<i64>,
+    /// String representation of the state value.
+    pub string_value: Option<String>,
+    /// Datapoint status code.
+    pub status: Option<StatusCode>,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
 /// An aggregate data point.
 pub struct DatapointAggregate {
     /// Timestamp in milliseconds since epoch.
@@ -293,6 +324,28 @@ impl From<DatapointString> for StringDatapoint {
     }
 }
 
+impl From<StateDatapoint> for DatapointState {
+    fn from(dp: StateDatapoint) -> DatapointState {
+        DatapointState {
+            timestamp: dp.timestamp,
+            numeric_value: dp.numeric_value,
+            string_value: dp.string_value,
+            status: dp.status.map(|s| s.into()),
+        }
+    }
+}
+
+impl From<DatapointState> for StateDatapoint {
+    fn from(dp: DatapointState) -> StateDatapoint {
+        StateDatapoint {
+            timestamp: dp.timestamp,
+            numeric_value: dp.numeric_value,
+            string_value: dp.string_value,
+            status: dp.status.map(|s| s.into()),
+        }
+    }
+}
+
 impl From<AggregateDatapoint> for DatapointAggregate {
     fn from(dp: AggregateDatapoint) -> DatapointAggregate {
         DatapointAggregate {
@@ -331,6 +384,10 @@ pub struct DatapointsResponse {
     pub id: i64,
     /// Time series external ID.
     pub external_id: Option<String>,
+    /// Data modeling instance ID of the time series.
+    pub instance_id: Option<DmInstanceId>,
+    /// Time series value type.
+    pub r#type: Option<CoreTimeSeriesType>,
     /// Retrieved datapoints.
     pub datapoints: DatapointsEnumType,
     /// The physical unit of the time series (free-text field).
@@ -356,6 +413,8 @@ pub enum LatestDatapoint {
     Numeric(DatapointDouble),
     /// String datapoint.
     String(DatapointString),
+    /// State datapoint.
+    State(DatapointState),
 }
 
 impl LatestDatapoint {
@@ -374,6 +433,14 @@ impl LatestDatapoint {
             _ => None,
         }
     }
+
+    /// Get the value of this as a state datapoint.
+    pub fn state(&self) -> Option<&DatapointState> {
+        match self {
+            Self::State(d) => Some(d),
+            _ => None,
+        }
+    }
 }
 
 #[derive(Debug)]
@@ -383,6 +450,10 @@ pub struct LatestDatapointsResponse {
     pub id: i64,
     /// Time series external ID.
     pub external_id: Option<String>,
+    /// Data modeling instance ID of the time series.
+    pub instance_id: Option<DmInstanceId>,
+    /// Time series value type.
+    pub r#type: Option<CoreTimeSeriesType>,
     /// Retrieved datapoints.
     pub datapoint: Option<LatestDatapoint>,
     /// The physical unit of the time series (free-text field).
@@ -409,6 +480,9 @@ struct DatapointsResponsePartial {
     datapoints: Value,
     unit: Option<String>,
     unit_external_id: Option<String>,
+    instance_id: Option<DmInstanceId>,
+    #[serde(rename = "type")]
+    time_series_type: Option<CoreTimeSeriesType>,
     #[serde(default)]
     is_step: bool,
     #[serde(default)]
@@ -428,7 +502,17 @@ impl<'de> Deserialize<'de> for LatestDatapointsResponse {
         } else if let Value::Array(v) = dps {
             match v.into_iter().next() {
                 Some(v) => {
-                    if r.is_string {
+                    if r.time_series_type == Some(CoreTimeSeriesType::State) {
+                        Some(LatestDatapoint::State(serde_json::from_value(v).map_err(
+                            |e| {
+                                D::Error::custom(format!(
+                                    "Failed to deserialize state datapoint: {e:?}"
+                                ))
+                            },
+                        )?))
+                    // Fall back to `is_string` when `type` is absent or unrecognized.
+                    } else if r.time_series_type == Some(CoreTimeSeriesType::String) || r.is_string
+                    {
                         Some(LatestDatapoint::String(serde_json::from_value(v).map_err(
                             |e| {
                                 D::Error::custom(format!(
@@ -455,6 +539,8 @@ impl<'de> Deserialize<'de> for LatestDatapointsResponse {
         Ok(Self {
             id: r.id,
             external_id: r.external_id,
+            instance_id: r.instance_id,
+            r#type: r.time_series_type,
             datapoint: dps,
             unit: r.unit,
             unit_external_id: r.unit_external_id,
@@ -574,6 +660,15 @@ impl From<TimeSeriesReference> for IdentityOrInstance {
     }
 }
 
+fn core_time_series_type(value: i32) -> Option<CoreTimeSeriesType> {
+    match proto::TimeSeriesType::try_from(value).ok()? {
+        proto::TimeSeriesType::TimeseriesTypeNumeric => Some(CoreTimeSeriesType::Numeric),
+        proto::TimeSeriesType::TimeseriesTypeString => Some(CoreTimeSeriesType::String),
+        proto::TimeSeriesType::TimeseriesTypeState => Some(CoreTimeSeriesType::State),
+        proto::TimeSeriesType::TimeseriesTypeUnspecified => None,
+    }
+}
+
 impl From<DataPointListItem> for DatapointsResponse {
     fn from(req: DataPointListItem) -> DatapointsResponse {
         DatapointsResponse {
@@ -583,6 +678,8 @@ impl From<DataPointListItem> for DatapointsResponse {
             } else {
                 Some(req.external_id)
             },
+            instance_id: req.instance_id.map(DmInstanceId::from),
+            r#type: core_time_series_type(req.r#type),
             unit: if req.unit.is_empty() {
                 None
             } else {
@@ -607,6 +704,15 @@ impl From<DataPointListItem> for DatapointsResponse {
                                 .datapoints
                                 .into_iter()
                                 .map(DatapointString::from)
+                                .collect(),
+                        )
+                    }
+                    data_point_list_item::DatapointType::StateDatapoints(state_dps) => {
+                        DatapointsEnumType::StateDatapoints(
+                            state_dps
+                                .datapoints
+                                .into_iter()
+                                .map(DatapointState::from)
                                 .collect(),
                         )
                     }
@@ -652,6 +758,13 @@ impl From<AddDatapoints> for DataPointInsertionItem {
                     self::proto::data_point_insertion_item::DatapointType::StringDatapoints(
                         StringDatapoints {
                             datapoints: dps.into_iter().map(StringDatapoint::from).collect(),
+                        },
+                    ),
+                ),
+                DatapointsEnumType::StateDatapoints(dps) => Some(
+                    self::proto::data_point_insertion_item::DatapointType::StateDatapoints(
+                        StateDatapoints {
+                            datapoints: dps.into_iter().map(StateDatapoint::from).collect(),
                         },
                     ),
                 ),

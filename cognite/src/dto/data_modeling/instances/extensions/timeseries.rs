@@ -20,6 +20,8 @@ pub enum TimeSeriesType {
     #[default]
     /// Indicates that timeseries type is a number.
     Numeric,
+    /// Indicates that timeseries type is a state.
+    State,
 }
 
 #[skip_serializing_none]
@@ -45,6 +47,8 @@ pub struct Timeseries {
     pub activities: Option<Vec<InstanceId>>,
     /// Type of datapoints the time series contains.
     pub r#type: TimeSeriesType,
+    /// State set used for validating state time series data points.
+    pub state_set: Option<InstanceId>,
 }
 
 impl Timeseries {

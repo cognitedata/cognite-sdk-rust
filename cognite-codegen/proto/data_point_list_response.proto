@@ -6,6 +6,13 @@ import "data_points.proto";
 
 option java_multiple_files = true;
 
+enum TimeSeriesType {
+    TIMESERIES_TYPE_UNSPECIFIED = 0;
+    TIMESERIES_TYPE_NUMERIC = 1;
+    TIMESERIES_TYPE_STRING = 2;
+    TIMESERIES_TYPE_STATE = 3;
+}
+
 message DataPointListItem {
     int64 id = 1;
     string externalId = 2;
@@ -15,11 +22,13 @@ message DataPointListItem {
     string unit = 8;
     string nextCursor = 9;
     string unitExternalId = 10;
+    TimeSeriesType type = 12;
 
     oneof datapointType {
         NumericDatapoints numericDatapoints = 3;
         StringDatapoints stringDatapoints = 4;
         AggregateDatapoints aggregateDatapoints = 5;
+        StateDatapoints stateDatapoints = 13;
     }
 }
 

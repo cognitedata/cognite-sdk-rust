@@ -353,6 +353,8 @@ impl<'a> DatapointsStream<'a> {
                                 datapoint: EitherDataPoint::Numeric(dp.into()),
                             }));
                         }
+                        // support coming in future PR
+                        Some(ListDatapointType::StateDatapoints(_)) => continue,
                     }
                 }
 
