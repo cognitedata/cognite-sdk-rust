@@ -318,7 +318,7 @@ async fn create_retrieve_latest_delete_state_datapoints() {
 
     client
         .time_series
-        .insert_datapoints(vec![AddDatapoints {
+        .insert_datapoints_beta(vec![AddDatapoints {
             id: ts_instance_id.clone().into(),
             datapoints: DatapointsEnumType::StateDatapoints(vec![
                 DatapointState {
@@ -346,7 +346,7 @@ async fn create_retrieve_latest_delete_state_datapoints() {
 
     let raw = client
         .time_series
-        .retrieve_datapoints(&DatapointsFilter {
+        .retrieve_datapoints_beta(&DatapointsFilter {
             items: vec![DatapointsQuery {
                 id: ts_instance_id.clone().into(),
                 limit: Some(10),
@@ -371,7 +371,7 @@ async fn create_retrieve_latest_delete_state_datapoints() {
 
     let latest = client
         .time_series
-        .retrieve_latest_datapoints(
+        .retrieve_latest_datapoints_beta(
             &[LatestDatapointsQuery {
                 id: ts_instance_id.clone().into(),
                 before: Some((start + 10_800_000).to_string()),
@@ -389,7 +389,7 @@ async fn create_retrieve_latest_delete_state_datapoints() {
 
     client
         .time_series
-        .delete_datapoints(&[DeleteDatapointsQuery::new(
+        .delete_datapoints_beta(&[DeleteDatapointsQuery::new(
             ts_instance_id.clone(),
             start,
             start + 10_800_000,
@@ -399,7 +399,7 @@ async fn create_retrieve_latest_delete_state_datapoints() {
 
     let raw_after_delete = client
         .time_series
-        .retrieve_datapoints(&DatapointsFilter {
+        .retrieve_datapoints_beta(&DatapointsFilter {
             items: vec![DatapointsQuery {
                 id: ts_instance_id.clone().into(),
                 limit: Some(10),

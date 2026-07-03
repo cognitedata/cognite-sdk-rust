@@ -74,6 +74,9 @@ impl TimeSeriesResource {
     /// Insert datapoints for a set of timeseries. Any existing datapoints with the
     /// same timestamp will be overwritten.
     ///
+    /// For state time series (currently in beta), use
+    /// [insert_datapoints_proto_beta](Self::insert_datapoints_proto_beta) instead.
+    ///
     /// # Arguments
     ///
     /// * `add_datapoints` - Datapoint batches to insert.
@@ -82,8 +85,6 @@ impl TimeSeriesResource {
         add_datapoints: &DataPointInsertionRequest,
     ) -> Result<()> {
         self.api_client
-            // TODO: remove when state time series is no longer in beta
-            .clone_with_api_version("beta")
             .post_protobuf::<::serde_json::Value, DataPointInsertionRequest>(
                 "timeseries/data",
                 add_datapoints,
@@ -258,10 +259,151 @@ impl TimeSeriesResource {
 
     /// Retrieve datapoints for a collection of time series.
     ///
+    /// For state time series (currently in beta), use
+    /// [retrieve_datapoints_proto_beta](Self::retrieve_datapoints_proto_beta) instead.
+    ///
     /// # Arguments
     ///
     /// * `datapoints_filter` - Filter describing which datapoints to retrieve.
     pub async fn retrieve_datapoints_proto(
+        &self,
+        datapoints_filter: &DatapointsFilter,
+    ) -> Result<DataPointListResponse> {
+        let datapoints_response: DataPointListResponse = self
+            .api_client
+            .post_expect_protobuf("timeseries/data/list", &datapoints_filter)
+            .await?;
+        Ok(datapoints_response)
+    }
+
+    /// Retrieve the latest datapoint before a given time for a list of time series.
+    ///
+    /// For state time series (currently in beta), use
+    /// [retrieve_latest_datapoints_beta](Self::retrieve_latest_datapoints_beta) instead.
+    ///
+    /// # Arguments
+    ///
+    /// * `items` - Queries for latest datapoint.
+    /// * `ignore_unknown_ids` - Set this to `true` to ignore timeseries that do not exist.
+    pub async fn retrieve_latest_datapoints(
+        &self,
+        items: &[LatestDatapointsQuery],
+        ignore_unknown_ids: bool,
+    ) -> Result<Vec<LatestDatapointsResponse>> {
+        let query = Items::new_with_extra_fields(items, IgnoreUnknownIds { ignore_unknown_ids });
+        let datapoints_response: Items<Vec<LatestDatapointsResponse>> = self
+            .api_client
+            .post("timeseries/data/latest", &query)
+            .await?;
+        Ok(datapoints_response.items)
+    }
+
+    /// Delete ranges of datapoints for a list of time series.
+    ///
+    /// For state time series (currently in beta), use
+    /// [delete_datapoints_beta](Self::delete_datapoints_beta) instead.
+    ///
+    /// # Arguments
+    ///
+    /// * `query` - Ranges of datapoints to delete.
+    pub async fn delete_datapoints(&self, query: &[DeleteDatapointsQuery]) -> Result<()> {
+        let items = Items::new(query);
+        self.api_client
+            .post::<::serde_json::Value, _>("timeseries/data/delete", &items)
+            .await?;
+        Ok(())
+    }
+
+    // The methods below are beta-only variants of the datapoints methods above, required for
+    // interacting with datapoints on _state time series_, which is currently a beta CDF feature.
+    // They exist so the stable methods above do not send the `cdf-version: beta` header to
+    // callers who have nothing to do with state time series.
+    //
+    // TODO: once state time series is generally available, delete this block and fold the
+    // relevant functionality back into the corresponding methods above.
+
+    /// Insert datapoints for a set of timeseries. Any existing datapoints with the
+    /// same timestamp will be overwritten.
+    ///
+    /// This is a beta variant of `insert_datapoints`, needed only to insert datapoints into
+    /// _state time series_, which is currently a beta CDF feature. Non-state time series
+    /// should use `insert_datapoints` instead.
+    ///
+    /// Note: datapoints are inserted using protobuf, this converts from a slightly more ergonomic type
+    /// to the protobuf types used directly in `insert_datapoints_proto_beta`.
+    ///
+    /// For very performance intensive workloads, consider using `insert_datapoints_proto_beta`
+    /// directly.
+    ///
+    /// # Arguments
+    ///
+    /// * `add_datapoints` - List of datapoint batches to insert.
+    pub async fn insert_datapoints_beta(&self, add_datapoints: Vec<AddDatapoints>) -> Result<()> {
+        let request = DataPointInsertionRequest::from(add_datapoints);
+        self.insert_datapoints_proto_beta(&request).await?;
+        Ok(())
+    }
+
+    /// Insert datapoints for a set of timeseries. Any existing datapoints with the
+    /// same timestamp will be overwritten.
+    ///
+    /// This is a beta variant of `insert_datapoints_proto`, needed only to insert datapoints
+    /// into _state time series_, which is currently a beta CDF feature. Non-state time series
+    /// should use `insert_datapoints_proto` instead.
+    ///
+    /// # Arguments
+    ///
+    /// * `add_datapoints` - Datapoint batches to insert.
+    pub async fn insert_datapoints_proto_beta(
+        &self,
+        add_datapoints: &DataPointInsertionRequest,
+    ) -> Result<()> {
+        self.api_client
+            // TODO: remove when state time series is no longer in beta
+            .clone_with_api_version("beta")
+            .post_protobuf::<::serde_json::Value, DataPointInsertionRequest>(
+                "timeseries/data",
+                add_datapoints,
+            )
+            .await?;
+        Ok(())
+    }
+
+    /// Retrieve datapoints for a collection of time series.
+    ///
+    /// This is a beta variant of `retrieve_datapoints`, needed only to retrieve datapoints from
+    /// _state time series_, which is currently a beta CDF feature. Non-state time series should
+    /// use `retrieve_datapoints` instead.
+    ///
+    /// Note: datapoints are inserted using protobuf, this converts to a slightly more ergonomic type
+    /// from the type returned by `retrieve_datapoints_proto_beta`.
+    ///
+    /// For very performance intensive workloads, consider using `retrieve_datapoints_proto_beta`
+    /// directly.
+    ///
+    /// # Arguments
+    ///
+    /// * `datapoints_filter` - Filter describing which datapoints to retrieve.
+    pub async fn retrieve_datapoints_beta(
+        &self,
+        datapoints_filter: &DatapointsFilter,
+    ) -> Result<Vec<DatapointsResponse>> {
+        let datapoints_response = self
+            .retrieve_datapoints_proto_beta(datapoints_filter)
+            .await?;
+        Ok(DatapointsListResponse::from(datapoints_response).items)
+    }
+
+    /// Retrieve datapoints for a collection of time series.
+    ///
+    /// This is a beta variant of `retrieve_datapoints_proto`, needed only to retrieve datapoints
+    /// from _state time series_, which is currently a beta CDF feature. Non-state time series
+    /// should use `retrieve_datapoints_proto` instead.
+    ///
+    /// # Arguments
+    ///
+    /// * `datapoints_filter` - Filter describing which datapoints to retrieve.
+    pub async fn retrieve_datapoints_proto_beta(
         &self,
         datapoints_filter: &DatapointsFilter,
     ) -> Result<DataPointListResponse> {
@@ -276,11 +418,15 @@ impl TimeSeriesResource {
 
     /// Retrieve the latest datapoint before a given time for a list of time series.
     ///
+    /// This is a beta variant of `retrieve_latest_datapoints`, needed only to retrieve the
+    /// latest datapoint from _state time series_, which is currently a beta CDF feature.
+    /// Non-state time series should use `retrieve_latest_datapoints` instead.
+    ///
     /// # Arguments
     ///
     /// * `items` - Queries for latest datapoint.
     /// * `ignore_unknown_ids` - Set this to `true` to ignore timeseries that do not exist.
-    pub async fn retrieve_latest_datapoints(
+    pub async fn retrieve_latest_datapoints_beta(
         &self,
         items: &[LatestDatapointsQuery],
         ignore_unknown_ids: bool,
@@ -297,10 +443,14 @@ impl TimeSeriesResource {
 
     /// Delete ranges of datapoints for a list of time series.
     ///
+    /// This is a beta variant of `delete_datapoints`, needed only to delete datapoints from
+    /// _state time series_, which is currently a beta CDF feature. Non-state time series
+    /// should use `delete_datapoints` instead.
+    ///
     /// # Arguments
     ///
     /// * `query` - Ranges of datapoints to delete.
-    pub async fn delete_datapoints(&self, query: &[DeleteDatapointsQuery]) -> Result<()> {
+    pub async fn delete_datapoints_beta(&self, query: &[DeleteDatapointsQuery]) -> Result<()> {
         let items = Items::new(query);
         self.api_client
             // TODO: remove when state time series is no longer in beta
