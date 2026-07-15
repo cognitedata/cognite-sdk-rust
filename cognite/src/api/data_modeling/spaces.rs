@@ -1,9 +1,9 @@
 use crate::{
     models::{
-        spaces::{Space, SpaceCreate},
+        spaces::{Space, SpaceCreate, SpaceQuery},
         SpaceId,
     },
-    Create, DeleteWithResponse, LimitCursorQuery, List, Resource, Retrieve, WithBasePath,
+    Create, DeleteWithResponse, List, Resource, Retrieve, WithBasePath,
 };
 
 /// Spaces contain and namespace instances, views, and containers.
@@ -15,6 +15,6 @@ impl WithBasePath for SpacesResource {
 }
 
 impl Create<SpaceCreate, Space> for SpacesResource {}
-impl List<LimitCursorQuery, Space> for SpacesResource {}
 impl Retrieve<SpaceId, Space> for SpacesResource {}
 impl DeleteWithResponse<SpaceId, SpaceId> for SpacesResource {}
+impl List<SpaceQuery, Space> for SpacesResource {}

@@ -135,6 +135,6 @@ We verify that the SDK compiles for webassembly, with some limitations:
 
 See [Contributing][contributing] for details.
 
-[api-docs]: https://docs.cognite.com/api/v1/
+[api-docs]: https://api-docs.cognite.com/
 [rustup]: https://rustup.rs/
 [contributing]: https://github.com/cognitedata/cognite-sdk-rust/tree/master/CONTRIBUTING.md
