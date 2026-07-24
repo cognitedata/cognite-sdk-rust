@@ -1,4 +1,4 @@
-// #![cfg(feature = "integration_tests")]
+#![cfg(feature = "integration_tests")]
 
 mod common;
 
