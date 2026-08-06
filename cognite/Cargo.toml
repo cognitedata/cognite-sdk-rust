@@ -11,6 +11,7 @@ repository = "https://github.com/cognitedata/cognite-sdk-rust"
 description = "SDK for the Cognite Data Fusion API"
 license = "Apache-2.0"
 edition = "2021"
+rust-version.workspace = true
 publish = true
 documentation = "https://docs.rs/cognite-sdk/"
 readme = "README.md"

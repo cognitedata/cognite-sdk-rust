@@ -2,6 +2,9 @@
 members = ["cognite", "cognite-codegen"]
 resolver = "2"
 
+[workspace.package]
+rust-version = "1.96"
+
 [workspace.lints.rust]
 
 [workspace.lints.clippy]
