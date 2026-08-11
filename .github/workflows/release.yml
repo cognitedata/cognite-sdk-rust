@@ -17,9 +17,8 @@ jobs:
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
       - name: Set up Rust
-        uses: actions-rs/toolchain@v1
-        with:
-          toolchain: stable
+        uses: actions-rust-lang/setup-rust-toolchain@v1
+        # toolchain: --> see rust-toolchain.toml
 
       - name: Create tag
         uses: rickstaa/action-create-tag@v1
