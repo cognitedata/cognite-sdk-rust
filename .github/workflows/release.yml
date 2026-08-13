@@ -17,11 +17,11 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       - name: Set up Rust
-        uses: actions-rust-lang/setup-rust-toolchain@v1
+        uses: actions-rust-lang/setup-rust-toolchain@166cdcfd11aee3cb47222f9ddb555ce30ddb9659 # v1
         # toolchain: --> see rust-toolchain.toml
 
       - name: Create tag
-        uses: rickstaa/action-create-tag@v1
+        uses: rickstaa/action-create-tag@a1c7777fcb2fee4f19b0f283ba888afa11678b72 # v1
         id: "tag_create"
         with:
           tag: v${{ needs.common.outputs.version }}
