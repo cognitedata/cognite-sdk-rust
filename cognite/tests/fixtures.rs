@@ -352,7 +352,14 @@ pub fn get_views_list_views_response() -> &'static str {
               }
             },
             "name": "MyView",
-            "implements": []
+            "implements": [],
+            "mappedContainers": [
+              {
+                "type": "container",
+                "space": "APM_Config",
+                "externalId": "InRobotConfiguration"
+              }
+            ]
           }
         ]
       }"#
