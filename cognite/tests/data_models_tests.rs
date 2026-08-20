@@ -2,6 +2,10 @@
 
 mod common;
 
+use cognite::models::data_models::DataModelCreate;
+use cognite::models::data_models::DataModelId;
+use cognite::models::views::{ViewCreateOrReference, ViewReference};
+
 use cognite::models::*;
 
 use cognite::*;
@@ -12,6 +16,63 @@ use instances::{
     SlimNodeOrEdge, Timeseries,
 };
 use uuid::Uuid;
+
+#[tokio::test]
+async fn create_delete_data_models() {
+    let _permit = CDM_CONCURRENCY_PERMITS.acquire().await.unwrap();
+    let client = get_client();
+    let space = std::env::var("CORE_DM_TEST_SPACE").unwrap();
+    let data_model_1 = DataModelCreate {
+        space: space.clone(),
+        external_id: "DM1".to_string(),
+        version: "1".to_string(),
+        name: None,
+        description: None,
+        views: Some(vec![ViewCreateOrReference::Reference(
+            ViewReference {
+                space: "cdf_cdm".to_string(),
+                external_id: "CogniteAsset".to_string(),
+                version: "v1".to_string(),
+            }
+            .into(),
+        )]),
+    };
+
+    let data_model_2 = DataModelCreate {
+        space: space.clone(),
+        external_id: "DM2".to_string(),
+        version: "1".to_string(),
+        name: None,
+        description: None,
+        views: None,
+    };
+    let data_model_created = client
+        .models
+        .data_models
+        .create(&[data_model_1, data_model_2])
+        .await
+        .unwrap();
+    assert_eq!(data_model_created.len(), 2);
+
+    let data_model_deleted = client
+        .models
+        .data_models
+        .delete(&[
+            DataModelId {
+                space: space.clone(),
+                external_id: "DM1".to_string(),
+                version: Some("1".to_string()),
+            },
+            DataModelId {
+                space: space.clone(),
+                external_id: "DM2".to_string(),
+                version: Some("1".to_string()),
+            },
+        ])
+        .await
+        .unwrap();
+    assert_eq!(data_model_deleted.items.len(), 2);
+}
 
 #[tokio::test]
 async fn create_and_delete_file_instance() {
