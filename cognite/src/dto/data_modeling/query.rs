@@ -8,6 +8,8 @@ use crate::{
     AdvancedFilter, RawValue,
 };
 
+use super::instances::TypeInformation;
+
 #[skip_serializing_none]
 #[derive(Serialize, Deserialize, Clone, Debug)]
 #[serde(rename_all = "camelCase")]
@@ -215,6 +217,8 @@ pub struct QueryInstancesRequest {
     /// Values in filters can be parameterised. Parameters are provided as part of the query object,
     /// and referenced in the filter itself.
     pub parameters: Option<HashMap<String, RawValue>>,
+    /// Whether to include type information in the response.
+    pub include_typing: Option<bool>,
 }
 
 #[skip_serializing_none]
@@ -224,6 +228,8 @@ pub struct QueryInstancesRequest {
 pub struct QueryInstancesResponse<TProperties> {
     /// Retrieved instances, grouped by query.
     pub items: HashMap<String, Vec<NodeOrEdge<TProperties>>>,
+    /// Type information per result expression, if requested.
+    pub typing: Option<HashMap<String, TypeInformation>>,
     /// Set of cursors for pagination.
     pub next_cursor: Option<HashMap<String, String>>,
 }
