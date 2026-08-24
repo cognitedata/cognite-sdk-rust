@@ -307,6 +307,86 @@ pub fn get_edge_query_response() -> String {
     .to_string()
 }
 
+pub fn get_edge_query_request_with_typing() -> String {
+    r#"
+            {
+              "with": { "edge_query": { "edges": {} } },
+              "select": {
+                "edge_query": {
+                  "sources": [
+                    {
+                      "source": {
+                        "type": "view",
+                        "space": "my_space",
+                        "externalId": "View",
+                        "version": "1"
+                      },
+                      "properties": ["*"]
+                    }
+                  ]
+                }
+              },
+              "includeTyping": true
+            }
+        "#
+    .to_string()
+}
+
+pub fn get_edge_query_response_with_typing() -> String {
+    r#"
+            {
+              "items": {
+                "edge_query": [
+                  {
+                    "instanceType": "edge",
+                    "version": 1,
+                    "type": {
+                      "space": "my_space",
+                      "externalId": "typeNode"
+                    },
+                    "space": "my_space",
+                    "externalId": "edge1",
+                    "createdTime": 1734513651563,
+                    "lastUpdatedTime": 1734514198150,
+                    "startNode": {
+                      "space": "my_space",
+                      "externalId": "startNode"
+                    },
+                    "endNode": {
+                      "space": "my_space",
+                      "externalId": "endNode"
+                    },
+                    "properties": {
+                      "my_space": {
+                        "View/1": {
+                          "string_field": "string_value",
+                          "numeric_field": 42
+                        }
+                      }
+                    }
+                  }
+                ]
+              },
+              "typing": {
+                "edge_query": {
+                  "my_space": {
+                    "View/1": {
+                      "numeric_field": {
+                        "nullable": true,
+                        "type": { "type": "int32", "list": false }
+                      }
+                    }
+                  }
+                }
+              },
+              "nextCursor": {
+                "edge_query": "Z0FBQUFBQ"
+              }
+            }
+        "#
+    .to_string()
+}
+
 pub fn get_views_list_views_response() -> &'static str {
     r#"{
         "items": [
@@ -352,7 +432,14 @@ pub fn get_views_list_views_response() -> &'static str {
               }
             },
             "name": "MyView",
-            "implements": []
+            "implements": [],
+            "mappedContainers": [
+              {
+                "type": "container",
+                "space": "APM_Config",
+                "externalId": "InRobotConfiguration"
+              }
+            ]
           }
         ]
       }"#

@@ -130,10 +130,66 @@ async fn query_edge_with_properties() {
             },
         )]),
         parameters: None,
+        include_typing: None,
     };
     let result: QueryInstancesResponse<EdgeProperties> =
         client.models.instances.query(query_request).await.unwrap();
     assert_eq!(result.items.len(), 1);
+}
+
+#[tokio::test]
+async fn query_edge_with_typing() {
+    let mock_server = MockServer::start().await;
+    let project = "my_project";
+    let space = "my_space";
+
+    Mock::given(method("POST"))
+        .and(body_json_string(get_edge_query_request_with_typing()))
+        .and(path(get_path("", project, "models/instances/query")))
+        .respond_with(
+            ResponseTemplate::new(200).set_body_string(get_edge_query_response_with_typing()),
+        )
+        .mount(&mock_server)
+        .await;
+    let client = get_client_for_mocking(&mock_server.uri(), project);
+    let query_request = QueryInstancesRequest {
+        with: HashMap::from([(
+            "edge_query".to_string(),
+            QueryTableExpression::Edge(QueryEdgeTableExpression {
+                edges: EdgesQuery {
+                    ..Default::default()
+                },
+                ..Default::default()
+            }),
+        )]),
+        cursors: None,
+        select: HashMap::from([(
+            "edge_query".to_string(),
+            SelectExpression {
+                sort: None,
+                limit: None,
+                sources: vec![SourceSelector {
+                    source: TaggedViewReference::View(ViewReference {
+                        space: space.to_string(),
+                        external_id: "View".to_string(),
+                        version: "1".to_string(),
+                    }),
+                    properties: vec!["*".to_string()],
+                }],
+            },
+        )]),
+        parameters: None,
+        include_typing: Some(true),
+    };
+    let result: QueryInstancesResponse<EdgeProperties> =
+        client.models.instances.query(query_request).await.unwrap();
+    assert_eq!(result.items.len(), 1);
+    let typing = result.typing.as_ref().unwrap();
+    let edge_query_typing = typing.get("edge_query").unwrap();
+    let property = edge_query_typing
+        .get_property_info("my_space", "View/1", "numeric_field")
+        .unwrap();
+    assert_eq!(property.nullable, Some(true));
 }
 
 #[tokio::test]

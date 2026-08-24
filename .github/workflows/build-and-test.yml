@@ -13,12 +13,12 @@ jobs:
   build_and_test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       - name: Install build dependencies
         run: sudo apt-get install protobuf-compiler
-      - uses: actions-rust-lang/setup-rust-toolchain@v1
+      - uses: actions-rust-lang/setup-rust-toolchain@166cdcfd11aee3cb47222f9ddb555ce30ddb9659 # v1
         with:
-          toolchain: stable
+          # toolchain: --> see rust-toolchain.toml
           components: rustfmt, clippy
       - name: Run clippy
         run: cargo clippy -- -D warnings
@@ -45,7 +45,7 @@ jobs:
           COGNITE_CLIENT_SECRET: ${{ secrets.CLIENT_SECRET }}
           CORE_DM_TEST_SPACE: ${{ secrets.CORE_DM_TEST_SPACE }}
       - name: Upload coverage to codecov.io
-        uses: codecov/codecov-action@v7
+        uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f # v7
         with:
           files: codecov.json
           token: ${{ secrets.CODECOV_TOKEN }}
@@ -53,10 +53,10 @@ jobs:
   check_wasm:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
-      - uses: actions-rust-lang/setup-rust-toolchain@v1
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: actions-rust-lang/setup-rust-toolchain@166cdcfd11aee3cb47222f9ddb555ce30ddb9659 # v1
         with:
-          toolchain: stable
+          # toolchain: --> see rust-toolchain.toml
           target: wasm32-unknown-unknown
       - name: Compile library
         env:

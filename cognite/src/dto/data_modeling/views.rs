@@ -283,6 +283,8 @@ pub struct ViewDefinition {
     pub used_for: UsedFor,
     /// List of properties and connections in this view.
     pub properties: HashMap<String, ViewDefinitionProperties>,
+    /// Containers mapped by this view, i.e. the containers backing the properties.
+    pub mapped_containers: Vec<TaggedContainerReference>,
 }
 
 #[skip_serializing_none]
