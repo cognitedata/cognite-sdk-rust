@@ -32,7 +32,7 @@ jobs:
             exit 1
           fi
       - name: Install cargo-llvm-cov
-        uses: taiki-e/install-action@cargo-llvm-cov
+        uses: taiki-e/install-action@6001e75680da9482e125349961b715573ec77af8 # cargo-llvm-cov
 
       - name: Test
         run: cargo llvm-cov --workspace --exclude cognite-codegen --features=integration_tests --codecov --output-path codecov.json --locked
