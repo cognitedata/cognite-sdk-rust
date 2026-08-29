@@ -76,14 +76,14 @@ pub enum ViewCreateOrReference {
     /// Create a new view.
     Create(ViewCreateDefinition),
     /// Reference an existing view.
-    Reference(ViewReference),
+    Reference(TaggedViewReference),
 }
 
 impl From<ViewDefinitionOrReference> for ViewCreateOrReference {
     fn from(value: ViewDefinitionOrReference) -> Self {
         match value {
             ViewDefinitionOrReference::Definition(x) => Self::Create(x.into()),
-            ViewDefinitionOrReference::Reference(x) => Self::Reference(x),
+            ViewDefinitionOrReference::Reference(x) => Self::Reference(x.into()),
         }
     }
 }
