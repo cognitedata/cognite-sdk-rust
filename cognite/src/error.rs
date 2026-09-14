@@ -126,8 +126,8 @@ impl fmt::Display for CdfApiError {
         write!(
             f,
             "{}: {}. RequestId: {}",
-            &self.code,
-            &self.message,
+            self.code,
+            self.message,
             self.request_id.as_deref().unwrap_or("")
         )
     }
