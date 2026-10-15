@@ -296,3 +296,48 @@ pub struct ExtPipeRunFilter {
     /// Include runs with messages matching this filter.
     pub message: Option<ExtPipeStringFilter>,
 }
+
+#[skip_serializing_none]
+#[derive(Serialize, Deserialize, Clone, Debug)]
+#[serde(rename_all = "camelCase")]
+/// Configuration revision of an extraction pipeline.
+pub struct ExtPipeConfig {
+    /// External ID of the extraction pipeline.
+    pub external_id: String,
+    /// Configuration content.
+    pub config: Option<String>,
+    /// Revision number.
+    pub revision: i32,
+    /// Creation time in milliseconds since epoch.
+    pub created_time: i64,
+    /// Revision description.
+    pub description: Option<String>,
+}
+
+#[skip_serializing_none]
+#[derive(Serialize, Deserialize, Clone, Debug)]
+#[serde(rename_all = "camelCase")]
+/// Configuration revision of an extraction pipeline, without the content.
+pub struct ExtPipeConfigRevision {
+    /// External ID of the extraction pipeline.
+    pub external_id: String,
+    /// Revision number.
+    pub revision: i32,
+    /// Creation time in milliseconds since epoch.
+    pub created_time: i64,
+    /// Revision description.
+    pub description: Option<String>,
+}
+
+#[skip_serializing_none]
+#[derive(Serialize, Deserialize, Default, Clone, Debug)]
+#[serde(rename_all = "camelCase")]
+/// New configuration revision of an extraction pipeline.
+pub struct AddExtPipeConfig {
+    /// External ID of the extraction pipeline.
+    pub external_id: String,
+    /// Configuration content.
+    pub config: Option<String>,
+    /// Revision description.
+    pub description: Option<String>,
+}
