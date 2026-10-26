@@ -2,8 +2,8 @@ use serde::Serialize;
 
 use crate::error::Result;
 use crate::{
-    to_query, Create, Cursor, DeleteWithIgnoreUnknownIds, FilterItems, IdentityList, IntoParams,
-    ItemsVec, Patch, Resource, RetrieveWithIgnoreUnknownIds, Update, WithBasePath,
+    Create, Cursor, DeleteWithIgnoreUnknownIds, FilterItems, IdentityList, ItemsVec, Patch,
+    Resource, RetrieveWithIgnoreUnknownIds, Update, WithBasePath,
 };
 
 use crate::extpipes::*;
@@ -52,36 +52,6 @@ impl WithBasePath for ExtPipeConfigsResource {
     const BASE_PATH: &'static str = "extpipes/config";
 }
 
-struct ConfigQuery {
-    external_id: String,
-    revision: Option<i32>,
-    active_at_time: Option<i64>,
-}
-
-impl IntoParams for ConfigQuery {
-    fn into_params(self) -> Vec<(String, String)> {
-        let mut params = vec![("externalId".to_string(), self.external_id)];
-        to_query("revision", &self.revision, &mut params);
-        to_query("activeAtTime", &self.active_at_time, &mut params);
-        params
-    }
-}
-
-struct RevisionsQuery {
-    external_id: String,
-    limit: Option<i32>,
-    cursor: Option<String>,
-}
-
-impl IntoParams for RevisionsQuery {
-    fn into_params(self) -> Vec<(String, String)> {
-        let mut params = vec![("externalId".to_string(), self.external_id)];
-        to_query("limit", &self.limit, &mut params);
-        to_query("cursor", &self.cursor, &mut params);
-        params
-    }
-}
-
 #[derive(Serialize)]
 #[serde(rename_all = "camelCase")]
 struct RevertRequest<'a> {
@@ -91,17 +61,7 @@ struct RevertRequest<'a> {
 
 impl ExtPipeConfigsResource {
     /// Retrieve the latest revision, a specific revision, or the revision active at a time.
-    pub async fn retrieve(
-        &self,
-        external_id: &str,
-        revision: Option<i32>,
-        active_at_time: Option<i64>,
-    ) -> Result<ExtPipeConfig> {
-        let query = ConfigQuery {
-            external_id: external_id.to_owned(),
-            revision,
-            active_at_time,
-        };
+    pub async fn retrieve(&self, query: ExtPipeConfigQuery) -> Result<ExtPipeConfig> {
         self.api_client
             .get_with_params(Self::BASE_PATH, Some(query))
             .await
@@ -110,15 +70,8 @@ impl ExtPipeConfigsResource {
     /// List revisions, oldest first, without their content.
     pub async fn list_revisions(
         &self,
-        external_id: &str,
-        limit: Option<i32>,
-        cursor: Option<String>,
+        query: ExtPipeConfigRevisionsQuery,
     ) -> Result<ItemsVec<ExtPipeConfigRevision, Cursor>> {
-        let query = RevisionsQuery {
-            external_id: external_id.to_owned(),
-            limit,
-            cursor,
-        };
         self.api_client
             .get_with_params(&format!("{}/revisions", Self::BASE_PATH), Some(query))
             .await

@@ -1,4 +1,4 @@
-use cognite::extpipes::AddExtPipeConfig;
+use cognite::extpipes::{AddExtPipeConfig, ExtPipeConfigQuery, ExtPipeConfigRevisionsQuery};
 use serde_json::{json, Value};
 use wiremock::{
     matchers::{body_json_string, method, path, query_param, query_param_is_missing},
@@ -37,7 +37,10 @@ async fn retrieve_latest_ext_pipe_config() {
 
     let config = client
         .ext_pipe_configs
-        .retrieve(PIPELINE, None, None)
+        .retrieve(ExtPipeConfigQuery {
+            external_id: PIPELINE.to_string(),
+            ..Default::default()
+        })
         .await
         .unwrap();
 
@@ -64,7 +67,11 @@ async fn retrieve_ext_pipe_config_by_revision_and_time() {
 
     let config = client
         .ext_pipe_configs
-        .retrieve(PIPELINE, Some(2), Some(1730204346000))
+        .retrieve(ExtPipeConfigQuery {
+            external_id: PIPELINE.to_string(),
+            revision: Some(2),
+            active_at_time: Some(1730204346000),
+        })
         .await
         .unwrap();
 
@@ -102,7 +109,11 @@ async fn list_ext_pipe_config_revisions() {
 
     let revisions = client
         .ext_pipe_configs
-        .list_revisions(PIPELINE, Some(2), Some("cursor1".to_string()))
+        .list_revisions(ExtPipeConfigRevisionsQuery {
+            external_id: PIPELINE.to_string(),
+            limit: Some(2),
+            cursor: Some("cursor1".to_string()),
+        })
         .await
         .unwrap();
 
