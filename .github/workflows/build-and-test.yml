@@ -15,7 +15,7 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       - name: Install build dependencies
-        run: sudo apt-get install protobuf-compiler
+        run: sudo apt-get update && sudo apt-get install protobuf-compiler
       - uses: actions-rust-lang/setup-rust-toolchain@ecabd13d1c56bd1345c230e542e9144811ad706f # v2
         with:
           # toolchain: --> see rust-toolchain.toml
