@@ -124,8 +124,6 @@ impl From<StatusCode> for Status {
 }
 
 mod cdf_double_serde {
-    use core::f64;
-
     use serde::{de::Visitor, Deserializer, Serializer};
 
     pub fn deserialize<'de, D: Deserializer<'de>>(
