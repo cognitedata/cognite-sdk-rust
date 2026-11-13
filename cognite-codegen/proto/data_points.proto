@@ -31,6 +31,17 @@ message StringDatapoints {
     repeated StringDatapoint datapoints = 1;
 }
 
+message StateDatapoint {
+    int64 timestamp = 1;
+    optional int64 numericValue = 2;
+    optional string stringValue = 3;
+    Status status = 4;
+}
+
+message StateDatapoints {
+    repeated StateDatapoint datapoints = 1;
+}
+
 message AggregateDatapoint {
     int64 timestamp = 1;
     double average = 2;
