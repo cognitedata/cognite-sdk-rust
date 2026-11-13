@@ -28,6 +28,8 @@ pub enum DatapointsEnumType {
     NumericDatapoints(Vec<DatapointDouble>),
     /// Datapoints with string values.
     StringDatapoints(Vec<DatapointString>),
+    /// Datapoints with numeric state codes and string labels.
+    StateDatapoints(Vec<DatapointState>),
     /// Aggregate data points.
     AggregateDatapoints(Vec<DatapointAggregate>),
 }
@@ -50,6 +52,12 @@ impl From<Vec<DatapointAggregate>> for DatapointsEnumType {
     }
 }
 
+impl From<Vec<DatapointState>> for DatapointsEnumType {
+    fn from(value: Vec<DatapointState>) -> Self {
+        Self::StateDatapoints(value)
+    }
+}
+
 impl DatapointsEnumType {
     /// Get self as numeric datapoints, or none if a different type.
     pub fn numeric(self) -> Option<Vec<DatapointDouble>> {
@@ -62,6 +70,13 @@ impl DatapointsEnumType {
     pub fn string(self) -> Option<Vec<DatapointString>> {
         match self {
             Self::StringDatapoints(x) => Some(x),
+            _ => None,
+        }
+    }
+    /// Get self as state datapoints, or none if a different type.
+    pub fn state(self) -> Option<Vec<DatapointState>> {
+        match self {
+            Self::StateDatapoints(x) => Some(x),
             _ => None,
         }
     }
@@ -206,6 +221,20 @@ pub struct DatapointString {
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
+/// A datapoint with a numeric state code and a string label.
+pub struct DatapointState {
+    /// Timestamp in milliseconds since epoch.
+    pub timestamp: i64,
+    /// Numeric state code.
+    pub numeric_value: Option<i64>,
+    /// String state label.
+    pub string_value: Option<String>,
+    /// Datapoint status code.
+    pub status: Option<StatusCode>,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
 /// An aggregate data point.
 pub struct DatapointAggregate {
     /// Timestamp in milliseconds since epoch.
@@ -311,6 +340,28 @@ impl From<AggregateDatapoint> for DatapointAggregate {
             duration_good: dp.duration_good,
             duration_uncertain: dp.duration_uncertain,
             duration_bad: dp.duration_bad,
+        }
+    }
+}
+
+impl From<DatapointState> for StateDatapoint {
+    fn from(dp: DatapointState) -> StateDatapoint {
+        StateDatapoint {
+            timestamp: dp.timestamp,
+            numeric_value: dp.numeric_value,
+            string_value: dp.string_value,
+            status: dp.status.map(|s| s.into()),
+        }
+    }
+}
+
+impl From<StateDatapoint> for DatapointState {
+    fn from(dp: StateDatapoint) -> DatapointState {
+        DatapointState {
+            timestamp: dp.timestamp,
+            numeric_value: dp.numeric_value,
+            string_value: dp.string_value,
+            status: dp.status.map(|s| s.into()),
         }
     }
 }
@@ -650,6 +701,13 @@ impl From<AddDatapoints> for DataPointInsertionItem {
                     self::proto::data_point_insertion_item::DatapointType::StringDatapoints(
                         StringDatapoints {
                             datapoints: dps.into_iter().map(StringDatapoint::from).collect(),
+                        },
+                    ),
+                ),
+                DatapointsEnumType::StateDatapoints(dps) => Some(
+                    self::proto::data_point_insertion_item::DatapointType::StateDatapoints(
+                        StateDatapoints {
+                            datapoints: dps.into_iter().map(StateDatapoint::from).collect(),
                         },
                     ),
                 ),
