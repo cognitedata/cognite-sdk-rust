@@ -4,8 +4,8 @@ use serde::{Deserialize, Serialize};
 use serde_with::skip_serializing_none;
 
 use crate::{
-    Identity, IntoPatch, IntoPatchItem, Patch, Range, UpdateList, UpdateMap, UpdateSet,
-    UpsertOptions,
+    to_query, Identity, IntoParams, IntoPatch, IntoPatchItem, Patch, Range, UpdateList, UpdateMap,
+    UpdateSet, UpsertOptions,
 };
 
 #[derive(Serialize, Deserialize, Clone, Default, Debug)]
@@ -295,4 +295,90 @@ pub struct ExtPipeRunFilter {
     pub created_time: Option<Range<i64>>,
     /// Include runs with messages matching this filter.
     pub message: Option<ExtPipeStringFilter>,
+}
+
+#[skip_serializing_none]
+#[derive(Serialize, Deserialize, Clone, Debug)]
+#[serde(rename_all = "camelCase")]
+/// Configuration revision of an extraction pipeline.
+pub struct ExtPipeConfig {
+    /// External ID of the extraction pipeline.
+    pub external_id: String,
+    /// Configuration content.
+    pub config: Option<String>,
+    /// Revision number.
+    pub revision: i32,
+    /// Creation time in milliseconds since epoch.
+    pub created_time: i64,
+    /// Revision description.
+    pub description: Option<String>,
+}
+
+#[skip_serializing_none]
+#[derive(Serialize, Deserialize, Clone, Debug)]
+#[serde(rename_all = "camelCase")]
+/// Configuration revision of an extraction pipeline, without the content.
+pub struct ExtPipeConfigRevision {
+    /// External ID of the extraction pipeline.
+    pub external_id: String,
+    /// Revision number.
+    pub revision: i32,
+    /// Creation time in milliseconds since epoch.
+    pub created_time: i64,
+    /// Revision description.
+    pub description: Option<String>,
+}
+
+#[skip_serializing_none]
+#[derive(Serialize, Deserialize, Default, Clone, Debug)]
+#[serde(rename_all = "camelCase")]
+/// New configuration revision of an extraction pipeline.
+pub struct AddExtPipeConfig {
+    /// External ID of the extraction pipeline.
+    pub external_id: String,
+    /// Configuration content.
+    pub config: Option<String>,
+    /// Revision description.
+    pub description: Option<String>,
+}
+
+#[derive(Debug, Default, Clone)]
+/// Query for retrieving a configuration revision. Without `revision` or `active_at_time`,
+/// the latest revision is returned.
+pub struct ExtPipeConfigQuery {
+    /// External ID of the extraction pipeline.
+    pub external_id: String,
+    /// Revision number.
+    pub revision: Option<i32>,
+    /// Return the revision active at this time, in milliseconds since epoch.
+    pub active_at_time: Option<i64>,
+}
+
+impl IntoParams for ExtPipeConfigQuery {
+    fn into_params(self) -> Vec<(String, String)> {
+        let mut params = vec![("externalId".to_string(), self.external_id)];
+        to_query("revision", &self.revision, &mut params);
+        to_query("activeAtTime", &self.active_at_time, &mut params);
+        params
+    }
+}
+
+#[derive(Debug, Default, Clone)]
+/// Query for listing configuration revisions.
+pub struct ExtPipeConfigRevisionsQuery {
+    /// External ID of the extraction pipeline.
+    pub external_id: String,
+    /// Maximum number of revisions to return.
+    pub limit: Option<i32>,
+    /// Optional cursor for pagination.
+    pub cursor: Option<String>,
+}
+
+impl IntoParams for ExtPipeConfigRevisionsQuery {
+    fn into_params(self) -> Vec<(String, String)> {
+        let mut params = vec![("externalId".to_string(), self.external_id)];
+        to_query("limit", &self.limit, &mut params);
+        to_query("cursor", &self.cursor, &mut params);
+        params
+    }
 }
