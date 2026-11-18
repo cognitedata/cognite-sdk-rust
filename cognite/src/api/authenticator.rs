@@ -1,6 +1,5 @@
 use crate::dto::utils::MaybeStringU64;
 use async_trait::async_trait;
-use futures_locks::RwLock;
 use reqwest::{
     header::{HeaderMap, HeaderValue},
     StatusCode,
@@ -10,6 +9,7 @@ use serde::{Deserialize, Serialize};
 use std::time::{Duration, Instant};
 use std::{fmt::Display, sync::Arc};
 use thiserror::Error;
+use tokio::sync::RwLock;
 
 /// Type of closure for a synchronous auth callback.
 type CustomAuthCallback =
@@ -373,5 +373,57 @@ impl Authenticator {
         client: &ClientWithMiddleware,
     ) -> Result<String, AuthenticatorError> {
         Ok(self.get_token_with_expiry(client).await?.token)
+    }
+}
+
+#[cfg(all(test, not(target_arch = "wasm32")))]
+mod tests {
+    use super::*;
+    use wiremock::matchers::{method, path};
+    use wiremock::{Mock, MockServer, ResponseTemplate};
+
+    #[tokio::test]
+    async fn a_request_cancelled_during_a_refresh_does_not_block_the_next_refresh() {
+        let server = MockServer::start().await;
+        // expires_in below the 60 s margin, so every call refreshes the token.
+        Mock::given(method("POST"))
+            .and(path("/token"))
+            .respond_with(
+                ResponseTemplate::new(200)
+                    .set_body_json(serde_json::json!({"access_token": "token", "expires_in": 0}))
+                    .set_delay(Duration::from_millis(300)),
+            )
+            .mount(&server)
+            .await;
+        let auth = Arc::new(Authenticator::new(AuthenticatorConfig {
+            client_id: "client".to_owned(),
+            secret: "secret".to_owned(),
+            token_url: format!("{}/token", server.uri()),
+            resource: None,
+            audience: None,
+            scopes: None,
+            default_expires_in: None,
+        }));
+        let client = reqwest_middleware::ClientBuilder::new(reqwest::Client::new()).build();
+
+        let refresh = tokio::spawn({
+            let auth = auth.clone();
+            let client = client.clone();
+            async move { auth.get_token(&client).await }
+        });
+        tokio::time::sleep(Duration::from_millis(100)).await;
+        // Waits behind the refresh, then is cancelled, as a dropped request future would be.
+        assert!(
+            tokio::time::timeout(Duration::from_millis(50), auth.get_token(&client))
+                .await
+                .is_err()
+        );
+        refresh.await.unwrap().unwrap();
+
+        let next = tokio::time::timeout(Duration::from_secs(5), auth.get_token(&client)).await;
+        assert_eq!(
+            next.expect("the next refresh never got the lock").unwrap(),
+            "token"
+        );
     }
 }
