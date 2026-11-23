@@ -38,6 +38,22 @@ pub struct StringDatapoints {
     #[prost(message, repeated, tag = "1")]
     pub datapoints: ::prost::alloc::vec::Vec<StringDatapoint>,
 }
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
+pub struct StateDatapoint {
+    #[prost(int64, tag = "1")]
+    pub timestamp: i64,
+    #[prost(int64, optional, tag = "2")]
+    pub numeric_value: ::core::option::Option<i64>,
+    #[prost(string, optional, tag = "3")]
+    pub string_value: ::core::option::Option<::prost::alloc::string::String>,
+    #[prost(message, optional, tag = "4")]
+    pub status: ::core::option::Option<Status>,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct StateDatapoints {
+    #[prost(message, repeated, tag = "1")]
+    pub datapoints: ::prost::alloc::vec::Vec<StateDatapoint>,
+}
 #[derive(Clone, Copy, PartialEq, ::prost::Message)]
 pub struct AggregateDatapoint {
     #[prost(int64, tag = "1")]
@@ -95,7 +111,7 @@ pub struct DataPointInsertionItem {
     )]
     pub time_series_reference:
         ::core::option::Option<data_point_insertion_item::TimeSeriesReference>,
-    #[prost(oneof = "data_point_insertion_item::DatapointType", tags = "3, 4")]
+    #[prost(oneof = "data_point_insertion_item::DatapointType", tags = "3, 4, 6")]
     pub datapoint_type: ::core::option::Option<data_point_insertion_item::DatapointType>,
 }
 /// Nested message and enum types in `DataPointInsertionItem`.
@@ -115,6 +131,8 @@ pub mod data_point_insertion_item {
         NumericDatapoints(super::NumericDatapoints),
         #[prost(message, tag = "4")]
         StringDatapoints(super::StringDatapoints),
+        #[prost(message, tag = "6")]
+        StateDatapoints(super::StateDatapoints),
     }
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
