@@ -34,6 +34,22 @@ pub enum DatapointsEnumType {
     StateDatapoints(Vec<DatapointState>),
     /// Aggregate data points.
     AggregateDatapoints(Vec<DatapointAggregate>),
+    /// Aggregate data points for string time series.
+    StringAggregateDatapoints(Vec<DatapointStringAggregate>),
+    /// Aggregate data points for state time series.
+    StateAggregateDatapoints(Vec<DatapointStateAggregate>),
+}
+
+impl From<Vec<DatapointStringAggregate>> for DatapointsEnumType {
+    fn from(value: Vec<DatapointStringAggregate>) -> Self {
+        Self::StringAggregateDatapoints(value)
+    }
+}
+
+impl From<Vec<DatapointStateAggregate>> for DatapointsEnumType {
+    fn from(value: Vec<DatapointStateAggregate>) -> Self {
+        Self::StateAggregateDatapoints(value)
+    }
 }
 
 impl From<Vec<DatapointDouble>> for DatapointsEnumType {
@@ -86,6 +102,20 @@ impl DatapointsEnumType {
     pub fn aggregate(self) -> Option<Vec<DatapointAggregate>> {
         match self {
             Self::AggregateDatapoints(x) => Some(x),
+            _ => None,
+        }
+    }
+    /// Get self as string aggregate datapoints, or none if a different type.
+    pub fn string_aggregate(self) -> Option<Vec<DatapointStringAggregate>> {
+        match self {
+            Self::StringAggregateDatapoints(x) => Some(x),
+            _ => None,
+        }
+    }
+    /// Get self as state aggregate datapoints, or none if a different type.
+    pub fn state_aggregate(self) -> Option<Vec<DatapointStateAggregate>> {
+        match self {
+            Self::StateAggregateDatapoints(x) => Some(x),
             _ => None,
         }
     }
@@ -278,6 +308,160 @@ pub struct DatapointAggregate {
     /// The duration the aggregate is defined but marked as bad (regardless of ignoreBadDataPoints parameter).
     /// Measured in milliseconds. Equivalent to duration that the previous data point is bad and in range.
     pub duration_bad: f64,
+    /// The data point with the maximum value in the aggregate period.
+    pub max_datapoint: Option<DatapointDouble>,
+    /// The data point with the minimum value in the aggregate period.
+    pub min_datapoint: Option<DatapointDouble>,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
+/// An aggregate data point for a string time series.
+pub struct DatapointStringAggregate {
+    /// Timestamp in milliseconds since epoch.
+    pub timestamp: i64,
+    /// Number of values in aggregate.
+    pub count: f64,
+    /// The number of data points in the aggregate period that have a Good status code.
+    pub count_good: f64,
+    /// The number of data points in the aggregate period that have an Uncertain status code.
+    pub count_uncertain: f64,
+    /// The number of data points in the aggregate period that have a Bad status code.
+    pub count_bad: f64,
+    /// The duration the aggregate is defined and marked as good, in milliseconds.
+    pub duration_good: f64,
+    /// The duration the aggregate is defined and marked as uncertain, in milliseconds.
+    pub duration_uncertain: f64,
+    /// The duration the aggregate is defined but marked as bad, in milliseconds.
+    pub duration_bad: f64,
+    /// The last value before or at the beginning of the aggregate.
+    pub interpolation: Option<String>,
+    /// The last value before or at the beginning of the aggregate.
+    pub step_interpolation: Option<String>,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+/// A state value, with numeric and string representations.
+pub struct DatapointStateValue {
+    /// Numeric representation of the state.
+    pub numeric_value: Option<i64>,
+    /// String representation of the state. May be missing if the state
+    /// no longer exists in the state set.
+    pub string_value: Option<String>,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+/// Aggregates for a single state value within an aggregate period.
+pub struct DatapointStateAggregateEntry {
+    /// Numeric representation of the state.
+    pub numeric_value: i64,
+    /// String representation of the state. May be missing if the state
+    /// no longer exists in the state set.
+    pub string_value: Option<String>,
+    /// The number of data points in the aggregate period with this state value.
+    pub state_count: Option<i64>,
+    /// How many times the state changed to this value in the aggregate period.
+    pub state_transitions: Option<i64>,
+    /// The duration the time series is in this state, in milliseconds.
+    pub state_duration: Option<i64>,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
+/// An aggregate data point for a state time series.
+pub struct DatapointStateAggregate {
+    /// Timestamp in milliseconds since epoch.
+    pub timestamp: i64,
+    /// Number of values in aggregate.
+    pub count: f64,
+    /// The number of data points in the aggregate period that have a Good status code.
+    pub count_good: f64,
+    /// The number of data points in the aggregate period that have an Uncertain status code.
+    pub count_uncertain: f64,
+    /// The number of data points in the aggregate period that have a Bad status code.
+    pub count_bad: f64,
+    /// The duration the aggregate is defined and marked as good, in milliseconds.
+    pub duration_good: f64,
+    /// The duration the aggregate is defined and marked as uncertain, in milliseconds.
+    pub duration_uncertain: f64,
+    /// The duration the aggregate is defined but marked as bad, in milliseconds.
+    pub duration_bad: f64,
+    /// The last value before or at the beginning of the aggregate.
+    pub interpolation: Option<DatapointStateValue>,
+    /// The last value before or at the beginning of the aggregate.
+    pub step_interpolation: Option<DatapointStateValue>,
+    /// Aggregates per state value.
+    pub state_aggregates: Vec<DatapointStateAggregateEntry>,
+}
+
+impl From<StateDatapointValue> for DatapointStateValue {
+    fn from(v: StateDatapointValue) -> Self {
+        Self {
+            numeric_value: v.numeric_value,
+            string_value: v.string_value,
+        }
+    }
+}
+
+impl From<StateAggregate> for DatapointStateAggregateEntry {
+    fn from(v: StateAggregate) -> Self {
+        Self {
+            numeric_value: v.numeric_value,
+            string_value: v.string_value,
+            state_count: v.state_count,
+            state_transitions: v.state_transitions,
+            state_duration: v.state_duration,
+        }
+    }
+}
+
+impl From<StringAggregateDatapoint> for DatapointStringAggregate {
+    fn from(dp: StringAggregateDatapoint) -> Self {
+        Self {
+            timestamp: dp.timestamp,
+            count: dp.count,
+            count_good: dp.count_good,
+            count_uncertain: dp.count_uncertain,
+            count_bad: dp.count_bad,
+            duration_good: dp.duration_good,
+            duration_uncertain: dp.duration_uncertain,
+            duration_bad: dp.duration_bad,
+            interpolation: dp.interpolation,
+            step_interpolation: dp.step_interpolation,
+        }
+    }
+}
+
+impl From<StateAggregateDatapoint> for DatapointStateAggregate {
+    fn from(dp: StateAggregateDatapoint) -> Self {
+        Self {
+            timestamp: dp.timestamp,
+            count: dp.count,
+            count_good: dp.count_good,
+            count_uncertain: dp.count_uncertain,
+            count_bad: dp.count_bad,
+            duration_good: dp.duration_good,
+            duration_uncertain: dp.duration_uncertain,
+            duration_bad: dp.duration_bad,
+            interpolation: dp.interpolation.map(Into::into),
+            step_interpolation: dp.step_interpolation.map(Into::into),
+            state_aggregates: dp.state_aggregates.into_iter().map(Into::into).collect(),
+        }
+    }
+}
+
+impl TimeSeriesType {
+    pub(crate) fn from_proto(value: i32) -> Option<Self> {
+        match proto::TimeSeriesType::try_from(value) {
+            Ok(proto::TimeSeriesType::TimeseriesTypeUnspecified) => None,
+            Ok(proto::TimeSeriesType::TimeseriesTypeNumeric) => Some(Self::Numeric),
+            Ok(proto::TimeSeriesType::TimeseriesTypeString) => Some(Self::String),
+            Ok(proto::TimeSeriesType::TimeseriesTypeState) => Some(Self::State),
+            Err(_) => Some(Self::Unknown),
+        }
+    }
 }
 
 impl From<NumericDatapoint> for DatapointDouble {
@@ -342,18 +526,8 @@ impl From<AggregateDatapoint> for DatapointAggregate {
             duration_good: dp.duration_good,
             duration_uncertain: dp.duration_uncertain,
             duration_bad: dp.duration_bad,
-        }
-    }
-}
-
-impl TimeSeriesType {
-    pub(crate) fn from_proto(value: i32) -> Option<Self> {
-        match proto::TimeSeriesType::try_from(value) {
-            Ok(proto::TimeSeriesType::TimeseriesTypeUnspecified) => None,
-            Ok(proto::TimeSeriesType::TimeseriesTypeNumeric) => Some(Self::Numeric),
-            Ok(proto::TimeSeriesType::TimeseriesTypeString) => Some(Self::String),
-            Ok(proto::TimeSeriesType::TimeseriesTypeState) => Some(Self::State),
-            Err(_) => Some(Self::Unknown),
+            max_datapoint: dp.max_datapoint.map(Into::into),
+            min_datapoint: dp.min_datapoint.map(Into::into),
         }
     }
 }
@@ -685,6 +859,30 @@ impl From<DataPointListItem> for DatapointsResponse {
                                 .collect(),
                         )
                     }
+                    data_point_list_item::DatapointType::StateDatapoints(dps) => {
+                        DatapointsEnumType::StateDatapoints(
+                            dps.datapoints
+                                .into_iter()
+                                .map(DatapointState::from)
+                                .collect(),
+                        )
+                    }
+                    data_point_list_item::DatapointType::StringAggregateDatapoints(dps) => {
+                        DatapointsEnumType::StringAggregateDatapoints(
+                            dps.datapoints
+                                .into_iter()
+                                .map(DatapointStringAggregate::from)
+                                .collect(),
+                        )
+                    }
+                    data_point_list_item::DatapointType::StateAggregateDatapoints(dps) => {
+                        DatapointsEnumType::StateAggregateDatapoints(
+                            dps.datapoints
+                                .into_iter()
+                                .map(DatapointStateAggregate::from)
+                                .collect(),
+                        )
+                    }
                 },
                 None => DatapointsEnumType::NumericDatapoints(Vec::<DatapointDouble>::new()),
             },
@@ -728,7 +926,9 @@ impl From<AddDatapoints> for DataPointInsertionItem {
                         },
                     ),
                 ),
-                DatapointsEnumType::AggregateDatapoints(_) => {
+                DatapointsEnumType::AggregateDatapoints(_)
+                | DatapointsEnumType::StringAggregateDatapoints(_)
+                | DatapointsEnumType::StateAggregateDatapoints(_) => {
                     panic!("Cannot insert aggregate datapoints")
                 }
             },

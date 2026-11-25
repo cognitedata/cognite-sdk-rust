@@ -11,8 +11,9 @@ use crate::{
     send_helper::CondBoxFuture,
     time_series::{
         DataPointListItem, DataPointListResponse, DatapointAggregate, DatapointDouble,
-        DatapointString, DatapointsFilter, DatapointsQuery, InstanceId, ListDatapointType,
-        TimeSeriesResource, TimeSeriesType,
+        DatapointState, DatapointStateAggregate, DatapointString, DatapointStringAggregate,
+        DatapointsFilter, DatapointsQuery, InstanceId, ListDatapointType, TimeSeriesResource,
+        TimeSeriesType,
     },
     Identity, IdentityOrInstance,
 };
@@ -23,8 +24,14 @@ pub enum EitherDataPoint {
     Numeric(DatapointDouble),
     /// A string datapoint.
     String(DatapointString),
+    /// A state datapoint.
+    State(DatapointState),
     /// An aggregate datapoint.
     Aggregate(DatapointAggregate),
+    /// An aggregate datapoint for a string time series.
+    StringAggregate(DatapointStringAggregate),
+    /// An aggregate datapoint for a state time series.
+    StateAggregate(DatapointStateAggregate),
 }
 
 struct TimeSeriesRef {
@@ -124,6 +131,30 @@ impl DataPointRef {
     pub fn as_aggregate(&self) -> Option<&DatapointAggregate> {
         match &self.datapoint {
             EitherDataPoint::Aggregate(dp) => Some(dp),
+            _ => None,
+        }
+    }
+
+    /// Get a reference to the underlying datapoint as state, if it is of that type.
+    pub fn as_state(&self) -> Option<&DatapointState> {
+        match &self.datapoint {
+            EitherDataPoint::State(dp) => Some(dp),
+            _ => None,
+        }
+    }
+
+    /// Get a reference to the underlying datapoint as a string aggregate, if it is of that type.
+    pub fn as_string_aggregate(&self) -> Option<&DatapointStringAggregate> {
+        match &self.datapoint {
+            EitherDataPoint::StringAggregate(dp) => Some(dp),
+            _ => None,
+        }
+    }
+
+    /// Get a reference to the underlying datapoint as a state aggregate, if it is of that type.
+    pub fn as_state_aggregate(&self) -> Option<&DatapointStateAggregate> {
+        match &self.datapoint {
+            EitherDataPoint::StateAggregate(dp) => Some(dp),
             _ => None,
         }
     }
@@ -358,6 +389,24 @@ impl<'a> DatapointsStream<'a> {
                             res.extend(dps.datapoints.into_iter().map(move |dp| DataPointRef {
                                 timeseries: timeseries.clone(),
                                 datapoint: EitherDataPoint::Numeric(dp.into()),
+                            }));
+                        }
+                        Some(ListDatapointType::StateDatapoints(dps)) => {
+                            res.extend(dps.datapoints.into_iter().map(move |dp| DataPointRef {
+                                timeseries: timeseries.clone(),
+                                datapoint: EitherDataPoint::State(dp.into()),
+                            }));
+                        }
+                        Some(ListDatapointType::StringAggregateDatapoints(dps)) => {
+                            res.extend(dps.datapoints.into_iter().map(move |dp| DataPointRef {
+                                timeseries: timeseries.clone(),
+                                datapoint: EitherDataPoint::StringAggregate(dp.into()),
+                            }));
+                        }
+                        Some(ListDatapointType::StateAggregateDatapoints(dps)) => {
+                            res.extend(dps.datapoints.into_iter().map(move |dp| DataPointRef {
+                                timeseries: timeseries.clone(),
+                                datapoint: EitherDataPoint::StateAggregate(dp.into()),
                             }));
                         }
                     }

@@ -54,7 +54,7 @@ pub struct StateDatapoints {
     #[prost(message, repeated, tag = "1")]
     pub datapoints: ::prost::alloc::vec::Vec<StateDatapoint>,
 }
-#[derive(Clone, Copy, PartialEq, ::prost::Message)]
+#[derive(Clone, PartialEq, ::prost::Message)]
 pub struct AggregateDatapoint {
     #[prost(int64, tag = "1")]
     pub timestamp: i64,
@@ -90,11 +90,96 @@ pub struct AggregateDatapoint {
     pub duration_uncertain: f64,
     #[prost(double, tag = "17")]
     pub duration_bad: f64,
+    #[prost(message, optional, tag = "18")]
+    pub max_datapoint: ::core::option::Option<NumericDatapoint>,
+    #[prost(message, optional, tag = "19")]
+    pub min_datapoint: ::core::option::Option<NumericDatapoint>,
+    #[deprecated]
+    #[prost(message, repeated, tag = "20")]
+    pub state_aggregates: ::prost::alloc::vec::Vec<StateAggregate>,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct StringAggregateDatapoint {
+    #[prost(int64, tag = "1")]
+    pub timestamp: i64,
+    #[prost(double, tag = "2")]
+    pub count: f64,
+    #[prost(double, tag = "3")]
+    pub count_good: f64,
+    #[prost(double, tag = "4")]
+    pub count_uncertain: f64,
+    #[prost(double, tag = "5")]
+    pub count_bad: f64,
+    #[prost(double, tag = "6")]
+    pub duration_good: f64,
+    #[prost(double, tag = "7")]
+    pub duration_uncertain: f64,
+    #[prost(double, tag = "8")]
+    pub duration_bad: f64,
+    #[prost(string, optional, tag = "9")]
+    pub interpolation: ::core::option::Option<::prost::alloc::string::String>,
+    #[prost(string, optional, tag = "10")]
+    pub step_interpolation: ::core::option::Option<::prost::alloc::string::String>,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct StateAggregateDatapoint {
+    #[prost(int64, tag = "1")]
+    pub timestamp: i64,
+    #[prost(double, tag = "2")]
+    pub count: f64,
+    #[prost(double, tag = "3")]
+    pub count_good: f64,
+    #[prost(double, tag = "4")]
+    pub count_uncertain: f64,
+    #[prost(double, tag = "5")]
+    pub count_bad: f64,
+    #[prost(double, tag = "6")]
+    pub duration_good: f64,
+    #[prost(double, tag = "7")]
+    pub duration_uncertain: f64,
+    #[prost(double, tag = "8")]
+    pub duration_bad: f64,
+    #[prost(message, optional, tag = "9")]
+    pub interpolation: ::core::option::Option<StateDatapointValue>,
+    #[prost(message, optional, tag = "10")]
+    pub step_interpolation: ::core::option::Option<StateDatapointValue>,
+    #[prost(message, repeated, tag = "11")]
+    pub state_aggregates: ::prost::alloc::vec::Vec<StateAggregate>,
+}
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
+pub struct StateDatapointValue {
+    #[prost(int64, optional, tag = "1")]
+    pub numeric_value: ::core::option::Option<i64>,
+    #[prost(string, optional, tag = "2")]
+    pub string_value: ::core::option::Option<::prost::alloc::string::String>,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct StateAggregateDatapoints {
+    #[prost(message, repeated, tag = "1")]
+    pub datapoints: ::prost::alloc::vec::Vec<StateAggregateDatapoint>,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct AggregateDatapoints {
     #[prost(message, repeated, tag = "1")]
     pub datapoints: ::prost::alloc::vec::Vec<AggregateDatapoint>,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct StringAggregateDatapoints {
+    #[prost(message, repeated, tag = "1")]
+    pub datapoints: ::prost::alloc::vec::Vec<StringAggregateDatapoint>,
+}
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
+pub struct StateAggregate {
+    #[prost(int64, tag = "1")]
+    pub numeric_value: i64,
+    #[prost(string, optional, tag = "2")]
+    pub string_value: ::core::option::Option<::prost::alloc::string::String>,
+    #[prost(int64, optional, tag = "3")]
+    pub state_count: ::core::option::Option<i64>,
+    #[prost(int64, optional, tag = "4")]
+    pub state_transitions: ::core::option::Option<i64>,
+    #[prost(int64, optional, tag = "5")]
+    pub state_duration: ::core::option::Option<i64>,
 }
 #[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct InstanceId {
@@ -160,7 +245,10 @@ pub struct DataPointListItem {
     pub unit_external_id: ::prost::alloc::string::String,
     #[prost(enumeration = "TimeSeriesType", tag = "12")]
     pub r#type: i32,
-    #[prost(oneof = "data_point_list_item::DatapointType", tags = "3, 4, 5")]
+    #[prost(
+        oneof = "data_point_list_item::DatapointType",
+        tags = "3, 4, 5, 14, 15, 13"
+    )]
     pub datapoint_type: ::core::option::Option<data_point_list_item::DatapointType>,
 }
 /// Nested message and enum types in `DataPointListItem`.
@@ -173,6 +261,12 @@ pub mod data_point_list_item {
         StringDatapoints(super::StringDatapoints),
         #[prost(message, tag = "5")]
         AggregateDatapoints(super::AggregateDatapoints),
+        #[prost(message, tag = "14")]
+        StringAggregateDatapoints(super::StringAggregateDatapoints),
+        #[prost(message, tag = "15")]
+        StateAggregateDatapoints(super::StateAggregateDatapoints),
+        #[prost(message, tag = "13")]
+        StateDatapoints(super::StateDatapoints),
     }
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
