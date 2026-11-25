@@ -43,6 +43,11 @@ pub struct TimeSeries {
     pub instance_id: Option<InstanceId>,
     /// Time series name.
     pub name: Option<String>,
+    /// The type of the time series.
+    #[serde(rename = "type")]
+    pub time_series_type: Option<TimeSeriesType>,
+    /// The state set used by a time series of type `state`.
+    pub state_set: Option<InstanceId>,
     /// Whether this is a time series for string or double data points.
     pub is_string: bool,
     /// Custom, application specific metadata. String key -> String value.
@@ -204,5 +209,47 @@ impl IntoPatch<PatchTimeSeries> for AddTimeSeries {
 impl From<TimeSeries> for Patch<PatchTimeSeries> {
     fn from(time_serie: TimeSeries) -> Patch<PatchTimeSeries> {
         IntoPatch::<Patch<PatchTimeSeries>>::patch(time_serie, &Default::default())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_deserialize_state_time_series() {
+        let json = r#"{
+            "id": 1144515753521266,
+            "instanceId": {"space": "pluto_state_test", "externalId": "pump_001_state"},
+            "name": "Pump 001 state",
+            "type": "state",
+            "stateSet": {"space": "pluto_state_test", "externalId": "pump_states"},
+            "isString": false,
+            "metadata": {},
+            "isStep": true,
+            "securityCategories": [],
+            "accessCategories": [],
+            "createdTime": 1795596866636,
+            "lastUpdatedTime": 1795596866636
+        }"#;
+        let ts: TimeSeries = serde_json::from_str(json).unwrap();
+        assert_eq!(ts.time_series_type, Some(TimeSeriesType::State));
+        let state_set = ts.state_set.unwrap();
+        assert_eq!(state_set.space, "pluto_state_test");
+        assert_eq!(state_set.external_id, "pump_states");
+    }
+
+    #[test]
+    fn test_deserialize_time_series_type() {
+        let cases = [
+            (r#""numeric""#, TimeSeriesType::Numeric),
+            (r#""string""#, TimeSeriesType::String),
+            (r#""state""#, TimeSeriesType::State),
+            (r#""something_new""#, TimeSeriesType::Unknown),
+        ];
+        for (json, expected) in cases {
+            let ty: TimeSeriesType = serde_json::from_str(json).unwrap();
+            assert_eq!(ty, expected, "json {json}");
+        }
     }
 }
