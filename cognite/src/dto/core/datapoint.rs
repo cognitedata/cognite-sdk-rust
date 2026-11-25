@@ -758,3 +758,33 @@ impl From<DataPointListResponse> for DatapointsListResponse {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_time_series_type_from_proto() {
+        let cases = [
+            (0, None),
+            (1, Some(TimeSeriesType::Numeric)),
+            (2, Some(TimeSeriesType::String)),
+            (3, Some(TimeSeriesType::State)),
+            (99, Some(TimeSeriesType::Unknown)),
+        ];
+        for (value, expected) in cases {
+            assert_eq!(TimeSeriesType::from_proto(value), expected, "value {value}");
+        }
+    }
+
+    #[test]
+    fn test_datapoints_response_from_list_item_type() {
+        let item = DataPointListItem {
+            id: 1,
+            r#type: 3,
+            ..Default::default()
+        };
+        let resp = DatapointsResponse::from(item);
+        assert_eq!(resp.time_series_type, Some(TimeSeriesType::State));
+    }
+}
