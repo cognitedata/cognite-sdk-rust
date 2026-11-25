@@ -1,6 +1,6 @@
 [package]
 name = "cognite-sdk"
-version = "0.7.0"
+version = "0.8.0"
 authors = [
   "Einar Marstrander Omang <einar.omang@cognite.com>",
   "Haakon Garseg Mørk <haakon.mork@cognite.com>",

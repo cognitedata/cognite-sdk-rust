@@ -15,6 +15,21 @@ use serde::{Deserialize, Serialize};
 use serde_with::skip_serializing_none;
 use std::collections::HashMap;
 
+#[derive(Serialize, Deserialize, Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[serde(rename_all = "camelCase")]
+/// The type of a time series.
+pub enum TimeSeriesType {
+    /// Time series with double precision floating point values.
+    Numeric,
+    /// Time series with string values.
+    String,
+    /// Time series with state values, belonging to a state set.
+    State,
+    /// A time series type not known to this version of the SDK.
+    #[serde(other)]
+    Unknown,
+}
+
 #[derive(Serialize, Deserialize, Debug, Default, Clone)]
 #[serde(rename_all = "camelCase")]
 /// A CDF time series.

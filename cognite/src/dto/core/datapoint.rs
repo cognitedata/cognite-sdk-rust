@@ -13,6 +13,8 @@ pub use self::proto::data_point_insertion_item::TimeSeriesReference;
 pub use self::proto::data_point_list_item::DatapointType as ListDatapointType;
 pub use self::proto::*;
 pub use self::status_code::*;
+// Shadows the generated protobuf enum of the same name.
+pub use crate::dto::core::time_series::TimeSeriesType;
 
 use serde::{de::Error, Deserialize, Serialize};
 use serde_json::Value;
@@ -344,6 +346,18 @@ impl From<AggregateDatapoint> for DatapointAggregate {
     }
 }
 
+impl TimeSeriesType {
+    pub(crate) fn from_proto(value: i32) -> Option<Self> {
+        match proto::TimeSeriesType::try_from(value) {
+            Ok(proto::TimeSeriesType::TimeseriesTypeUnspecified) => None,
+            Ok(proto::TimeSeriesType::TimeseriesTypeNumeric) => Some(Self::Numeric),
+            Ok(proto::TimeSeriesType::TimeseriesTypeString) => Some(Self::String),
+            Ok(proto::TimeSeriesType::TimeseriesTypeState) => Some(Self::State),
+            Err(_) => Some(Self::Unknown),
+        }
+    }
+}
+
 impl From<DatapointState> for StateDatapoint {
     fn from(dp: DatapointState) -> StateDatapoint {
         StateDatapoint {
@@ -392,6 +406,8 @@ pub struct DatapointsResponse {
     pub is_step: bool,
     /// Whether this is a string time series.
     pub is_string: bool,
+    /// The type of the time series, if returned by CDF.
+    pub time_series_type: Option<TimeSeriesType>,
     /// The cursor to get the next page of results (if available).
     /// nextCursor will be omitted when the next aggregate datapoint
     /// is after the end of the interval. Increase start/end to fetch more data.
@@ -639,6 +655,7 @@ impl From<DataPointListItem> for DatapointsResponse {
             },
             is_step: req.is_step,
             is_string: req.is_string,
+            time_series_type: TimeSeriesType::from_proto(req.r#type),
             datapoints: match req.datapoint_type {
                 Some(dps) => match dps {
                     data_point_list_item::DatapointType::NumericDatapoints(num_dps) => {

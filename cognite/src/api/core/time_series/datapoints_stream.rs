@@ -12,7 +12,7 @@ use crate::{
     time_series::{
         DataPointListItem, DataPointListResponse, DatapointAggregate, DatapointDouble,
         DatapointString, DatapointsFilter, DatapointsQuery, InstanceId, ListDatapointType,
-        TimeSeriesResource,
+        TimeSeriesResource, TimeSeriesType,
     },
     Identity, IdentityOrInstance,
 };
@@ -34,6 +34,7 @@ struct TimeSeriesRef {
     original_id: IdentityOrInstance,
     is_string: bool,
     is_step: bool,
+    time_series_type: Option<TimeSeriesType>,
     unit: Option<String>,
     unit_external_id: Option<String>,
 }
@@ -76,6 +77,11 @@ impl DataPointRef {
     /// Check if the timeseries this datapoint belongs to is a step timeseries.
     pub fn is_step(&self) -> bool {
         self.timeseries.is_step
+    }
+
+    /// Get the type of the timeseries this datapoint belongs to, if returned by CDF.
+    pub fn time_series_type(&self) -> Option<TimeSeriesType> {
+        self.timeseries.time_series_type
     }
 
     /// Get the unit of the timeseries this datapoint belongs to, if it has one.
@@ -208,6 +214,7 @@ impl<'a> DatapointsStream<'a> {
                 original_id: query.id.clone(),
                 is_string: response.is_string,
                 is_step: response.is_step,
+                time_series_type: TimeSeriesType::from_proto(response.r#type),
                 unit: if !response.unit.is_empty() {
                     Some(response.unit.clone())
                 } else {
@@ -433,6 +440,7 @@ mod tests {
             original_id: IdentityOrInstance::from("ts1"),
             is_string: false,
             is_step: false,
+            time_series_type: Some(TimeSeriesType::Numeric),
             unit: Some("°C".to_string()),
             unit_external_id: None,
         });

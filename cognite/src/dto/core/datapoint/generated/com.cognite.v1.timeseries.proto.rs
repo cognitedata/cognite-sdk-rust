@@ -158,6 +158,8 @@ pub struct DataPointListItem {
     pub next_cursor: ::prost::alloc::string::String,
     #[prost(string, tag = "10")]
     pub unit_external_id: ::prost::alloc::string::String,
+    #[prost(enumeration = "TimeSeriesType", tag = "12")]
+    pub r#type: i32,
     #[prost(oneof = "data_point_list_item::DatapointType", tags = "3, 4, 5")]
     pub datapoint_type: ::core::option::Option<data_point_list_item::DatapointType>,
 }
@@ -177,4 +179,36 @@ pub mod data_point_list_item {
 pub struct DataPointListResponse {
     #[prost(message, repeated, tag = "1")]
     pub items: ::prost::alloc::vec::Vec<DataPointListItem>,
+}
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::prost::Enumeration)]
+#[repr(i32)]
+pub enum TimeSeriesType {
+    TimeseriesTypeUnspecified = 0,
+    TimeseriesTypeNumeric = 1,
+    TimeseriesTypeString = 2,
+    TimeseriesTypeState = 3,
+}
+impl TimeSeriesType {
+    /// String value of the enum field names used in the ProtoBuf definition.
+    ///
+    /// The values are not transformed in any way and thus are considered stable
+    /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+    pub fn as_str_name(&self) -> &'static str {
+        match self {
+            Self::TimeseriesTypeUnspecified => "TIMESERIES_TYPE_UNSPECIFIED",
+            Self::TimeseriesTypeNumeric => "TIMESERIES_TYPE_NUMERIC",
+            Self::TimeseriesTypeString => "TIMESERIES_TYPE_STRING",
+            Self::TimeseriesTypeState => "TIMESERIES_TYPE_STATE",
+        }
+    }
+    /// Creates an enum from field names used in the ProtoBuf definition.
+    pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+        match value {
+            "TIMESERIES_TYPE_UNSPECIFIED" => Some(Self::TimeseriesTypeUnspecified),
+            "TIMESERIES_TYPE_NUMERIC" => Some(Self::TimeseriesTypeNumeric),
+            "TIMESERIES_TYPE_STRING" => Some(Self::TimeseriesTypeString),
+            "TIMESERIES_TYPE_STATE" => Some(Self::TimeseriesTypeState),
+            _ => None,
+        }
+    }
 }
