@@ -13,8 +13,8 @@ use crate::retry::CustomRetryMiddleware;
 use crate::AuthHeaderManager;
 use crate::{
     assets::AssetsResource, datasets::DataSetsResource, events::EventsResource,
-    extpipes::ExtPipeRunsResource, extpipes::ExtPipesResource, files::Files,
-    labels::LabelsResource, raw::RawResource, relationships::RelationshipsResource,
+    extpipes::ExtPipeConfigsResource, extpipes::ExtPipeRunsResource, extpipes::ExtPipesResource,
+    files::Files, labels::LabelsResource, raw::RawResource, relationships::RelationshipsResource,
     time_series::TimeSeriesResource,
 };
 
@@ -94,6 +94,8 @@ pub struct CogniteClient {
     pub ext_pipes: ExtPipesResource,
     /// CDF extraction pipeline runs resource.
     pub ext_pipe_runs: ExtPipeRunsResource,
+    /// CDF extraction pipeline configurations resource.
+    pub ext_pipe_configs: ExtPipeConfigsResource,
     /// CDF sequences resource.
     pub sequences: SequencesResource,
     /// CDF sessions resource.
@@ -236,6 +238,7 @@ impl CogniteClient {
             relationships: RelationshipsResource::new(ac.clone()),
             ext_pipes: ExtPipesResource::new(ac.clone()),
             ext_pipe_runs: ExtPipeRunsResource::new(ac.clone()),
+            ext_pipe_configs: ExtPipeConfigsResource::new(ac.clone()),
             sequences: SequencesResource::new(ac.clone()),
             sessions: SessionsResource::new(ac.clone()),
             models: Models::new(ac),
